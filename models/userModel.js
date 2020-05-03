@@ -7,10 +7,15 @@ module.exports = {
     getByID: (id) => {
         return db.query(`select * from users where id = ${id}`);
     },
-    sign_up: (account) => {
-        var columns = `(email, password)`;
-        var values = `('${account.email}', '${account.password}')`;
-        var sqlQuery = `insert into USERs` + columns + ` values` + values + `;`;
-        return db.query(sqlQuery);
-    }
+    sign_up: (account, company) => {
+        var columnsUsers = `(email, password, fullname, dob, dial, address, isBusinessUser, gender, account_status)`;
+        var valuesUsers = `('${account.email}', '${account.password}', '${account.fullname}', '${account.dob}', '${account.dial}', '${account.address}' 
+                            ,${account.isBusinessUser}, ${account.gender}, ${account.account_status})`;
+        var sqlQueryUsers = `insert into USERs` + columnsUsers + ` values` + valuesUsers + `;`;
+        var columnsCompanies = `(id_user, company_name, position, company_address, company_email, number_of_employees)`;
+        var valuesCompanies = `, '${company.company_name}', '${company.position}', '${company.company_address}'
+                                        ,'${company.company_email}', ${company.number_of_employees})`;
+        // var sqlQueryCompanies = `insert into COMPANIEs` + columnsCompanies + ` values` + valuesCompanies + `;`;
+        return db.transaction(sqlQueryUsers, columnsCompanies, valuesCompanies, `COMPANIEs`);
+    },
 }
