@@ -57,14 +57,18 @@ router.post('/signup', (req, res) => {
     address: req.body.address,
     isBusinessUser: req.body.isBusinessUser,
     gender: req.body.gender,
-    account_status: req.body.account_status,
-  }
-  var company = {
-    company_name: req.body.company_name,
-    position: req.body.position,
-    company_address: req.body.company_address,
-    company_email: req.body.company_email,
-    number_of_employees: req.body.number_of_employees,
+    account_status: req.body.account_status, // default = 0
+  };
+  var company = null;
+  
+  if (account.isBusinessUser != 0) {
+    company = {
+      company_name: req.body.company_name,
+      position: req.body.position,
+      company_address: req.body.company_address,
+      company_email: req.body.company_email,
+      number_of_employees: req.body.number_of_employees,
+    }
   }
   userModel.getByEmail(account.email)
     .then((data1) => {
