@@ -5,6 +5,7 @@ var bcrypt = require('bcrypt');
 const saltRounds = 15;
 
 var userModel = require('../models/userModel');
+var jobTopicModel = require('../models/jobTopicModel');
 
 var router = express.Router();
 
@@ -12,7 +13,21 @@ var router = express.Router();
 router.get('/', function (req, res, next) {
   res.render('index', { title: 'Express' });
 });
+router.get('/allJobTopics', function (req, res, next) {
+  jobTopicModel.getAllJobTopics().then(data => {
+    if (data.length > 0) {
+      // data.forEach(element => {
+      //   let buffer = new Buffer(element.img);
+      //   let bufferBase64 = buffer.toString('base64');
+      //   element.img = bufferBase64;
+      // });
+      res.json({ data })
+    }
 
+  }).catch((err1) => {
+    res.json({ message: err1, code: 0 });
+  })
+});
 /* Dummy login api */
 // router.post('/login', function (req, res, next) {
 //   let { email, password } = req.body;
@@ -48,6 +63,7 @@ router.get('/', function (req, res, next) {
 
 /* Signup */
 router.post('/signup', (req, res) => {
+  console.log('body:', req.body);
   var account = {
     fullname: req.body.fullname,
     dob: req.body.dob,
@@ -60,7 +76,7 @@ router.post('/signup', (req, res) => {
     account_status: req.body.account_status, // default = 0
   };
   var company = null;
-  
+
   if (account.isBusinessUser != 0) {
     company = {
       company_name: req.body.company_name,
