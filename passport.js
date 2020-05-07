@@ -69,6 +69,7 @@ module.exports.authHandler = (token) => {
             secretOrKey: 'S_Team',
         },
         function (jwtPayload, cb) {
+            console.log(JSON.stringify(jwtPayload));
             token = token.slice(7);
             console.log("TOKEN: " + token);
             redis.getKey(token).then(isValid => {

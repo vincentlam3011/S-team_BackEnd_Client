@@ -95,8 +95,8 @@ router.post('/login', (req, res, next) => {
           res.send(err);
         }
         let payload = { id: user.loginUser.id_user };
-        const token = jwt.sign(payload, 'S_Team');
-        console.log("Logged in: " + JSON.stringify(req.user.loginUser));
+        const token = jwt.sign(payload, 'S_Team', {expiresIn: '24h'});
+        
         /* TODO add Cur token if not null to blacklist */
         redis.setKey(req.user.loginUser.currentToken);
         userModel.editToken(token)
