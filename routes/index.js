@@ -48,8 +48,28 @@ router.get('/', function (req, res, next) {
 
 /* Signup */
 router.post('/signup', (req, res) => {
-  var account = req.body;
-  console.log(account);
+  var account = {
+    fullname: req.body.fullname,
+    dob: req.body.dob,
+    email: req.body.email,
+    password: req.body.password,
+    dial: req.body.dial,
+    address: req.body.address,
+    isBusinessUser: req.body.isBusinessUser,
+    gender: req.body.gender,
+    account_status: req.body.account_status, // default = 0
+  };
+  var company = null;
+  
+  if (account.isBusinessUser != 0) {
+    company = {
+      company_name: req.body.company_name,
+      position: req.body.position,
+      company_address: req.body.company_address,
+      company_email: req.body.company_email,
+      number_of_employees: req.body.number_of_employees,
+    }
+  }
   userModel.getByEmail(account.email)
     .then((data1) => {
       console.log(data1.length);
@@ -57,10 +77,11 @@ router.post('/signup', (req, res) => {
         res.json({ message: 'Email existed', code: -1, note: data1 });
       }
       else {
+        console.log("RAW:" + account.password);
         bcrypt.hash(account.password, saltRounds, (err, hash) => {
           account.password = hash;
           console.log("Account 2.0: " + account.password);
-          userModel.sign_up(account)
+          userModel.sign_up(account, company)
             .then((data2) => {
               res.json({ message: 'Success signing up', code: 1, note: data2 });
             }).catch((err2) => {
@@ -77,7 +98,7 @@ router.post('/signup', (req, res) => {
 router.post('/login', (req, res, next) => {
   console.log(req.body);
   passport.authenticate('local', { session: false }, (err, user, info) => {
-    
+
     if (user === false) {
       res.json({
         user,
