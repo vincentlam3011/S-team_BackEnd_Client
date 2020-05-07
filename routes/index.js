@@ -3,6 +3,7 @@ var jwt = require('jsonwebtoken');
 var passport = require('passport');
 var bcrypt = require('bcrypt');
 const saltRounds = 15;
+var redis = require('../utils/redis');
 
 var userModel = require('../models/userModel');
 
@@ -97,6 +98,7 @@ router.post('/login', (req, res, next) => {
         const token = jwt.sign(payload, 'S_Team');
         console.log("Logged in: " + JSON.stringify(req.user.loginUser));
         /* TODO add Cur token if not null to blacklist */
+        redis.setKey(req.user.loginUser.currentToken);
         userModel.editToken(token)
           .then(result => {
             return res.json({ user, token, cb });

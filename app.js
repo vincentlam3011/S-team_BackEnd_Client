@@ -5,12 +5,14 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require('cors');
 
+
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
 var app = express();
 
 require('./passport');
+var verify = require('./passport');
 var passport = require('passport');
 
 // view engine setup
@@ -33,10 +35,15 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
+
+app.use(function (req, res, next) {
+  // console.log(req.headers.authorization);
+  verify.authHandler(req.headers.authorization);
+  next();
+})
 app.use('/users',
   passport.authenticate('jwt',
     { session: false }), usersRouter);
-
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));

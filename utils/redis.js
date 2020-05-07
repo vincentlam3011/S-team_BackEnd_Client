@@ -46,7 +46,11 @@ module.exports = {
                         reject(err);
                     }
                     console.log('GET result: ' + res);
-                    resolve (res);
+                    var isValid = true;
+                    if (res !== null) {
+                        isValid = false;
+                    }
+                    resolve (isValid);
                 })
 
             })
