@@ -6,11 +6,10 @@ var redis = require('../utils/redis')
 var userModel = require('../models/userModel');
 
 /* GET users listing. */
+
 router.get('/', function (req, res, next) {
   console.log(res);
   res.send('respond with a resource');
-
-  // res.json({ Message: "Respond with token" });
 });
 
 /* Dummy API */
