@@ -13,23 +13,17 @@ passport.use(new LocalStrategy(
         usernameField: 'email',
         passwordField: 'password',
     },
-    function(email, password, cb){
-        console.log("Login authenticated");
-        console.log(email);
-        return userModel.getByEmail(email)
+    function (username, password, cb) {
+        console.log("local login authenticate");
+        console.log(username);
+        return userModel.getByEmail(username, true)
             .then((data) => {
-                console.log(data);
-                if (data.length > 0) { // Existed
-                    // if (password === data[0].password) {
-                    //     return cb(null, { loginUser: data[0] }, { message: 'Logged in successfully', code: 3 });
-                    // }
-                    // else {
-                    //     cb(null, false, { message: 'Wrong password', code: 1 });
-                    // }
+                if (data.length > 0) {
                     bcrypt.compare(password, data[0].password, (err, res) => {
-                        if (res === true) {
+                        if (res) {
                             return cb(null, { loginUser: data[0] }, { message: 'Logged in successfully', code: 3 });
-                        } else {
+                        }
+                        else {
                             cb(null, false, { message: 'Wrong password', code: 1 });
                         }
                     })
@@ -42,14 +36,15 @@ passport.use(new LocalStrategy(
                 return cb(error)
             });
     }
-))
+));
 
-passport.use(new JWTStrategy(
+passport.use( new JWTStrategy(
     {
         jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
         secretOrKey: 'S_Team',
     },
     function (jwtPayload, cb) {
+        // console.log("PAYLOAD: " + JSON.stringify(jwtPayload));
         return userModel.getByID(jwtPayload.id)
             .then(user => {
                 if (user.length > 0)
