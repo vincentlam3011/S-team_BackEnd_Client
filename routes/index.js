@@ -3,6 +3,7 @@ var jwt = require('jsonwebtoken');
 var passport = require('passport');
 var bcrypt = require('bcrypt');
 const saltRounds = 15;
+var redis = require('../utils/redis');
 
 var userModel = require('../models/userModel');
 var jobTopicModel = require('../models/jobTopicModel');
@@ -28,38 +29,6 @@ router.get('/allJobTopics', function (req, res, next) {
     res.json({ message: err1, code: 0 });
   })
 });
-/* Dummy login api */
-// router.post('/login', function (req, res, next) {
-//   let { email, password } = req.body;
-
-//   if (email === 'admin' && password === '123') {
-//     res.json({
-//       code: 1,
-//       data: {
-//         id: 1,
-//         email,
-//       },
-//       message: 'Login successfully',
-//       error: null,
-//     })
-//   }
-//   else if (email === 'admin') {
-//     res.json({
-//       code: 0,
-//       data: null,
-//       message: 'Wrong account',
-//       error: null,
-//     })
-//   }
-//   else {
-//     res.json({
-//       code: 0,
-//       data: null,
-//       message: 'Account doesnt exist',
-//       error: null,
-//     })
-//   }
-// });
 
 /* Signup */
 router.post('/signup', (req, res) => {
@@ -74,6 +43,7 @@ router.post('/signup', (req, res) => {
     isBusinessUser: req.body.isBusinessUser,
     gender: req.body.gender,
     account_status: req.body.account_status, // default = 0
+    confirm: req.body.confirm,
   };
   var company = null;
 
@@ -86,40 +56,44 @@ router.post('/signup', (req, res) => {
       number_of_employees: req.body.number_of_employees,
     }
   }
-  userModel.getByEmail(account.email)
-    .then((data1) => {
-      console.log(data1.length);
-      if (data1.length > 0) { // Existed
-        res.json({ message: 'Email existed', code: -1, note: data1 });
-      }
-      else {
-        console.log("RAW:" + account.password);
-        bcrypt.hash(account.password, saltRounds, (err, hash) => {
-          account.password = hash;
-          console.log("Account 2.0: " + account.password);
-          userModel.sign_up(account, company)
-            .then((data2) => {
-              res.json({ message: 'Success signing up', code: 1, note: data2 });
-            }).catch((err2) => {
-              res.json({ message: err2, code: 0 })
-            })
-        })
-      }
-    }).catch((err1) => {
-      res.json({ message: err1, code: 0 });
-    })
+
+  if (account.password !== account.confirm) {
+    res.json({ message: "Password does not match!", code: -2 });
+  } else {
+    userModel.getByEmail(account.email)
+      .then((data1) => {
+        console.log(data1.length);
+        if (data1.length > 0) { // Existed
+          res.json({ message: 'Email existed', code: -1 });
+        }
+        else {
+          console.log("RAW:" + account.password);
+          bcrypt.hash(account.password, saltRounds, (err, hash) => {
+            account.password = hash;
+            console.log("Account 2.0: " + account.password);
+            userModel.sign_up(account, company)
+              .then((data2) => {
+                res.json({ message: 'Success signing up', code: 1, note: data2 });
+              }).catch((err2) => {
+                res.json({ message: err2, code: 0 })
+              })
+          })
+        }
+      }).catch((err1) => {
+        res.json({ message: err1, code: 0 });
+      })
+  }
 })
 
 /* Login */
 router.post('/login', (req, res, next) => {
   console.log(req.body);
-  passport.authenticate('local', { session: false }, (err, user, info) => {
-
+  passport.authenticate('local', { session: false }, (err, user, cb) => {
     if (user === false) {
       res.json({
         user,
         info: {
-          message: info.message,
+          message: cb.message,
           code: 0,
         }
       })
@@ -137,12 +111,21 @@ router.post('/login', (req, res, next) => {
         if (err) {
           res.send(err);
         }
-        let payload = { id: user.loginUser.id };
-        const token = jwt.sign(payload, 'S_Team');
-        return res.json({ user, token, info });
+        let payload = { id: user.loginUser.id_user };
+        const token = jwt.sign(payload, 'S_Team', {expiresIn: '24h'});
+        
+        /* TODO add Cur token if not null to blacklist */
+        redis.setKey(req.user.loginUser.currentToken);
+        userModel.editToken(token)
+          .then(result => {
+            return res.json({ user, token, cb });
+          }).catch(err => {
+            return res.json({ err, code: 0 });
+          })
       });
     }
-  })(req, res);
+  })(req, next);
 });
+
 
 module.exports = router;
