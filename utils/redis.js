@@ -1,5 +1,10 @@
+<<<<<<< HEAD
+// var redis = require('redis');
+// var client = redis.createClient();
+=======
 var redis = require('redis');
 var client = redis.createClient();
+>>>>>>> 525a2642a2fd2464beff469104662d3058a603e2
 // client.on('connect', () => {
 //     console.log("Connected");
 //     client.setex('123456', 86400, '123456');
@@ -13,6 +18,44 @@ var client = redis.createClient();
 //     })
 // })
 
+<<<<<<< HEAD
+// // export default client;
+// module.exports = {
+//     setKey: (value) => {
+//         var client = redis.createClient();
+//         client.on('connect', (err) => {
+//             if (err) {
+//                 console.log('Something went wrong ' + err);
+//                 throw err;
+//             }
+//             console.log("REDIS CONNECTED");
+//             client.setex(value, 864000, value);
+//             client.keys('*', (err, res) => {
+//                 if (err) {
+//                     console.log(err);
+//                 } else {
+//                     console.log(res);
+//                 }
+//             })
+//         });
+//     },
+//     getKey: (value) => {
+//         return new Promise((resolve, reject) => {
+//             var client = redis.createClient();
+//             client.on('connect', (err) => {
+//                 if (err) {
+//                     console.log('Something went wrong ' + err);
+//                     throw err;
+//                 }
+//                 client.get(value, (err, res) => {
+//                     if (err) {
+//                         console.log(err);
+//                         reject(err);
+//                     }
+//                     console.log('GET result: ' + res);
+//                     resolve (res);
+//                 })
+=======
 // export default client;
 module.exports = {
     setKey: (value) => {
@@ -53,9 +96,10 @@ module.exports = {
                     }
                     resolve (isValid);
                 })
+>>>>>>> 525a2642a2fd2464beff469104662d3058a603e2
 
-            })
-        })
-    },
-}
+//             })
+//         })
+//     },
+// }
 

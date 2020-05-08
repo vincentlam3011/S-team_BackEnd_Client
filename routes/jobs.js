@@ -12,11 +12,11 @@ router.get('/', function (req, res, next) {
 router.get('/allJobTopics', function (req, res, next) {
     jobTopicModel.getAllJobTopics().then(data => {
         if (data.length > 0) {
-            // data.forEach(element => {
-            //   let buffer = new Buffer(element.img);
-            //   let bufferBase64 = buffer.toString('base64');
-            //   element.img = bufferBase64;
-            // });
+            data.forEach(element => {
+              let buffer = new Buffer(element.img);
+              let bufferBase64 = buffer.toString('base64');
+              element.img = bufferBase64;
+            });
             res.json({ data })
         }
 
