@@ -6,6 +6,8 @@ const JWTStrategy = passportJWT.Strategy;
 const ExtractJWT = passportJWT.ExtractJwt;
 const bcrypt = require('bcrypt');
 
+const { response, DEFINED_CODE } = require('./config/response');
+
 const userModel = require('./models/userModel');
 
 passport.use(new LocalStrategy(
@@ -14,8 +16,6 @@ passport.use(new LocalStrategy(
         passwordField: 'password',
     },
     function (username, password, cb) {
-        console.log("local login authenticate");
-        console.log(username);
         return userModel.getByEmail(username, true)
             .then((data) => {
                 if (data.length > 0) {
@@ -38,13 +38,16 @@ passport.use(new LocalStrategy(
     }
 ));
 
-passport.use( new JWTStrategy(
+
+
+passport.use(new JWTStrategy(
     {
         jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
         secretOrKey: 'S_Team',
     },
     function (jwtPayload, cb) {
         // console.log("PAYLOAD: " + JSON.stringify(jwtPayload));
+
         return userModel.getByID(jwtPayload.id)
             .then(user => {
                 if (user.length > 0)

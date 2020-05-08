@@ -28,5 +28,8 @@ module.exports = {
     },
     getCurrentToken: (id) => {
         return db.query(`select currentToken from USERs where id_user = ${id}`);
+    },
+    getCompanyInfo: () => {
+        return db.query(`select * from users as U, companies as C where U.id_user = C.id_user`);
     }
 }

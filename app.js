@@ -5,13 +5,19 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require('cors');
 
+
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var jobsRouter = require('./routes/jobs');
 var app = express();
 
 require('./passport');
+var verify = require('./passport');
 var passport = require('passport');
+var redis = require('./utils/redis');
+var { validateTokenInBlacklist, passportStrategy } = require('./middleware/auth');
+// app.use()
+
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -33,12 +39,19 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
+<<<<<<< HEAD
 app.use('/users',
   passport.authenticate('jwt',
     { session: false }), usersRouter);
 app.use('/jobs',
   passport.authenticate('jwt',
     { session: false }), jobsRouter);
+=======
+
+app.use('/users', validateTokenInBlacklist, passportStrategy, usersRouter);
+app.use('/jobs', validateTokenInBlacklist, passportStrategy, jobsRouter);
+
+>>>>>>> 525a2642a2fd2464beff469104662d3058a603e2
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));
