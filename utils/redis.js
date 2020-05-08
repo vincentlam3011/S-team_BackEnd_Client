@@ -1,16 +1,16 @@
 var redis = require('redis');
 var client = redis.createClient();
-client.on('connect', () => {
-    console.log("Connected");
-    client.setex('123456', 86400, '123456');
-    client.keys('*', (err, res) => {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log(res);
-        }
-    })
-})
+// client.on('connect', () => {
+//     console.log("Connected");
+//     client.setex('123456', 86400, '123456');
+//     client.keys('*', (err, res) => {
+//         if (err) {
+//             console.log(err);
+//         } else {
+//             console.log(res);
+//         }
+//     })
+// })
 
 // export default client;
 module.exports = {

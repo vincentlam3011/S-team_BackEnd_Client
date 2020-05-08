@@ -10,6 +10,8 @@ var jobTopicModel = require('../models/jobTopicModel');
 
 var router = express.Router();
 
+var { response, DEFINED_CODE } = require('../config/response');
+
 /* GET home page. */
 router.get('/', function (req, res, next) {
   res.render('index', { title: 'Express' });
@@ -70,12 +72,11 @@ router.post('/signup', (req, res) => {
           console.log("RAW:" + account.password);
           bcrypt.hash(account.password, saltRounds, (err, hash) => {
             account.password = hash;
-            console.log("Account 2.0: " + account.password);
             userModel.sign_up(account, company)
               .then((data2) => {
                 res.json({ message: 'Success signing up', code: 1, note: data2 });
               }).catch((err2) => {
-                res.json({ message: err2, code: 0 })
+                response(res, DEFINED_CODE.WRONG_LOGIN_INFO);
               })
           })
         }
@@ -90,21 +91,23 @@ router.post('/login', (req, res, next) => {
   console.log(req.body);
   passport.authenticate('local', { session: false }, (err, user, cb) => {
     if (user === false) {
-      res.json({
-        user,
-        info: {
-          message: cb.message,
-          code: 0,
-        }
-      })
+      // res.json({
+      //   user,
+      //   info: {
+      //     message: cb.message,
+      //     code: 0,
+      //   }
+      // })
+      response(res, DEFINED_CODE.WRONG_LOGIN_INFO);
     }
     else {
       if (err || !user) {
-        return res.status(400).json({
-          message: 'Something is not right',
-          user: user,
-          err,
-        });
+        // return res.status(400).json({
+        //   message: 'Something is not right',
+        //   user: user,
+        //   err,
+        // });
+        response(res, DEFINED_CODE.WRONG_LOGIN_INFO); return;
       }
 
       req.login(user, { session: false }, (err) => {
@@ -112,9 +115,8 @@ router.post('/login', (req, res, next) => {
           res.send(err);
         }
         let payload = { id: user.loginUser.id_user };
-        const token = jwt.sign(payload, 'S_Team', {expiresIn: '24h'});
-        
-        /* TODO add Cur token if not null to blacklist */
+        const token = jwt.sign(payload, 'S_Team', { expiresIn: '24h' });
+
         redis.setKey(req.user.loginUser.currentToken);
         userModel.editToken(token)
           .then(result => {

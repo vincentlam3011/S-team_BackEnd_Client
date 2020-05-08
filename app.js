@@ -14,6 +14,10 @@ var app = express();
 require('./passport');
 var verify = require('./passport');
 var passport = require('passport');
+var redis = require('./utils/redis');
+var { validateTokenInBlacklist, passportStrategy } = require('./middleware/auth');
+// app.use()
+
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -36,15 +40,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 
-
-app.use(function (req, res, next) {
-  // console.log(req.headers.authorization);
-  verify.authHandler(req.headers.authorization);
-  next();
-})
-
-app.use('/users', passport.authenticate('jwt', {session: false}), usersRouter);
-app.use('/job',passport.authenticate('jwt', {session: false}),jobsRouter);
+app.use('/users', validateTokenInBlacklist, passportStrategy, usersRouter);
+app.use('/jobs', validateTokenInBlacklist, passportStrategy, jobsRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
