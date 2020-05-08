@@ -6,6 +6,7 @@ const saltRounds = 15;
 var redis = require('../utils/redis');
 
 var userModel = require('../models/userModel');
+var jobTopicModel = require('../models/jobTopicModel');
 
 var router = express.Router();
 
@@ -15,9 +16,25 @@ var { response, DEFINED_CODE } = require('../config/response');
 router.get('/', function (req, res, next) {
   res.render('index', { title: 'Express' });
 });
+router.get('/allJobTopics', function (req, res, next) {
+  jobTopicModel.getAllJobTopics().then(data => {
+    if (data.length > 0) {
+      // data.forEach(element => {
+      //   let buffer = new Buffer(element.img);
+      //   let bufferBase64 = buffer.toString('base64');
+      //   element.img = bufferBase64;
+      // });
+      res.json({ data })
+    }
+
+  }).catch((err1) => {
+    res.json({ message: err1, code: 0 });
+  })
+});
 
 /* Signup */
 router.post('/signup', (req, res) => {
+  console.log('body:', req.body);
   var account = {
     fullname: req.body.fullname,
     dob: req.body.dob,
