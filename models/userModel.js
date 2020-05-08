@@ -5,7 +5,7 @@ module.exports = {
         return db.query(`select * from users where email = '${email}';`);
     },
     getByID: (id) => {
-        return db.query(`select * from users where id = ${id}`);
+        return db.query(`select * from users where id_user = ${id}`);
     },
     sign_up: (account, company) => {
         var columnsUsers = `(email, password, fullname, dob, dial, address, isBusinessUser, gender, account_status)`;
@@ -23,4 +23,10 @@ module.exports = {
         // var sqlQueryCompanies = `insert into COMPANIEs` + columnsCompanies + ` values` + valuesCompanies + `;`;
         return db.transaction(sqlQueryUsers, columnsCompanies, valuesCompanies, `COMPANIEs`);
     },
+    editToken: (token) => {
+        return db.query(`update USERs set currentToken = '${token}'`);
+    },
+    getCurrentToken: (id) => {
+        return db.query(`select currentToken from USERs where id_user = ${id}`);
+    }
 }
