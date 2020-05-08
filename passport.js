@@ -5,7 +5,8 @@ const passportJWT = require('passport-jwt');
 const JWTStrategy = passportJWT.Strategy;
 const ExtractJWT = passportJWT.ExtractJwt;
 const bcrypt = require('bcrypt');
-const redis = require('./utils/redis');
+
+const { response, DEFINED_CODE } = require('./config/response');
 
 const userModel = require('./models/userModel');
 
@@ -15,8 +16,6 @@ passport.use(new LocalStrategy(
         passwordField: 'password',
     },
     function (username, password, cb) {
-        console.log("local login authenticate");
-        console.log(username);
         return userModel.getByEmail(username, true)
             .then((data) => {
                 if (data.length > 0) {
@@ -61,36 +60,3 @@ passport.use(new JWTStrategy(
             });
     },
 ));
-
-module.exports.authHandler = (token) => {
-    passport.use(new JWTStrategy(
-        {
-            jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
-            secretOrKey: 'S_Team',
-        },
-        function (jwtPayload, cb) {
-            console.log(JSON.stringify(jwtPayload));
-            token = token.slice(7);
-            console.log("TOKEN: " + token);
-            redis.getKey(token).then(isValid => {
-                if (isValid === true) {
-                    console.log(isValid);
-                    return userModel.getByID(jwtPayload.id)
-                        .then(user => {
-                            if (user.length > 0)
-                                return cb(null, user[0], { message: 'Authorized', code: 1 });
-                            else
-                                return cb(null, null, { message: 'Cannot get User', code: 0 })
-                        })
-                        .catch(err => {
-                            return cb(err, null, { message: 'Can not authorized', code: 0 });
-                        });
-                } else {
-                    return cb(null, null, { message: 'Cannot get User', code: 0 })
-                }
-            }).catch(err => {
-                return cb(err, null, { message: err, code: 0 });
-            })
-        },
-    ));
-}
