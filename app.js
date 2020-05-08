@@ -39,19 +39,10 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
-<<<<<<< HEAD
-app.use('/users',
-  passport.authenticate('jwt',
-    { session: false }), usersRouter);
-app.use('/jobs',
-  passport.authenticate('jwt',
-    { session: false }), jobsRouter);
-=======
 
 app.use('/users', validateTokenInBlacklist, passportStrategy, usersRouter);
 app.use('/jobs', validateTokenInBlacklist, passportStrategy, jobsRouter);
 
->>>>>>> 525a2642a2fd2464beff469104662d3058a603e2
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));
