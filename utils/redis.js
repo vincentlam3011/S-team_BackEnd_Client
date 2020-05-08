@@ -8,6 +8,7 @@ var client = redis.createClient();
 //             console.log(err);
 //         } else {
 //             console.log(res);
+//             // client.FLUSHALL();
 //         }
 //     })
 // })
@@ -22,7 +23,7 @@ module.exports = {
                 throw err;
             }
             console.log("REDIS CONNECTED");
-            client.setex(value, 864000, value);
+            client.setex(value, 86400, value);
             client.keys('*', (err, res) => {
                 if (err) {
                     console.log(err);

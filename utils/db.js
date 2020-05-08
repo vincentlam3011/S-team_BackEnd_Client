@@ -5,7 +5,7 @@ var createConnection = () => {
         host: 'localhost',
         port: '3306',
         user: 'root',
-        password: 'root',
+        password: '30111998',
         database: 'f2l',
         dateStrings: true,
         timezone: 'Z',
