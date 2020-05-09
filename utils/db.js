@@ -9,7 +9,7 @@ var createConnection = () => {
         database: 'f2l_test01',
         dateStrings: true,
         timezone: 'Z',
-
+        multipleStatements: true,
         typeCast: function castField(field, useDefaultTypeCasting) {
             if ((field.type === "BIT") && (field.length === 1)) {
                 var bytes = field.buffer();
@@ -28,7 +28,6 @@ module.exports = {
                 if (err) {
                     return console.error('Error: ' + err.message);
                 }
-                console.log("Database connected");
             });
             connection.query(sql, (error, result, fields) => {
                 if (error) {

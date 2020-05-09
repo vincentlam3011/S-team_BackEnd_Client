@@ -13,9 +13,9 @@ router.get('/allJobTopics', function (req, res, next) {
     jobTopicModel.getAllJobTopics().then(data => {
         if (data.length > 0) {
             data.forEach(element => {
-              let buffer = new Buffer(element.img);
-              let bufferBase64 = buffer.toString('base64');
-              element.img = bufferBase64;
+                let buffer = new Buffer(element.img);
+                let bufferBase64 = buffer.toString('base64');
+                element.img = bufferBase64;
             });
             res.json({ data })
         }
@@ -25,7 +25,8 @@ router.get('/allJobTopics', function (req, res, next) {
     })
 });
 router.post("/addJob", function (req, res, next) {
-    let job = JSON.parse(JSON.stringify(req.body));;
+    let job = JSON.parse(JSON.stringify(req.body));
+    console.log('job:', job);
     jobModel.addJob(job).then(data => {
         res.json({ message: 'Success Add New Job', code: 1, note: data });
 

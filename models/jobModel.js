@@ -19,28 +19,20 @@ module.exports = {
         '${job.requirement}',
         '${job.id_status}')`;
         let sqlQueryJobs = `insert into Jobs` + columsJob + ` values` + valueJob + `;`;
-        console.log('sqlQueryJobs:', sqlQueryJobs);
         if (images) {
-            db.query(sqlQueryJobs).then(result => {
-                console.log('result:', result);
-                let id_job = result.insertId;
                 let queryJobRealtedImages = '';
                 images.forEach(element => {
-                    // let img = new Buffer.from(element,'base64');
-                    // let text = img.toString('ascii');
-                    var image = Buffer.from(element, 'base64').toString('hex')
-
-                    // element = convertBlobB64.convertB64ToBlob(element)
-                    console.log('image:', image);
-                    queryJobRealtedImages += "insert into job_related_images values(" +id_job +",x'"+ image +"')";
+                    element = convertBlobB64.convertB64ToBlob(element).toString('hex');
+                    queryJobRealtedImages += "insert into job_related_images values((SELECT MAX(id_job) FROM jobs)" + ",x'" + element + "');";
                     // console.log('queryJobRealtedImages:', queryJobRealtedImages);
                 });
-                console.log('queryJobRealtedImages:', queryJobRealtedImages)
-                return db.query(queryJobRealtedImages)
-            })
+         
+                return db.query(sqlQueryJobs+queryJobRealtedImages)
         }
         else
+        {
             return db.query(sqlQueryJobs)
+        }
 
     },
     editJob: (job) => {
