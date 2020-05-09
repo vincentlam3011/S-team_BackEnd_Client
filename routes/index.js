@@ -60,13 +60,15 @@ router.post('/signup', (req, res) => {
   }
 
   if (account.password !== account.confirm) {
-    res.json({ message: "Password does not match!", code: -2 });
+    // res.json({ message: "Password does not match!", code: -2 });
+    response(res, DEFINED_CODE.PASSWORD_NOT_MATCH);
   } else {
     userModel.getByEmail(account.email)
       .then((data1) => {
         console.log(data1.length);
         if (data1.length > 0) { // Existed
-          res.json({ message: 'Email existed', code: -1 });
+          // res.json({ message: 'Email existed', code: -1 });
+          response(res, DEFINED_CODE.EMAIL_EXISTED);
         }
         else {
           console.log("RAW:" + account.password);
@@ -74,7 +76,8 @@ router.post('/signup', (req, res) => {
             account.password = hash;
             userModel.sign_up(account, company)
               .then((data2) => {
-                res.json({ message: 'Success signing up', code: 1, note: data2 });
+                // res.json({ message: 'Success signing up', code: 1, note: data2 });
+                response(res, DEFINED_CODE.SIGNUP_SUCCESS);
               }).catch((err2) => {
                 response(res, DEFINED_CODE.WRONG_LOGIN_INFO);
               })
@@ -91,22 +94,10 @@ router.post('/login', (req, res, next) => {
   console.log(req.body);
   passport.authenticate('local', { session: false }, (err, user, cb) => {
     if (user === false) {
-      // res.json({
-      //   user,
-      //   info: {
-      //     message: cb.message,
-      //     code: 0,
-      //   }
-      // })
       response(res, DEFINED_CODE.WRONG_LOGIN_INFO);
     }
     else {
       if (err || !user) {
-        // return res.status(400).json({
-        //   message: 'Something is not right',
-        //   user: user,
-        //   err,
-        // });
         response(res, DEFINED_CODE.WRONG_LOGIN_INFO); return;
       }
 
@@ -120,9 +111,11 @@ router.post('/login', (req, res, next) => {
         redis.setKey(req.user.loginUser.currentToken);
         userModel.editToken(token)
           .then(result => {
-            return res.json({ user, token, cb });
+            // return res.json({ user, token, cb });
+            response(res, DEFINED_CODE.LOGIN_SUCCESS, { user: user.loginUser, token });
           }).catch(err => {
-            return res.json({ err, code: 0 });
+            // return res.json({ err, code: 0 });
+            response(res, DEFINED_CODE.SAVE_TOKEN_FAIL);
           })
       });
     }
