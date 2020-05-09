@@ -16,7 +16,7 @@ passport.use(new LocalStrategy(
         passwordField: 'password',
     },
     function (username, password, cb) {
-        return userModel.getByEmail(username, true)
+        return userModel.getByEmail(username, 1)
             .then((data) => {
                 if (data.length > 0) {
                     bcrypt.compare(password, data[0].password, (err, res) => {

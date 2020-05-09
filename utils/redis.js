@@ -50,7 +50,7 @@ module.exports = {
                     if (res !== null) {
                         isValid = false;
                     }
-                    resolve (isValid);
+                    resolve(isValid);
                 })
             })
         })
