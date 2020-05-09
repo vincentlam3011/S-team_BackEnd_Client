@@ -36,7 +36,7 @@ router.post("/addJob", function (req, res, next) {
     })
 })
 router.post("/editJob", function (req, res, next) {
-    let job = JSON.parse(JSON.stringify(req.body));;
+    let job = req.body;;
     if (job.id_job) {
         jobModel.editJob(job).then(data => {
             res.json({ message: 'Success Update Job', code: 1, note: data });

@@ -20,22 +20,22 @@ module.exports = {
         '${job.id_status}')`;
         let sqlQueryJobs = `insert into Jobs` + columsJob + ` values` + valueJob + `;`;
         if (images) {
-                let queryJobRealtedImages = '';
-                images.forEach(element => {
-                    element = convertBlobB64.convertB64ToBlob(element).toString('hex');
-                    queryJobRealtedImages += "insert into job_related_images values((SELECT MAX(id_job) FROM jobs)" + ",x'" + element + "');";
-                    // console.log('queryJobRealtedImages:', queryJobRealtedImages);
-                });
-         
-                return db.query(sqlQueryJobs+queryJobRealtedImages)
+            let queryJobRealtedImages = '';
+            images.forEach(element => {
+                element = convertBlobB64.convertB64ToBlob(element).toString('hex');
+                queryJobRealtedImages += "insert into job_related_images values((SELECT MAX(id_job) FROM jobs)" + ",x'" + element + "');";
+                // console.log('queryJobRealtedImages:', queryJobRealtedImages);
+            });
+
+            return db.query(sqlQueryJobs + queryJobRealtedImages)
         }
-        else
-        {
+        else {
             return db.query(sqlQueryJobs)
         }
 
     },
     editJob: (job) => {
+        let images = job.images;
         let columsJob = `(title,salary,job_topic,area_province,area_district,address,lat,lng,description,expire_date,dealable,job_type,isOnline,isCompany,vacancy,requirement,id_status)`
         let valueJob = `(
         '${job.title}','${job.salary}',
@@ -50,7 +50,7 @@ module.exports = {
         '${job.vacancy}',
         '${job.requirement}',
         '${job.id_status}')`
-        let sqlQueryUsers = `update Jobs SET title ='${job.title}',salary='${job.salary}',
+        let sqlQueryJobs = `update Jobs SET title ='${job.title}',salary='${job.salary}',
         job_topic='${job.job_topic}',
         area_province='${job.area_province}',
         area_district='${job.area_district}',
@@ -61,9 +61,22 @@ module.exports = {
         isCompany=${job.isCompany},
         vacancy='${job.vacancy}',
         requirement='${job.requirement}',
-        id_status='${job.id_status}' WHERE id_job = '${job.id_job}'`
-        console.log('sqlQueryUsers:', sqlQueryUsers);
-        return db.query(sqlQueryUsers);
+        id_status='${job.id_status}' WHERE id_job = '${job.id_job}';`;
+        if (images) {
+            let queryDeleteJobRealtedImages = `DELETE FROM job_related_images where id_job = ${job.id_job};`
+            let queryJobRealtedImages = '';
+            images.forEach(element => {
+                element = convertBlobB64.convertB64ToBlob(element).toString('hex');
+                queryJobRealtedImages += `insert into job_related_images values(${job.id_job},x'${element}');`;
+                // console.log('queryJobRealtedImages:', queryJobRealtedImages);
+            });
+
+            return db.query(sqlQueryJobs + queryDeleteJobRealtedImages + queryJobRealtedImages);
+        }
+        else {
+            return db.query(sqlQueryJobs)
+        }
+
 
 
     },
