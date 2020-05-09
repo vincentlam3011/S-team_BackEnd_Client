@@ -1,8 +1,9 @@
 var db = require('../utils/db');
+var convertBlobB64 = require('../middleware/convertBlobB64');
 
 module.exports = {
     addJob: (job) => {
-        console.log('job:', job);
+        let images = job.images;
         let columsJob = `(employer,title,salary,job_topic,area_province,area_district,address,lat,lng,description,expire_date,dealable,job_type,isOnline,isCompany,vacancy,requirement,id_status)`
         let valueJob = `('${job.employer}',
         '${job.title}','${job.salary}',
@@ -16,10 +17,31 @@ module.exports = {
         ${job.isCompany},
         '${job.vacancy}',
         '${job.requirement}',
-        '${job.id_status}')`
-        let sqlQueryUsers = `insert into Jobs` + columsJob + ` values` + valueJob + `;`;
-        console.log('sqlQueryUsers:', sqlQueryUsers);
-        return db.query(sqlQueryUsers);
+        '${job.id_status}')`;
+        let sqlQueryJobs = `insert into Jobs` + columsJob + ` values` + valueJob + `;`;
+        console.log('sqlQueryJobs:', sqlQueryJobs);
+        if (images) {
+            db.query(sqlQueryJobs).then(result => {
+                console.log('result:', result);
+                let id_job = result.insertId;
+                let queryJobRealtedImages = '';
+                images.forEach(element => {
+                    // let img = new Buffer.from(element,'base64');
+                    // let text = img.toString('ascii');
+                    var image = Buffer.from(element, 'base64').toString('hex')
+
+                    // element = convertBlobB64.convertB64ToBlob(element)
+                    console.log('image:', image);
+                    queryJobRealtedImages += "insert into job_related_images values(" +id_job +",x'"+ image +"')";
+                    // console.log('queryJobRealtedImages:', queryJobRealtedImages);
+                });
+                console.log('queryJobRealtedImages:', queryJobRealtedImages)
+                return db.query(queryJobRealtedImages)
+            })
+        }
+        else
+            return db.query(sqlQueryJobs)
+
     },
     editJob: (job) => {
         let columsJob = `(title,salary,job_topic,area_province,area_district,address,lat,lng,description,expire_date,dealable,job_type,isOnline,isCompany,vacancy,requirement,id_status)`
@@ -56,7 +78,10 @@ module.exports = {
     getJobById: (id) => {
         return db.query(`select * from jobs where id_job = ${id}`);
     },
-    deleteJobById: (id)=>{
+    getJobByIdJobTopic: (id) => {
+        return db.query(`select * from jobs where job_topic = ${id}`);
+    },
+    deleteJobById: (id) => {
         return db.query(`delete from jobs where id_job = ${id}`)
     }
     // sign_up: (account, company) => {
