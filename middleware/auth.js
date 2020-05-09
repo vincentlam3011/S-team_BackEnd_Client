@@ -23,6 +23,5 @@ var validateTokenInBlacklist = (req, res, next) => {
         res.json({ message: "Cannot connect to Redis", error: err, code: 0 });
     })
 };
-
 module.exports.validateTokenInBlacklist = validateTokenInBlacklist;
 module.exports.passportStrategy = passport.authenticate('jwt', { session: false });

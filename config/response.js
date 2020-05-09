@@ -10,6 +10,7 @@ var HTTPStatus = require('http-status');
         0: token/ authenticated route related
         1: login, signup, user related
         2: database interaction related
+        3: mailing related
 */
 
 const ResponsedCode = {
@@ -22,9 +23,12 @@ const ResponsedCode = {
     EMAIL_EXISTED: '-103',
     /* DB error... */
     SAVE_TOKEN_FAIL: '-201',
+    /* Mailing error */
+    SEND_MAIL_FAIL: '-301',
     /* OK */
     LOGIN_SUCCESS: '101',
     SIGNUP_SUCCESS: '102',
+    SEND_MAIL_SUCCESS: '301',
 };
 
 const mapCodeToMsg = {
@@ -37,9 +41,12 @@ const mapCodeToMsg = {
     '-103': 'Email is already used',
     /* DB interaction error messages */
     '-201': 'Cannot renew token, please try logging in again!',
+    /* Nodemailer error messages */
+    '-301': 'Sending email failed',
     /* OK message */
     '101': "Logged in",
     '102': "Signed up",
+    '301': "Mail sent",
 }
 
 const mapCodeToHTTPStatus = {
@@ -49,8 +56,10 @@ const mapCodeToHTTPStatus = {
     '-102': HTTPStatus.OK,
     '-103': HTTPStatus.OK,
     '-201': HTTPStatus.BAD_REQUEST,
+    '-301': HTTPStatus.BAD_REQUEST,
     '101': HTTPStatus.OK,
     '102': HTTPStatus.OK,
+    '301': HTTPStatus.OK,
 }
 
 /* Handle response */

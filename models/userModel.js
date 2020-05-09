@@ -1,8 +1,12 @@
 var db = require('../utils/db');
 
 module.exports = {
-    getByEmail: (email) => {
-        return db.query(`select * from users where email = '${email}';`);
+    getByEmail: (email, accStatus = 0) => {
+        if (accStatus === 0)
+            return db.query(`select * from users where email = '${email}';`);
+        else if (accStatus === 1)
+            return db.query(`select * from users where email = '${email}' and account_status = ${accStatus};`);
+
     },
     getByID: (id) => {
         return db.query(`select * from users where id_user = ${id}`);
@@ -11,10 +15,10 @@ module.exports = {
         var columnsUsers = `(email, password, fullname, dob, dial, address, isBusinessUser, gender, account_status)`;
         var valuesUsers = `('${account.email}', '${account.password}', '${account.fullname}', '${account.dob}', '${account.dial}', '${account.address}' 
                             ,${account.isBusinessUser}, ${account.gender}, ${account.account_status})`;
-        
+
         var sqlQueryUsers = `insert into USERs` + columnsUsers + ` values` + valuesUsers + `;`;
         if (company === null) {
-            return db.query(sqlQueryUsers);   
+            return db.query(sqlQueryUsers);
         }
         var columnsCompanies = `(id_user, company_name, position, company_address, company_email, number_of_employees)`;
         var valuesCompanies = `, '${company.company_name}', '${company.position}', '${company.company_address}'
@@ -23,8 +27,8 @@ module.exports = {
         // var sqlQueryCompanies = `insert into COMPANIEs` + columnsCompanies + ` values` + valuesCompanies + `;`;
         return db.transaction(sqlQueryUsers, columnsCompanies, valuesCompanies, `COMPANIEs`);
     },
-    editToken: (token) => {
-        return db.query(`update USERs set currentToken = '${token}'`);
+    editToken: (id, token) => {
+        return db.query(`update USERs set currentToken = '${token}' where id_user = ${id}`);
     },
     getCurrentToken: (id) => {
         return db.query(`select currentToken from USERs where id_user = ${id}`);
