@@ -1,6 +1,6 @@
 #Mac
 .DS_Store
-
+.vscode
 # Ignore node_modules folder
 node_modules
 

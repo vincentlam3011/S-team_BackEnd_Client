@@ -17,6 +17,7 @@ var { response, DEFINED_CODE } = require('../config/response');
 router.get('/', function (req, res, next) {
   res.render('index', { title: 'Express' });
 });
+//Get Jobs Topic
 router.get('/allJobTopics', function (req, res, next) {
   jobTopicModel.getAllJobTopics().then(data => {
     if (data.length > 0) {
@@ -143,5 +144,14 @@ router.post('/login', (req, res, next) => {
   })(req, next);
 });
 
+//Get Jobs By Id
+router.get('/getJob/:id', function (req, res, next) {
+  let id_job = req.params.id;
+  jobModel.getJobById(id_job).then(data => {
+    res.json({message:"Get Successfull", info: data, code: 1 });
+  }).catch(err=>{
+    res.json({err,code:0});
+  })
+});
 
 module.exports = router;

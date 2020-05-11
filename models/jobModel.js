@@ -4,6 +4,7 @@ var convertBlobB64 = require('../middleware/convertBlobB64');
 module.exports = {
     addJob: (job) => {
         let images = job.images;
+        let tags = job.tags;
         let columsJob = `(employer,title,salary,job_topic,area_province,area_district,address,lat,lng,description,expire_date,dealable,job_type,isOnline,isCompany,vacancy,requirement,id_status)`
         let valueJob = `('${job.employer}',
         '${job.title}','${job.salary}',
@@ -19,15 +20,24 @@ module.exports = {
         '${job.requirement}',
         '${job.id_status}')`;
         let sqlQueryJobs = `insert into Jobs` + columsJob + ` values` + valueJob + `;`;
-        if (images) {
+        if (images || tags) {
             let queryJobRealtedImages = '';
-            images.forEach(element => {
-                element = convertBlobB64.convertB64ToBlob(element).toString('hex');
-                queryJobRealtedImages += "insert into job_related_images values((SELECT MAX(id_job) FROM jobs)" + ",x'" + element + "');";
-                // console.log('queryJobRealtedImages:', queryJobRealtedImages);
-            });
+            let queryJobTags = '';
+            if (images) {
+                images.forEach(element => {
+                    element = convertBlobB64.convertB64ToBlob(element).toString('hex');
+                    queryJobRealtedImages += "insert into job_related_images values((SELECT MAX(id_job) FROM jobs)" + ",x'" + element + "');";
+                    // console.log('queryJobRealtedImages:', queryJobRealtedImages);
+                });
+            }
+            if (tags) {
+                tags.forEach(element => {
 
-            return db.query(sqlQueryJobs + queryJobRealtedImages)
+                    queryJobTags += "insert into jobs_tags values((SELECT MAX(id_job) FROM jobs)" + ",'" + element + "');";
+                    // console.log('queryJobRealtedImages:', queryJobRealtedImages);
+                });
+            }
+            return db.query(sqlQueryJobs + queryJobRealtedImages + queryJobTags)
         }
         else {
             return db.query(sqlQueryJobs)
@@ -36,6 +46,7 @@ module.exports = {
     },
     editJob: (job) => {
         let images = job.images;
+        let tags = job.tags;
         let columsJob = `(title,salary,job_topic,area_province,area_district,address,lat,lng,description,expire_date,dealable,job_type,isOnline,isCompany,vacancy,requirement,id_status)`
         let valueJob = `(
         '${job.title}','${job.salary}',
@@ -62,16 +73,28 @@ module.exports = {
         vacancy='${job.vacancy}',
         requirement='${job.requirement}',
         id_status='${job.id_status}' WHERE id_job = '${job.id_job}';`;
-        if (images) {
-            let queryDeleteJobRealtedImages = `DELETE FROM job_related_images where id_job = ${job.id_job};`
+        if (images || tags) {
+            let queryDeleteJobRealtedImages = '';
             let queryJobRealtedImages = '';
-            images.forEach(element => {
-                element = convertBlobB64.convertB64ToBlob(element).toString('hex');
-                queryJobRealtedImages += `insert into job_related_images values(${job.id_job},x'${element}');`;
-                // console.log('queryJobRealtedImages:', queryJobRealtedImages);
-            });
+            let queryDeleteJobTags = '';
+            let queryJobTags = '';
+            if (images) {
+                queryDeleteJobRealtedImages = `DELETE FROM job_related_images where id_job = ${job.id_job};`
+                images.forEach(element => {
+                    element = convertBlobB64.convertB64ToBlob(element).toString('hex');
+                    queryJobRealtedImages += `insert into job_related_images values(${job.id_job},x'${element}');`;
+                    // console.log('queryJobRealtedImages:', queryJobRealtedImages);
+                });
+            }
+            if (tags) {
+                queryDeleteJobTags = `DELETE FROM jobs_tags where id_job = ${job.id_job};`
+                tags.forEach(element => {
+                    queryJobTags += "insert into jobs_tags values((SELECT MAX(id_job) FROM jobs)" + ",'" + element + "');";
+                    // console.log('queryJobRealtedImages:', queryJobRealtedImages);
+                });
+            }
 
-            return db.query(sqlQueryJobs + queryDeleteJobRealtedImages + queryJobRealtedImages);
+            return db.query(sqlQueryJobs + queryDeleteJobTags + queryJobTags + queryDeleteJobRealtedImages + queryJobRealtedImages);
         }
         else {
             return db.query(sqlQueryJobs)
@@ -81,10 +104,66 @@ module.exports = {
 
     },
     getJobById: (id) => {
-        return db.query(`select * from jobs where id_job = ${id}`);
+        return new Promise((resolve, reject) => {
+            let query = `select  distinct  j.*,jt.id_tag,t.name as tag_name,s.name as name_status
+            from jobs as j 
+            left join jobs_tags as jt
+            on  j.id_job= jt.id_job
+            left join tags as t on t.id_tag = jt.id_tag, statuses as s
+            where j.id_job=${id} and s.id_status = j.id_status;
+            
+            select  distinct  j.id_job,jri.img
+            from jobs as j 
+            left join job_related_images as jri
+            on  j.id_job= jri.id_job
+            where j.id_job=${id}`
+            db.query(query).then(data => {
+                if (data[0]) {
+                    let dataReturn = new Object(data[0][0]);
+                    console.log('dataReturn:', dataReturn)
+                    console.log('data:', data);
+                    delete dataReturn.id_tag;
+                    delete dataReturn.tag_name;
+                    dataReturn.tags = [];
+                    dataReturn.imgs = [];
+                    if (data[0]) {
+                        data[0].forEach(element => {
+                            if (element.id_tag) {
+                                dataReturn.tags.push(
+                                    element.tag_name
+                                );
+                            }
+
+                        })
+                    }
+                    if (data[1]) {
+                        data[1].forEach(element => {
+                            if (element.img) {
+                                let img = convertBlobB64.convertBlobToB64(element.img);
+                                dataReturn.imgs.push(
+                                    img
+                                );
+                            }
+
+                        })
+                    }
+
+                    resolve(dataReturn);
+                }
+                else resolve();
+
+            }).catch(err => {
+                console.log('err:', err)
+                reject(err);
+            })
+        })
+        // return db.query(`select * from jobs where id_job = ${id}`);
     },
     getJobByIdJobTopic: (id) => {
-        return db.query(`select * from jobs where job_topic = ${id}`);
+        return db.query(`select * from jobs as j 
+        left join job_related_images as jri
+        on  j.id_job= jri.id_job
+        where job_topic = ${id} group by jri.id_job ;`);
     },
     deleteJobById: (id) => {
         return db.query(`delete from jobs where id_job = ${id}`)
