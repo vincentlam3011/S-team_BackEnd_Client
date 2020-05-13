@@ -2,14 +2,14 @@ var mysql = require('mysql');
 
 var createConnection = () => {
     return mysql.createConnection({
-        host: 'localhost',
+        host: 'f2l.ctgwpvncwnsg.us-east-1.rds.amazonaws.com',
         port: '3306',
-        user: 'root',
-        password: '30111998',
-        database: 'f2l',
+        user: 'admin',
+        password: 'rootsteam',
+        database: 'f2l_test_deploy',
         dateStrings: true,
         timezone: 'Z',
-
+        multipleStatements: true,
         typeCast: function castField(field, useDefaultTypeCasting) {
             if ((field.type === "BIT") && (field.length === 1)) {
                 var bytes = field.buffer();
@@ -28,7 +28,6 @@ module.exports = {
                 if (err) {
                     return console.error('Error: ' + err.message);
                 }
-                console.log("Database connected");
             });
             connection.query(sql, (error, result, fields) => {
                 if (error) {

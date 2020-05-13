@@ -7,4 +7,5 @@ module.exports = {
     getJobTopicsByID: (id) => {
         return db.query(`select * from job_topics where id_jobtopic = ${id}`);
     },
+    
 }
