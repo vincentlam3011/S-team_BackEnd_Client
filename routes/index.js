@@ -148,6 +148,30 @@ router.post('/login', (req, res, next) => {
   })(req, next);
 });
 
+/* Activate */
+router.put('/activation/:id', (req, res, next) => {
+  // var activationCode = req.body.activation_code;
+  console.log(req.param('id'));
+  userModel.getByID(req.param('id'))
+    .then(user => {
+      // console.log("Acc stt: " + user[0].account_status);
+      if (user.length > 0 && user[0].account_status === 0) {
+        var updates = [{ field: 'account_status', value: 1 }];
+        userModel.updateUserInfo(req.param('id'), updates)
+          .then(data => {
+            response(res, DEFINED_CODE.ACTIVATE_SUCCESS);
+          }).catch(err => {
+            response(res, DEFINED_CODE.ACTIVATE_FAIL);
+          })
+      } else {
+        response(res, DEFINED_CODE.ACTIVATE_FAIL, 'Account is already activated or does not exist!');
+        // res.redirect('...') 
+      }
+    }).catch(err => {
+      response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
+    })
+});
+
 //Get Jobs By Id
 router.get('/getJob/:id', function (req, res, next) {
   let id_job = req.params.id;
@@ -157,5 +181,6 @@ router.get('/getJob/:id', function (req, res, next) {
     res.json({err,code:0});
   })
 });
+
 
 module.exports = router;
