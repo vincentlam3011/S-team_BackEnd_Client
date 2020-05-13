@@ -8,7 +8,8 @@ var redis = require('../utils/redis');
 
 var userModel = require('../models/userModel');
 var jobTopicModel = require('../models/jobTopicModel');
-
+var jobModel = require('../models/jobModel');
+var convertBlobB64 = require('../middleware/convertBlobB64');
 var router = express.Router();
 
 var { response, DEFINED_CODE } = require('../config/response');
@@ -18,22 +19,36 @@ var { mailer } = require('../utils/nodemailer');
 router.get('/', function (req, res, next) {
   res.render('index', { title: 'Express' });
 });
+//Get Jobs Topic
 router.get('/allJobTopics', function (req, res, next) {
   jobTopicModel.getAllJobTopics().then(data => {
     if (data.length > 0) {
-      // data.forEach(element => {
-      //   let buffer = new Buffer(element.img);
-      //   let bufferBase64 = buffer.toString('base64');
-      //   element.img = bufferBase64;
-      // });
-      res.json({ data })
+      data.forEach(element => {
+        element.img = convertBlobB64.convertBlobToB64(element.img);
+      });
+      res.json({ message: 'Get Data Success', data, code: 1 })
     }
 
   }).catch((err1) => {
     res.json({ message: err1, code: 0 });
   })
 });
-
+router.get('/jobsByJobTopic/:id', function (req, res, next) {
+  console.log('params:', req.params);
+  let job_topic = req.params.id;
+  console.log('job_topic:', job_topic);
+  jobModel.getJobById(job_topic).then(data => {
+    if (data.length > 0) {
+      data.forEach(element => {
+        element.img = convertBlobB64.convertBlobToB64(element.img);
+      });
+      res.json({ message: 'Get Data Success', data, code: 1 })
+      //   }
+    }
+  }).catch((err1) => {
+    res.json({ message: err1, code: 0 });
+  })
+});
 /* Signup */
 router.post('/signup', (req, res) => {
   console.log('body:', req.body);
@@ -155,6 +170,17 @@ router.put('/activation/:id', (req, res, next) => {
     }).catch(err => {
       response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
     })
-})
+});
+
+//Get Jobs By Id
+router.get('/getJob/:id', function (req, res, next) {
+  let id_job = req.params.id;
+  jobModel.getJobById(id_job).then(data => {
+    res.json({message:"Get Successfull", info: data, code: 1 });
+  }).catch(err=>{
+    res.json({err,code:0});
+  })
+});
+
 
 module.exports = router;
