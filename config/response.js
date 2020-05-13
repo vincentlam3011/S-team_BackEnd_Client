@@ -22,6 +22,7 @@ const ResponsedCode = {
     PASSWORD_NOT_MATCH: '-102',
     EMAIL_EXISTED: '-103',
     ACTIVATE_FAIL: '-104',
+    CHANGE_PASSWORD_FAIL: '-105',
     /* DB error... */
     SAVE_TOKEN_FAIL: '-201',
     ACCESS_DB_FAIL: '-202',
@@ -31,6 +32,7 @@ const ResponsedCode = {
     LOGIN_SUCCESS: '101',
     SIGNUP_SUCCESS: '102',
     ACTIVATE_SUCCESS: '104',
+    CHANGE_PASSWORD_SUCCESS: '105',
     SEND_MAIL_SUCCESS: '301',
 };
 
@@ -43,6 +45,7 @@ const mapCodeToMsg = {
     '-102': 'Confirmed password does not match',
     '-103': 'Email is already used',
     '-104': 'Avtivation token does not match!',
+    '-105': 'Old password does not match',
     /* DB interaction error messages */
     '-201': 'Cannot renew token, please try logging in again!',
     '-202': 'Error with DB interaction!',
@@ -52,6 +55,7 @@ const mapCodeToMsg = {
     '101': "Logged in",
     '102': "Signed up",
     '104': "Activation success, you can now login to your account",
+    '105': "Password changed! Please relogin with your new password!",
     '301': "Mail sent",
 }
 
@@ -62,12 +66,14 @@ const mapCodeToHTTPStatus = {
     '-102': HTTPStatus.OK,
     '-103': HTTPStatus.OK,
     '-104': HTTPStatus.OK,
+    '-105': HTTPStatus.OK,
     '-201': HTTPStatus.INTERNAL_SERVER_ERROR,
     '-202': HTTPStatus.INTERNAL_SERVER_ERROR,
     '-301': HTTPStatus.BAD_REQUEST,
     '101': HTTPStatus.OK,
     '102': HTTPStatus.OK,
     '104': HTTPStatus.OK,
+    '105': HTTPStatus.OK,
     '301': HTTPStatus.OK,
 }
 
