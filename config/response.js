@@ -21,13 +21,16 @@ const ResponsedCode = {
     WRONG_LOGIN_INFO: '-101',
     PASSWORD_NOT_MATCH: '-102',
     EMAIL_EXISTED: '-103',
+    ACTIVATE_FAIL: '-104',
     /* DB error... */
     SAVE_TOKEN_FAIL: '-201',
+    ACCESS_DB_FAIL: '-202',
     /* Mailing error */
     SEND_MAIL_FAIL: '-301',
     /* OK */
     LOGIN_SUCCESS: '101',
     SIGNUP_SUCCESS: '102',
+    ACTIVATE_SUCCESS: '104',
     SEND_MAIL_SUCCESS: '301',
 };
 
@@ -39,13 +42,16 @@ const mapCodeToMsg = {
     '-101': 'Wrong email or password',
     '-102': 'Confirmed password does not match',
     '-103': 'Email is already used',
+    '-104': 'Avtivation token does not match!',
     /* DB interaction error messages */
     '-201': 'Cannot renew token, please try logging in again!',
+    '-202': 'Error with DB interaction!',
     /* Nodemailer error messages */
     '-301': 'Sending email failed',
     /* OK message */
     '101': "Logged in",
     '102': "Signed up",
+    '104': "Activation success, you can now login to your account",
     '301': "Mail sent",
 }
 
@@ -55,10 +61,13 @@ const mapCodeToHTTPStatus = {
     '-101': HTTPStatus.OK,
     '-102': HTTPStatus.OK,
     '-103': HTTPStatus.OK,
-    '-201': HTTPStatus.BAD_REQUEST,
+    '-104': HTTPStatus.OK,
+    '-201': HTTPStatus.INTERNAL_SERVER_ERROR,
+    '-202': HTTPStatus.INTERNAL_SERVER_ERROR,
     '-301': HTTPStatus.BAD_REQUEST,
     '101': HTTPStatus.OK,
     '102': HTTPStatus.OK,
+    '104': HTTPStatus.OK,
     '301': HTTPStatus.OK,
 }
 
