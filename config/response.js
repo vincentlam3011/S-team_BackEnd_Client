@@ -23,6 +23,8 @@ const ResponsedCode = {
     EMAIL_EXISTED: '-103',
     ACTIVATE_FAIL: '-104',
     CHANGE_PASSWORD_FAIL: '-105',
+    EDIT_PERSONAL_FAIL: '-106',
+    EDIT_COMPANY_FAIL: '-107',
     /* DB error... */
     SAVE_TOKEN_FAIL: '-201',
     ACCESS_DB_FAIL: '-202',
@@ -33,6 +35,8 @@ const ResponsedCode = {
     SIGNUP_SUCCESS: '102',
     ACTIVATE_SUCCESS: '104',
     CHANGE_PASSWORD_SUCCESS: '105',
+    EDIT_PERSONAL_SUCCESS: '106',
+    EDIT_COMPANY_SUCCESS: '107',
     SEND_MAIL_SUCCESS: '301',
 };
 
@@ -46,6 +50,8 @@ const mapCodeToMsg = {
     '-103': 'Email is already used',
     '-104': 'Avtivation token does not match!',
     '-105': 'Old password does not match',
+    '-106': 'Cannot edit personal information!',
+    '-107': `Cannot edit company's information!`,
     /* DB interaction error messages */
     '-201': 'Cannot renew token, please try logging in again!',
     '-202': 'Error with DB interaction!',
@@ -56,6 +62,8 @@ const mapCodeToMsg = {
     '102': "Signed up",
     '104': "Activation success, you can now login to your account",
     '105': "Password changed! Please relogin with your new password!",
+    '106': "Personal information changed!",
+    '107': "Company's information changed",
     '301': "Mail sent",
 }
 
@@ -67,6 +75,8 @@ const mapCodeToHTTPStatus = {
     '-103': HTTPStatus.OK,
     '-104': HTTPStatus.OK,
     '-105': HTTPStatus.OK,
+    '-106': HTTPStatus.INTERNAL_SERVER_ERROR,
+    '-107': HTTPStatus.INTERNAL_SERVER_ERROR,
     '-201': HTTPStatus.INTERNAL_SERVER_ERROR,
     '-202': HTTPStatus.INTERNAL_SERVER_ERROR,
     '-301': HTTPStatus.BAD_REQUEST,
@@ -74,6 +84,8 @@ const mapCodeToHTTPStatus = {
     '102': HTTPStatus.OK,
     '104': HTTPStatus.OK,
     '105': HTTPStatus.OK,
+    '106': HTTPStatus.OK,
+    '107': HTTPStatus.OK,
     '301': HTTPStatus.OK,
 }
 

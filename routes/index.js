@@ -130,9 +130,8 @@ router.post('/login', (req, res, next) => {
         if (err) {
           res.send(err);
         }
-        let payload = { id: user.loginUser.id_user };
+        let payload = { id: user.loginUser.id_user, isBusinessUser: user.loginUser.isBusinessUser };
         const token = jwt.sign(payload, 'S_Team', { expiresIn: '24h' });
-        console.log("Cur token: " + req.user.loginUser.currentToken);
         if (req.user.loginUser.currentToken !== null)
           redis.setKey(req.user.loginUser.currentToken);
         userModel.editToken(req.user.loginUser.id_user, token)
@@ -154,7 +153,6 @@ router.put('/activation/:id', (req, res, next) => {
   console.log(req.param('id'));
   userModel.getByID(req.param('id'))
     .then(user => {
-      // console.log("Acc stt: " + user[0].account_status);
       if (user.length > 0 && user[0].account_status === 0) {
         var updates = [{ field: 'account_status', value: 1 }];
         userModel.updateUserInfo(req.param('id'), updates)
