@@ -25,6 +25,7 @@ const ResponsedCode = {
     CHANGE_PASSWORD_FAIL: '-105',
     EDIT_PERSONAL_FAIL: '-106',
     EDIT_COMPANY_FAIL: '-107',
+    PASSWORD_RECOVERY_FAIL: '-108',
     /* DB error... */
     SAVE_TOKEN_FAIL: '-201',
     ACCESS_DB_FAIL: '-202',
@@ -37,6 +38,7 @@ const ResponsedCode = {
     CHANGE_PASSWORD_SUCCESS: '105',
     EDIT_PERSONAL_SUCCESS: '106',
     EDIT_COMPANY_SUCCESS: '107',
+    PASSWORD_RECOVERY_SUCCESS: '108',
     SEND_MAIL_SUCCESS: '301',
 };
 
@@ -52,6 +54,7 @@ const mapCodeToMsg = {
     '-105': 'Old password does not match',
     '-106': 'Cannot edit personal information!',
     '-107': `Cannot edit company's information!`,
+    '-108': 'Cannot create a new password!',
     /* DB interaction error messages */
     '-201': 'Cannot renew token, please try logging in again!',
     '-202': 'Error with DB interaction!',
@@ -64,6 +67,7 @@ const mapCodeToMsg = {
     '105': "Password changed! Please relogin with your new password!",
     '106': "Personal information changed!",
     '107': "Company's information changed",
+    '108': 'New password sent via mail!',
     '301': "Mail sent",
 }
 
@@ -77,6 +81,7 @@ const mapCodeToHTTPStatus = {
     '-105': HTTPStatus.OK,
     '-106': HTTPStatus.INTERNAL_SERVER_ERROR,
     '-107': HTTPStatus.INTERNAL_SERVER_ERROR,
+    '-108': HTTPStatus.OK,
     '-201': HTTPStatus.INTERNAL_SERVER_ERROR,
     '-202': HTTPStatus.INTERNAL_SERVER_ERROR,
     '-301': HTTPStatus.BAD_REQUEST,
@@ -86,6 +91,7 @@ const mapCodeToHTTPStatus = {
     '105': HTTPStatus.OK,
     '106': HTTPStatus.OK,
     '107': HTTPStatus.OK,
+    '108': HTTPStatus.OK,
     '301': HTTPStatus.OK,
 }
 
