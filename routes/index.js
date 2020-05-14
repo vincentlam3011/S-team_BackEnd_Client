@@ -153,7 +153,6 @@ router.put('/activation/:id', (req, res, next) => {
   console.log(req.param('id'));
   userModel.getByID(req.param('id'))
     .then(user => {
-      // console.log("Acc stt: " + user[0].account_status);
       if (user.length > 0 && user[0].account_status === 0) {
         var updates = [{ field: 'account_status', value: 1 }];
         userModel.updateUserInfo(req.param('id'), updates)

@@ -80,10 +80,12 @@ router.put('/editPersonalInfo', (req, res, next) => {
   var body = req.body;
   for (var i in body) {
     if (body[i]) {
-      if (i === 'gender')
-        updates.push({ field: i, value: `${body[i]}` });
-      else
-        updates.push({ field: i, value: `'${body[i]}'` });
+      if (i != 'email' && i != 'password') {
+        if (i === 'gender')
+          updates.push({ field: i, value: `${body[i]}` });
+        else
+          updates.push({ field: i, value: `'${body[i]}'` });
+      }
     }
   };
   userModel.updateUserInfo(id_user, updates)
