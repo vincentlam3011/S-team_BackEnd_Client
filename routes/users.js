@@ -3,13 +3,17 @@ var router = express.Router();
 var jwt = require('jsonwebtoken');
 var redis = require('../utils/redis')
 
+var passport = require('../passport');
+
 var userModel = require('../models/userModel');
 
 /* GET users listing. */
 
 router.get('/', function (req, res, next) {
   console.log(res);
-  res.send('respond with a resource');
+  // res.send('respond with a resource');
+  // res.json(req.headers.authorization.slice(7));
+  res.json(req.user);
 });
 
 /* Dummy API */

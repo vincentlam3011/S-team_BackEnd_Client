@@ -2,11 +2,16 @@ var mysql = require('mysql');
 
 var createConnection = () => {
     return mysql.createConnection({
-        host: 'f2l.ctgwpvncwnsg.us-east-1.rds.amazonaws.com',
+        // host: 'f2l.ctgwpvncwnsg.us-east-1.rds.amazonaws.com',
+        // port: '3306',
+        // user: 'admin',
+        // password: 'rootsteam',
+        // database: 'f2l_test_deploy',
+         host: 'localhost',
         port: '3306',
-        user: 'admin',
-        password: 'rootsteam',
-        database: 'f2l_test_deploy',
+        user: 'root',
+        password: 'root',
+        database: 'f2l_test01',
         dateStrings: true,
         timezone: 'Z',
         multipleStatements: true,

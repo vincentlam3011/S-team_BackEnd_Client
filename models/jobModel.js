@@ -47,20 +47,7 @@ module.exports = {
     editJob: (job) => {
         let images = job.images;
         let tags = job.tags;
-        let columsJob = `(title,salary,job_topic,area_province,area_district,address,lat,lng,description,expire_date,dealable,job_type,isOnline,isCompany,vacancy,requirement,id_status)`
-        let valueJob = `(
-        '${job.title}','${job.salary}',
-        '${job.job_topic}',
-        '${job.area_province}',
-        '${job.area_district}',
-        '${job.address}','${job.lat}',
-        '${job.lng}','${job.description}',
-        '${job.expire_date}',${job.dealable},
-        ${job.job_type},${job.isOnline},
-        ${job.isCompany},
-        '${job.vacancy}',
-        '${job.requirement}',
-        '${job.id_status}')`
+     
         let sqlQueryJobs = `update Jobs SET title ='${job.title}',salary='${job.salary}',
         job_topic='${job.job_topic}',
         area_province='${job.area_province}',
