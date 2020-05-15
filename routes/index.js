@@ -98,24 +98,38 @@ router.post('/signup', (req, res) => {
         }
         else {
           bcrypt.hash(account.password, saltRounds, (err, hash) => {
+            if (err) {
+              res.json({ message: "Cannot sign up", error: err })
+            }
             account.password = hash;
+            var activateToken = crypto.randomBytes(10).toString('hex');
+            account.activationToken = activateToken;
+            var exprTime = new Date(Date.now() + 5 * 60000);
+            var localTime = exprTime.toLocaleTimeString('en-GB', { hour12: false });
+            var localDate = exprTime.toLocaleDateString('en', { month: "2-digit", day: "2-digit", year: "numeric" });
+            var localYear = localDate.slice(6, 10);
+            var localMonth = localDate.slice(0, 2);
+            var localDay = localDate.slice(3, 5);
+            localDate = localYear + '-' + localMonth + '-' + localDay;
+            var localDateTime = localDate + ' ' + localTime;
+            account.activationExpr = localDateTime;
             userModel.sign_up(account, company)
               .then((data2) => {
-                var activateToken = crypto.randomBytes(10).toString('hex');
+
                 var mailOptions = {
                   subject: "Account activation",
                   text:
                     `Dear customer. \n\n`
                     + 'You are receiving this because you (or someone else) have signed up to our website.\n\n'
                     + 'Please click on the following link, or paste this into your browser to complete the process:\n\n'
-                    + `${activateToken}\n\n`
+                    + `*Activation link* ${activateToken}\n\n`
                     + 'If you did not request this, please ignore this email and your account will not be activate.\n'
                     + 'F2L Support team',
                 }
                 mailer(mailOptions, 'F2L S_Team', account.email, res);
                 response(res, DEFINED_CODE.SIGNUP_SUCCESS);
               }).catch((err2) => {
-                response(res, DEFINED_CODE.WRONG_LOGIN_INFO);
+                response(res, DEFINED_CODE.ACCESS_DB_FAIL, err2);
               })
           })
         }
@@ -159,27 +173,77 @@ router.post('/login', (req, res, next) => {
 });
 
 /* Activate */
-router.put('/activation/:id', (req, res, next) => {
-  // var activationCode = req.body.activation_code;
-  console.log(req.param('id'));
-  userModel.getByID(req.param('id'))
-    .then(user => {
-      if (user.length > 0 && user[0].account_status === 0) {
-        var updates = [{ field: 'account_status', value: 1 }];
-        userModel.updateUserInfo(req.param('id'), updates)
-          .then(data => {
-            response(res, DEFINED_CODE.ACTIVATE_SUCCESS);
-          }).catch(err => {
-            response(res, DEFINED_CODE.ACTIVATE_FAIL);
-          })
+router.put('/activation/:activationToken', (req, res, next) => {
+  var activationToken = req.param('activationToken');
+  userModel.verifyActivation(activationToken)
+    .then(data => {
+      if (data.length > 0) {
+        if (data[0].account_status === 1) {
+          response(res, DEFINED_CODE.ACTIVATE_FAIL, 'Already activated');
+          // res.redirect();
+          return;
+        } else {
+          if (data[0].isExpr <= 0) {
+            userModel.updateUserInfo(data[0].id_user, [{ field: 'account_status', value: 1 }])
+              .then(result => {
+                response(res, DEFINED_CODE.ACTIVATE_SUCCESS);
+              }).catch(err => {
+                response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
+              })
+          } else {
+            response(res, DEFINED_CODE.ACTIVATE_FAIL, "Activation code expired, please request a new one!");
+            return;
+          }
+        }
       } else {
-        response(res, DEFINED_CODE.ACTIVATE_FAIL, 'Account is already activated or does not exist!');
-        // res.redirect('...') 
+        response(res, DEFINED_CODE.ACTIVATE_FAIL, 'User not found');
       }
     }).catch(err => {
       response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
     })
 });
+
+/* Request new activation mail */
+router.post('/resendActivation', (req, res, next) => {
+  var email = req.body.email;
+  var activateToken = crypto.randomBytes(10).toString('hex');
+  var exprTime = new Date(Date.now() + 5 * 60000);
+  var localTime = exprTime.toLocaleTimeString('en-GB', { hour12: false });
+  var localDate = exprTime.toLocaleDateString('en', { month: "2-digit", day: "2-digit", year: "numeric" });
+  var localYear = localDate.slice(6, 10);
+  var localMonth = localDate.slice(0, 2);
+  var localDay = localDate.slice(3, 5);
+  localDate = localYear + '-' + localMonth + '-' + localDay;
+  var localDateTime = localDate + ' ' + localTime;
+  userModel.getByEmail(email, -1)
+    .then(data => {
+      if (data.length > 0) {
+        var updates = [
+          { field: 'activationToken', value: `'${activateToken}'` },
+          { field: 'activationExpr', value: `'${localDateTime}'` },
+        ]
+        userModel.updateUserInfo(data[0].id_user, updates)
+          .then(result => {
+            var mailOptions = {
+              subject: "Account activation",
+              text:
+                `Dear customer. \n\n`
+                + 'You are receiving this because you (or someone else) have signed up to our website.\n\n'
+                + 'Please click on the following link, or paste this into your browser to complete the process:\n\n'
+                + `*Activation link* ${activateToken}\n\n`
+                + 'If you did not request this, please ignore this email and your account will not be activate.\n'
+                + 'F2L Support team',
+            }
+            mailer(mailOptions, 'F2L S_Team', email, res);
+            response(res, DEFINED_CODE.SEND_MAIL_SUCCESS, result);
+          }).catch(err => {
+            response(res, DEFINED_CODE.SEND_MAIL_FAIL, err);
+          })
+      } else {
+        response(res, DEFINED_CODE.SEND_MAIL_FAIL, "User not found or already activated!");
+      }
+    })
+})
 
 /* Forgot password */
 router.put('/forget', (req, res, next) => {
