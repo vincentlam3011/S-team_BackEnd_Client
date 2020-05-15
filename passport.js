@@ -17,9 +17,12 @@ passport.use(new LocalStrategy(
     },
     function (username, password, cb) {
         return userModel.getByEmail(username, 1)
-            .then((data) => {
+            .then((data) => {  
+                console.log(JSON.stringify(data))
                 if (data.length > 0) {
+                    console.log("RAW: " + data[0].password)
                     bcrypt.compare(password, data[0].password, (err, res) => {
+                        console.log("Is decrypted" + res)
                         if (res) {
                             return cb(null, { loginUser: data[0] }, { message: 'Logged in successfully', code: 3 });
                         }

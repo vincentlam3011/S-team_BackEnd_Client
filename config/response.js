@@ -11,7 +11,7 @@ var HTTPStatus = require('http-status');
         1: login, signup, user related
         2: database interaction related
         3: mailing related
-*/
+    */
 
 const ResponsedCode = {
     /* Token errors */
@@ -28,7 +28,13 @@ const ResponsedCode = {
     PASSWORD_RECOVERY_FAIL: '-108',
     /* DB error... */
     SAVE_TOKEN_FAIL: '-201',
-    ACCESS_DB_FAIL: '-202',
+    GET_DATA_FAIL : '-200',
+    CREATE_DATA_FAIL : '-204',
+    // Edit ~ Accepted
+    INTERACT_DATA_FAIL : '-203', 
+    ERROR_ID : '-202', 
+
+
     /* Mailing error */
     SEND_MAIL_FAIL: '-301',
     /* OK */
@@ -40,6 +46,12 @@ const ResponsedCode = {
     EDIT_COMPANY_SUCCESS: '107',
     PASSWORD_RECOVERY_SUCCESS: '108',
     SEND_MAIL_SUCCESS: '301',
+    GET_DATA_SUCCESS: '200',
+    CREATED_DATA_SUCCESS: '201',
+    INTERACT_DATA_SUCCESS: '202',
+
+
+
 };
 
 const mapCodeToMsg = {
@@ -56,19 +68,33 @@ const mapCodeToMsg = {
     '-107': `Cannot edit company's information!`,
     '-108': 'Cannot create a new password!',
     /* DB interaction error messages */
+    '-200': 'Cannot Get Data. It can be caused from your connection database!',
     '-201': 'Cannot renew token, please try logging in again!',
-    '-202': 'Error with DB interaction!',
+    '-204': 'Cannot create data, please check your field in body!',
+    '-202': 'Cannot find data by an required Id, please check your Id field in body!',
+    '-203': 'Cannot interact data, please check your required fields in body!',
+
+
     /* Nodemailer error messages */
     '-301': 'Sending email failed',
+    
+    '-401': 'Get Data Fail',
     /* OK message */
     '101': "Logged in",
     '102': "Signed up",
+    '200': "Get Data successs",
+    '201': "Create Data successs",
+    '202': "Interact Data successs",
+
     '104': "Activation success, you can now login to your account",
     '105': "Password changed! Please relogin with your new password!",
     '106': "Personal information changed!",
     '107': "Company's information changed",
     '108': 'New password sent via mail!',
     '301': "Mail sent",
+
+
+    
 }
 
 const mapCodeToHTTPStatus = {
@@ -77,6 +103,10 @@ const mapCodeToHTTPStatus = {
     '-101': HTTPStatus.OK,
     '-102': HTTPStatus.OK,
     '-103': HTTPStatus.OK,
+    '-200': HTTPStatus.BAD_REQUEST,
+    '-201': HTTPStatus.BAD_REQUEST,
+    '-202': HTTPStatus.OK,
+    '-203': HTTPStatus.BAD_REQUEST,
     '-104': HTTPStatus.OK,
     '-105': HTTPStatus.OK,
     '-106': HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -93,6 +123,11 @@ const mapCodeToHTTPStatus = {
     '107': HTTPStatus.OK,
     '108': HTTPStatus.OK,
     '301': HTTPStatus.OK,
+    '200': HTTPStatus.OK,
+    '201': HTTPStatus.OK,
+    '202': HTTPStatus.OK,
+
+
 }
 
 /* Handle response */

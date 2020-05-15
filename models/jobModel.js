@@ -18,7 +18,7 @@ module.exports = {
         ${job.isCompany},
         '${job.vacancy}',
         '${job.requirement}',
-        '${job.id_status}')`;
+        '1')`;
         let sqlQueryJobs = `insert into Jobs` + columsJob + ` values` + valueJob + `;`;
         if (images || tags) {
             let queryJobRealtedImages = '';
@@ -33,7 +33,7 @@ module.exports = {
             if (tags) {
                 tags.forEach(element => {
 
-                    queryJobTags += "insert into jobs_tags values((SELECT MAX(id_job) FROM jobs)" + ",'" + element + "');";
+                    queryJobTags += "insert into jobs_tags values((SELECT MAX(id_job) FROM jobs)" + ",'" + element.tag_id + "');";
                     // console.log('queryJobRealtedImages:', queryJobRealtedImages);
                 });
             }
@@ -47,20 +47,7 @@ module.exports = {
     editJob: (job) => {
         let images = job.images;
         let tags = job.tags;
-        let columsJob = `(title,salary,job_topic,area_province,area_district,address,lat,lng,description,expire_date,dealable,job_type,isOnline,isCompany,vacancy,requirement,id_status)`
-        let valueJob = `(
-        '${job.title}','${job.salary}',
-        '${job.job_topic}',
-        '${job.area_province}',
-        '${job.area_district}',
-        '${job.address}','${job.lat}',
-        '${job.lng}','${job.description}',
-        '${job.expire_date}',${job.dealable},
-        ${job.job_type},${job.isOnline},
-        ${job.isCompany},
-        '${job.vacancy}',
-        '${job.requirement}',
-        '${job.id_status}')`
+     
         let sqlQueryJobs = `update Jobs SET title ='${job.title}',salary='${job.salary}',
         job_topic='${job.job_topic}',
         area_province='${job.area_province}',
@@ -85,16 +72,18 @@ module.exports = {
                     queryJobRealtedImages += `insert into job_related_images values(${job.id_job},x'${element}');`;
                     // console.log('queryJobRealtedImages:', queryJobRealtedImages);
                 });
+
             }
             if (tags) {
                 queryDeleteJobTags = `DELETE FROM jobs_tags where id_job = ${job.id_job};`
                 tags.forEach(element => {
-                    queryJobTags += "insert into jobs_tags values((SELECT MAX(id_job) FROM jobs)" + ",'" + element + "');";
+                    queryJobTags += `insert into jobs_tags values(${job.id_job}` + ",'" + element.tag_id + "');";
                     // console.log('queryJobRealtedImages:', queryJobRealtedImages);
                 });
+                console.log('queryJobTags:', queryJobTags)
             }
-
-            return db.query(sqlQueryJobs + queryDeleteJobTags + queryJobTags + queryDeleteJobRealtedImages + queryJobRealtedImages);
+            console.log('queryDeleteJobTags:', queryDeleteJobTags)
+            return db.query(sqlQueryJobs + queryDeleteJobTags + queryDeleteJobRealtedImages + queryJobTags + queryJobRealtedImages);
         }
         else {
             return db.query(sqlQueryJobs)
@@ -120,8 +109,6 @@ module.exports = {
             db.query(query).then(data => {
                 if (data[0]) {
                     let dataReturn = new Object(data[0][0]);
-                    console.log('dataReturn:', dataReturn)
-                    console.log('data:', data);
                     delete dataReturn.id_tag;
                     delete dataReturn.tag_name;
                     dataReturn.tags = [];
@@ -160,10 +147,10 @@ module.exports = {
         // return db.query(`select * from jobs where id_job = ${id}`);
     },
     getJobByIdJobTopic: (id) => {
-        return db.query(`select * from jobs as j 
+        return db.query(`select j.*,jri.img from jobs as j 
         left join job_related_images as jri
         on  j.id_job= jri.id_job
-        where job_topic = ${id} group by jri.id_job ;`);
+        where j.job_topic = ${id} group by jri.id_job ;`);
     },
     deleteJobById: (id) => {
         return db.query(`delete from jobs where id_job = ${id}`)

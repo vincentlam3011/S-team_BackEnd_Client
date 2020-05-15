@@ -6,6 +6,8 @@ var bcrypt = require('bcrypt');
 
 var { response, DEFINED_CODE } = require('../config/response');
 
+var passport = require('../passport');
+
 var userModel = require('../models/userModel');
 
 const saltRounds = 15;
@@ -13,6 +15,7 @@ const saltRounds = 15;
 /* GET users listing. */
 
 router.get('/', function (req, res, next) {
+
   var token = req.headers.authorization.slice(7);
   var decodedPayload = jwt.decode(token, {
     secret: 'S_Team',
