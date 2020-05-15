@@ -35,5 +35,29 @@ module.exports = {
     },
     getCompanyInfo: () => {
         return db.query(`select * from users as U, companies as C where U.id_user = C.id_user`);
+    },
+    updateUserInfo: (id, updates) => {
+        var updateQuery = `update users set `;
+        for (i = 0; i < updates.length; i++) {
+            updateQuery += updates[i].field + ' = ' + updates[i].value;
+            if (i < (updates.length - 1)) {
+                updateQuery += ',';
+            }
+        }
+        console.log(updateQuery);
+        var sqlQuery = updateQuery + ` where id_user = ${id}`;
+        return db.query(sqlQuery);
+    },
+    updateCompanyInfo: (id, updates) => {
+        var updateQuery = `update companies set `;
+        for (i = 0; i < updates.length; i++) {
+            updateQuery += updates[i].field + ' = ' + updates[i].value;
+            if (i < (updates.length - 1)) {
+                updateQuery += ',';
+            }
+        }
+        console.log(updateQuery);
+        var sqlQuery = updateQuery + ` where id_user = ${id}`;
+        return db.query(sqlQuery);
     }
 }
