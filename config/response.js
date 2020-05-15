@@ -11,7 +11,7 @@ var HTTPStatus = require('http-status');
         1: login, signup, user related
         2: database interaction related
         3: mailing related
-*/
+    */
 
 const ResponsedCode = {
     /* Token errors */
@@ -23,12 +23,24 @@ const ResponsedCode = {
     EMAIL_EXISTED: '-103',
     /* DB error... */
     SAVE_TOKEN_FAIL: '-201',
+    GET_DATA_FAIL : '-200',
+    CREATE_DATA_FAIL : '-204',
+    // Edit ~ Accepted
+    INTERACT_DATA_FAIL : '-203', 
+    ERROR_ID : '-202', 
+
     /* Mailing error */
     SEND_MAIL_FAIL: '-301',
     /* OK */
     LOGIN_SUCCESS: '101',
     SIGNUP_SUCCESS: '102',
     SEND_MAIL_SUCCESS: '301',
+    GET_DATA_SUCCESS: '200',
+    CREATED_DATA_SUCCESS: '201',
+    INTERACT_DATA_SUCCESS: '202',
+
+
+
 };
 
 const mapCodeToMsg = {
@@ -40,13 +52,27 @@ const mapCodeToMsg = {
     '-102': 'Confirmed password does not match',
     '-103': 'Email is already used',
     /* DB interaction error messages */
+    '-200': 'Cannot Get Data. It can be caused from your connection database!',
     '-201': 'Cannot renew token, please try logging in again!',
+    '-204': 'Cannot create data, please check your field in body!',
+    '-202': 'Cannot find data by an required Id, please check your Id field in body!',
+    '-203': 'Cannot interact data, please check your required fields in body!',
+
     /* Nodemailer error messages */
     '-301': 'Sending email failed',
+    
+    '-401': 'Get Data Fail',
     /* OK message */
     '101': "Logged in",
     '102': "Signed up",
+    '200': "Get Data successs",
+    '201': "Create Data successs",
+    '202': "Interact Data successs",
+
     '301': "Mail sent",
+
+
+    
 }
 
 const mapCodeToHTTPStatus = {
@@ -55,11 +81,19 @@ const mapCodeToHTTPStatus = {
     '-101': HTTPStatus.OK,
     '-102': HTTPStatus.OK,
     '-103': HTTPStatus.OK,
+    '-200': HTTPStatus.BAD_REQUEST,
     '-201': HTTPStatus.BAD_REQUEST,
+    '-202': HTTPStatus.OK,
+    '-203': HTTPStatus.BAD_REQUEST,
     '-301': HTTPStatus.BAD_REQUEST,
     '101': HTTPStatus.OK,
     '102': HTTPStatus.OK,
     '301': HTTPStatus.OK,
+    '200': HTTPStatus.OK,
+    '201': HTTPStatus.OK,
+    '202': HTTPStatus.OK,
+
+
 }
 
 /* Handle response */

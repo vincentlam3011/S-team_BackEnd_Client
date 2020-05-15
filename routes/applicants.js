@@ -3,6 +3,7 @@ var router = express.Router();
 var jwt = require('jsonwebtoken');
 var redis = require('../utils/redis')
 var convertBlobB64 = require('../middleware/convertBlobB64');
+var { response, DEFINED_CODE } = require('../config/response');
 
 var passport = require('../passport');
 
@@ -15,83 +16,69 @@ router.post('/getByJobId', function (req, res, next) {
         data.forEach(element => {
             element.attachment = convertBlobB64.convertBlobToB64(element.attachment);
         });
-        res.json({ info: data, code: 1 });
+        resspone(res, DEFINED_CODE.GET_DATA_SUCCESS, data);
 
     }).catch(err => {
-        res.json({
-            message: "Get failed",
-            code: 0,
-            info: err,
-        })
+        resspone(err, DEFINED_CODE.GET_DATA_FAIL);
     })
     // res.send('respond with a resource');
     // res.json(req.headers.authorization.slice(7));
 });
 
-//Get Applicants by JobId
+//Get Applicants by UserId
 router.post('/getApplicantsByUserId', function (req, res, next) {
     let id_user = req.body.id_user;
     applicantModel.getApplicantsByUserId(id_user).then(data => {
         data.forEach(element => {
             element.attachment = convertBlobB64.convertBlobToB64(element.attachment);
         });
-        res.json({ info: data, code: 1 });
-
+        response(res, DEFINED_CODE.GET_DATA_SUCCESS, data);
     }).catch(err => {
-        res.json({
-            message: "Get failed",
-            code: 0,
-            info: err,
-        })
+        response(err, DEFINED_CODE.GET_DATA_FAIL);
     })
-    // res.send('respond with a resource');
-    // res.json(req.headers.authorization.slice(7));
+
 });
 //Add New Applicants 
 router.post('/addApplicant', function (req, res, next) {
     let applicants = JSON.parse(JSON.stringify(req.body));
     applicantModel.addApplicant(applicants).then(data => {
-       
-        res.json({ info: data, code: 1 });
 
+        response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data);
     }).catch(err => {
-        res.json({
-            message: "Add failed",
-            code: 0,
-            info: err,
-        })
+        response(err, DEFINED_CODE.INTERACT_DATA_FAIL);
     })
-    // res.send('respond with a resource');
-    // res.json(req.headers.authorization.slice(7));
+
 });
-//Update Applicants 
+//Edit Applicants 
 router.post('/editApplicant', function (req, res, next) {
     let applicants = JSON.parse(JSON.stringify(req.body));
-    applicantModel.editApplicant(applicants).then(data => {
-        res.json({ info: data, code: 1 });
-    }).catch(err => {
-        res.json({
-            message: "Update failed",
-            code: 0,
-            info: err,
+    if (applicants.id_applicant) {
+        applicantModel.editApplicant(applicants).then(data => {
+            response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data);
+        }).catch(err => {
+            response(err, DEFINED_CODE.INTERACT_DATA_FAIL);
+
         })
-    })
-    // res.send('respond with a resource');
-    // res.json(req.headers.authorization.slice(7));
+    }
+    else {
+        response(res, DEFINED_CODE.EMPTY_ID);
+
+    }
+
 });
 //Delete Applicants By Applicants Id 
 router.delete('/deleteApplicant', function (req, res, next) {
-    let id_applicant = req.body.id_applicant
-    applicantModel.deleteApplicant(id_applicant).then(data => {
-        res.json({ info: data, code: 1 });
-    }).catch(err => {
-        res.json({
-            message: "Update failed",
-            code: 0,
-            info: err,
+    let id_applicant = req.body.id_applicant;
+    if (id_applicant) {
+        applicantModel.deleteApplicant(id_applicant).then(data => {
+            response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data);
+        }).catch(err => {
+            response(err, DEFINED_CODE.INTERACT_DATA_FAIL);
         })
-    })
-    // res.send('respond with a resource');
-    // res.json(req.headers.authorization.slice(7));
+    }
+    else {
+        response(res, DEFINED_CODE.EMPTY_ID);
+    }
+
 });
 module.exports = router;

@@ -20,7 +20,7 @@ router.get('/', function (req, res, next) {
   res.render('index', { title: 'Express' });
 });
 //Get Jobs Topic
-router.get('/allJobTopics', function (req, res, next) {
+router.get('/allJobsTopics', function (req, res, next) {
   jobTopicModel.getAllJobTopics().then(data => {
     if (data.length > 0) {
       data.forEach(element => {
@@ -37,16 +37,27 @@ router.get('/jobsByJobTopic/:id', function (req, res, next) {
   console.log('params:', req.params);
   let job_topic = req.params.id;
   console.log('job_topic:', job_topic);
-  jobModel.getJobById(job_topic).then(data => {
+  jobModel.getJobByIdJobTopic(job_topic).then(data => {
     if (data.length > 0) {
+      console.log("Have Data:", data)
       data.forEach(element => {
-        element.img = convertBlobB64.convertBlobToB64(element.img);
+        if (element.img) {
+          let buffer = new Buffer(element.img);
+          let bufferBase64 = buffer.toString('base64');
+          element.img = bufferBase64;
+        }
       });
-      res.json({ message: 'Get Data Success', data, code: 1 })
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, data);
+
       //   }
     }
-  }).catch((err1) => {
-    res.json({ message: err1, code: 0 });
+    else
+    {
+      response(res,DEFINED_CODE.GET_DATA_SUCCESS,[])
+    }
+  }).catch((err) => {
+    response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+
   })
 });
 /* Signup */
@@ -152,9 +163,9 @@ router.post('/login', (req, res, next) => {
 router.get('/getJob/:id', function (req, res, next) {
   let id_job = req.params.id;
   jobModel.getJobById(id_job).then(data => {
-    res.json({message:"Get Successfull", info: data, code: 1 });
-  }).catch(err=>{
-    res.json({err,code:0});
+    res.json({ message: "Get Successfull", info: data, code: 1 });
+  }).catch(err => {
+    res.json({ err, code: 0 });
   })
 });
 
