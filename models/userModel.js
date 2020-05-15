@@ -6,15 +6,18 @@ module.exports = {
             return db.query(`select * from users where email = '${email}';`);
         else if (accStatus === 1)
             return db.query(`select * from users where email = '${email}' and account_status = ${accStatus};`);
+        else if (accStatus === -1) {
+            return db.query(`select * from users where email = '${email}' and account_status = 0;`);
+        }
 
     },
     getByID: (id) => {
         return db.query(`select * from users where id_user = ${id}`);
     },
     sign_up: (account, company) => {
-        var columnsUsers = `(email, password, fullname, dob, dial, address, isBusinessUser, gender, account_status)`;
+        var columnsUsers = `(email, password, fullname, dob, dial, address, isBusinessUser, gender, account_status, activationToken, activationExpr)`;
         var valuesUsers = `('${account.email}', '${account.password}', '${account.fullname}', '${account.dob}', '${account.dial}', '${account.address}' 
-                            ,${account.isBusinessUser}, ${account.gender}, ${account.account_status})`;
+                            ,${account.isBusinessUser}, ${account.gender}, ${account.account_status}, '${account.activationToken}', '${account.activationExpr}')`;
 
         var sqlQueryUsers = `insert into USERs` + columnsUsers + ` values` + valuesUsers + `;`;
         if (company === null) {
@@ -59,5 +62,8 @@ module.exports = {
         console.log(updateQuery);
         var sqlQuery = updateQuery + ` where id_user = ${id}`;
         return db.query(sqlQuery);
+    },
+    verifyActivation: (token) => {
+        return db.query(`select id_user, account_status, activationToken, timestampdiff(second, activationExpr, now()) as isExpr from users where activationToken = '${token}';`);
     }
 }
