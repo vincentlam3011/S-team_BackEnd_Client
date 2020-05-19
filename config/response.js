@@ -45,13 +45,10 @@ const ResponsedCode = {
     EDIT_PERSONAL_SUCCESS: '106',
     EDIT_COMPANY_SUCCESS: '107',
     PASSWORD_RECOVERY_SUCCESS: '108',
-    SEND_MAIL_SUCCESS: '301',
     GET_DATA_SUCCESS: '200',
     CREATED_DATA_SUCCESS: '201',
     INTERACT_DATA_SUCCESS: '202',
-
-
-
+    SEND_MAIL_SUCCESS: '301',
 };
 
 const mapCodeToMsg = {
@@ -114,7 +111,7 @@ const mapCodeToHTTPStatus = {
     '-108': HTTPStatus.OK,
     '-201': HTTPStatus.INTERNAL_SERVER_ERROR,
     '-202': HTTPStatus.INTERNAL_SERVER_ERROR,
-    '-301': HTTPStatus.BAD_REQUEST,
+    '-301': HTTPStatus.OK,
     '101': HTTPStatus.OK,
     '102': HTTPStatus.OK,
     '104': HTTPStatus.OK,
