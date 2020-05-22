@@ -17,7 +17,7 @@ const ResponsedCode = {
     /* Token errors */
     INVALID_TOKEN: '-001',
     NULL_TOKEN: '-002',
-    /* Login, signup error */
+    /* Login, signup, user error */
     WRONG_LOGIN_INFO: '-101',
     PASSWORD_NOT_MATCH: '-102',
     EMAIL_EXISTED: '-103',
@@ -100,7 +100,7 @@ const mapCodeToHTTPStatus = {
     '-101': HTTPStatus.OK,
     '-102': HTTPStatus.OK,
     '-103': HTTPStatus.OK,
-    '-200': HTTPStatus.BAD_REQUEST,
+    '-200': HTTPStatus.INTERNAL_SERVER_ERROR,
     '-201': HTTPStatus.BAD_REQUEST,
     '-202': HTTPStatus.OK,
     '-203': HTTPStatus.BAD_REQUEST,

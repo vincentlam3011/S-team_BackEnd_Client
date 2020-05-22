@@ -23,21 +23,31 @@ router.get('/', function (req, res, next) {
   res.json(decodedPayload);
 });
 
-/* Dummy API */
-router.get('/getUser', (req, res, next) => {
+/* Get user info */
+router.get('/me', (req, res, next) => {
   var token = req.headers.authorization.slice(7);
   var decodedPayload = jwt.decode(token, {
     secret: 'S_Team',
   });
   var id_user = decodedPayload.id;
-  userModel.getByID(id_user).
-    then(data => {
-      let avatar = data[0].avatarImg;
-      let buffer = new Buffer(avatar);
-      let bufferB64 = buffer.toString('base64');
-      data[0].avatarImg = bufferB64;
-      res.json(data);
-    }).catch(err => { res.json(err) });
+  userModel.getUserInfo(id_user)
+    .then(data => {
+      var personalInfo = data[0];
+      var companyInfo = data[1];
+      if (personalInfo[0].avatarImg !== null) {
+        let avatar = personalInfo[0].avatarImg;
+        let buffer = new Buffer(avatar);
+        let bufferB64 = buffer.toString('base64');
+        personalInfo[0].avatarImg = bufferB64;
+      }
+      if (personalInfo[0].isBusinessUser) {
+        response(res, DEFINED_CODE.GET_DATA_SUCCESS, { personal: personalInfo[0], company: companyInfo[0] });
+      } else {
+        response(res, DEFINED_CODE.GET_DATA_SUCCESS, { personal: personalInfo[0] });
+      }
+    }).catch(err => {
+      res.json(err);
+    })
 })
 
 /* Change password */
