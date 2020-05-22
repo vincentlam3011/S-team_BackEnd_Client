@@ -4,11 +4,11 @@ var createConnection = () => {
     return mysql.createConnection({
         host: 'localhost',
         port: '3306',
-         user: 'root',
-         password: '30111998',
-         database: 'f2l',
-         host: 'localhost',
-       // port: '3306',
+        user: 'root',
+        password: '30111998',
+        database: 'f2l',
+        host: 'localhost',
+        // port: '3306',
         //user: 'root',
         //password: 'root',
         //database: 'f2l_test01',
@@ -29,7 +29,7 @@ var createConnection = () => {
 module.exports = {
     query: sql => {
         return new Promise((resolve, reject) => {
-            var connection = createConnection();
+            var connection = createConnection({ multipleStatements: true });
             connection.connect((err) => {
                 if (err) {
                     return console.error('Error: ' + err.message);

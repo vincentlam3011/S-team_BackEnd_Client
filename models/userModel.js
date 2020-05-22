@@ -36,8 +36,10 @@ module.exports = {
     getCurrentToken: (id) => {
         return db.query(`select currentToken from USERs where id_user = ${id}`);
     },
-    getCompanyInfo: () => {
-        return db.query(`select * from users as U, companies as C where U.id_user = C.id_user`);
+    getUserInfo: (id) => {
+        var userQuery = `select * from USERs where id_user = ${id};`;
+        var companyQuery = `select * from COMPANIEs where id_user = ${id};`;
+        return db.query(userQuery + ' ' + companyQuery);
     },
     updateUserInfo: (id, updates) => {
         var updateQuery = `update users set `;
