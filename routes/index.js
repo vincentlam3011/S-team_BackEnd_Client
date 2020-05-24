@@ -105,12 +105,12 @@ router.post('/signup', (req, res) => {
                 var mailOptions = {
                   subject: "Account activation",
                   text:
-                    'You are receiving this because you (or someone else) have signed up to our website.\n\n'
+                    `Dear customer. \n\n`
+                    + 'You are receiving this because you (or someone else) have signed up to our website.\n\n'
                     + 'Please click on the following link, or paste this into your browser to complete the process:\n\n'
-
                     + `${activateToken}\n\n`
-
-                    + 'If you did not request this, please ignore this email and your account will not be activate.\n',
+                    + 'If you did not request this, please ignore this email and your account will not be activate.\n'
+                    + 'F2L Support team',
                 }
                 mailer(mailOptions, 'F2L S_Team', account.email, res);
                 response(res, DEFINED_CODE.SIGNUP_SUCCESS);
@@ -141,9 +141,8 @@ router.post('/login', (req, res, next) => {
         if (err) {
           res.send(err);
         }
-        let payload = { id: user.loginUser.id_user };
+        let payload = { id: user.loginUser.id_user, isBusinessUser: user.loginUser.isBusinessUser };
         const token = jwt.sign(payload, 'S_Team', { expiresIn: '24h' });
-        console.log("Cur token: " + req.user.loginUser.currentToken);
         if (req.user.loginUser.currentToken !== null)
           redis.setKey(req.user.loginUser.currentToken);
         userModel.editToken(req.user.loginUser.id_user, token)
@@ -158,6 +157,67 @@ router.post('/login', (req, res, next) => {
     }
   })(req, next);
 });
+
+/* Activate */
+router.put('/activation/:id', (req, res, next) => {
+  // var activationCode = req.body.activation_code;
+  console.log(req.param('id'));
+  userModel.getByID(req.param('id'))
+    .then(user => {
+      if (user.length > 0 && user[0].account_status === 0) {
+        var updates = [{ field: 'account_status', value: 1 }];
+        userModel.updateUserInfo(req.param('id'), updates)
+          .then(data => {
+            response(res, DEFINED_CODE.ACTIVATE_SUCCESS);
+          }).catch(err => {
+            response(res, DEFINED_CODE.ACTIVATE_FAIL);
+          })
+      } else {
+        response(res, DEFINED_CODE.ACTIVATE_FAIL, 'Account is already activated or does not exist!');
+        // res.redirect('...') 
+      }
+    }).catch(err => {
+      response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
+    })
+});
+
+/* Forgot password */
+router.put('/forget', (req, res, next) => {
+  var email = req.body.email;
+  userModel.getByEmail(email, 1)
+    .then(data => {
+      if (data.length > 0) {
+        var newPassword = crypto.randomBytes(4).toString('hex');
+        bcrypt.hash(newPassword, saltRounds, (err, hashed) => {
+          if (err) {
+            response(res, DEFINED_CODE.PASSWORD_RECOVERY_FAIL, err); return;
+          } else {
+            var mailOptions = {
+              subject: "Password recovery",
+              text:
+                `Dear ${data[0].fullname}. \n\n`
+                + 'You are receiving this because you forgot the password of your account.\n'
+                + 'We are sending you a new password below, you can use it to login to our system:\n\n'
+                + `${newPassword}\n\n`
+                + 'If you did not request this, please ignore this email.\n\n'
+                + 'F2L Support team',
+            };
+            userModel.updateUserInfo(data[0].id_user, [{ field: 'password', value: `'${hashed}'` }])
+              .then(result => {
+                mailer(mailOptions, 'F2L S_Team', email, res);
+                response(res, DEFINED_CODE.PASSWORD_RECOVERY_SUCCESS);
+              }).catch(err => {
+                response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
+              });
+          }
+        });
+      } else {
+        response(res, DEFINED_CODE.PASSWORD_RECOVERY_FAIL, { note: "Account invalid" }); return;
+      }
+    }).catch(err => {
+      response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
+    })
+})
 
 //Get Jobs By Id
 router.get('/getJob/:id', function (req, res, next) {
