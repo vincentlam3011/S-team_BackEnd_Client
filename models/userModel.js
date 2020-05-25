@@ -16,7 +16,7 @@ module.exports = {
         var valuesUsers = `('${account.email}', '${account.password}', '${account.fullname}', '${account.dob}', '${account.dial}', '${account.address}' 
                             ,${account.isBusinessUser}, ${account.gender}, ${account.account_status})`;
 
-        var sqlQueryUsers = `insert into USERs` + columnsUsers + ` values` + valuesUsers + `;`;
+        var sqlQueryUsers = `insert into users` + columnsUsers + ` values` + valuesUsers + `;`;
         if (company === null) {
             return db.query(sqlQueryUsers);
         }
@@ -28,10 +28,11 @@ module.exports = {
         return db.transaction(sqlQueryUsers, columnsCompanies, valuesCompanies, `COMPANIEs`);
     },
     editToken: (id, token) => {
-        return db.query(`update USERs set currentToken = '${token}' where id_user = ${id}`);
+        console.log('token in edit token:', token)
+        return db.query(`update users set currentToken = '${token}' where id_user = ${id}`);
     },
     getCurrentToken: (id) => {
-        return db.query(`select currentToken from USERs where id_user = ${id}`);
+        return db.query(`select currentToken from users where id_user = ${id}`);
     },
     getCompanyInfo: () => {
         return db.query(`select * from users as U, companies as C where U.id_user = C.id_user`);

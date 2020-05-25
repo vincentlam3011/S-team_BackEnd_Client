@@ -19,7 +19,7 @@ module.exports = {
         '${job.vacancy}',
         '${job.requirement}',
         '1')`;
-        let sqlQueryJobs = `insert into Jobs` + columsJob + ` values` + valueJob + `;`;
+        let sqlQueryJobs = `insert into jobs` + columsJob + ` values` + valueJob + `;`;
         if (images || tags) {
             let queryJobRealtedImages = '';
             let queryJobTags = '';
@@ -48,7 +48,7 @@ module.exports = {
         let images = job.images;
         let tags = job.tags;
      
-        let sqlQueryJobs = `update Jobs SET title ='${job.title}',salary='${job.salary}',
+        let sqlQueryJobs = `update jobs SET title ='${job.title}',salary='${job.salary}',
         job_topic='${job.job_topic}',
         area_province='${job.area_province}',
         area_district='${job.area_district}',
