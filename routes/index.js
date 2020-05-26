@@ -230,6 +230,24 @@ router.get('/getJobById/:id', function (req, res, next) {
     response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
   })
 });
+//Get 10 Jobs Temporal Recent
+router.get('/getTenJobsTemporalRecent', function (req, res, next) {
+
+  jobModel.getTenJobsTemporalRecent().then(data => {
+    response(res, DEFINED_CODE.GET_DATA_SUCCESS, data);
+  }).catch(err => {
+    response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
+  })
+});
+//Get 10 Jobs Company Recent
+router.get('/getTenJobsCompanyRecent', function (req, res, next) {
+
+  jobModel.getTenJobsCompanyRecent().then(data => {
+    response(res, DEFINED_CODE.GET_DATA_SUCCESS, data);
+  }).catch(err => {
+    response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
+  })
+});
 //Get All provinces
 router.get('/getProvinces/', function (req, res, next) {
   let id_job = req.params.id;

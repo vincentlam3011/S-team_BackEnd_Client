@@ -47,7 +47,7 @@ module.exports = {
     editJob: (job) => {
         let images = job.images;
         let tags = job.tags;
-     
+
         let sqlQueryJobs = `update jobs SET title ='${job.title}',salary='${job.salary}',
         job_topic='${job.job_topic}',
         area_province='${job.area_province}',
@@ -154,7 +154,19 @@ module.exports = {
     },
     deleteJobById: (id) => {
         return db.query(`delete from jobs where id_job = ${id}`)
-    }
+    },
+    getTenJobsTemporalRecent: () => {
+        return db.query(`select j.* 
+        from jobs as j  
+        where j.isCompany = 0
+        order by j.post_date DESC limit 10`);
+    },
+    getTenJobsCompanyRecent: () => {
+        return db.query(`select j.* 
+        from jobs as j  
+        where j.isCompany = 1
+        order by j.post_date DESC limit 10`);
+    },
     // sign_up: (account, company) => {
     //     let columnsUsers = `(email, password, fullname, dob, dial, address, isBusinessUser, gender, account_status)`;
     //     let valuesUsers = `('${account.email}', '${account.password}', '${account.fullname}', '${account.dob}', '${account.dial}', '${account.address}' 

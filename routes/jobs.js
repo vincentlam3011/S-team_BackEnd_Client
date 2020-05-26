@@ -26,7 +26,6 @@ router.get('/allJobsTopics', function (req, res, next) {
 });
 router.post("/addJob", function (req, res, next) {
     let job = JSON.parse(JSON.stringify(req.body));
-    console.log('job:', job);
     jobModel.addJob(job).then(data => {
         response(res, DEFINED_CODE.CREATED_DATA_SUCCESS, job);
     }).catch((err) => {
