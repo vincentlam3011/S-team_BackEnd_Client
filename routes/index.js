@@ -9,6 +9,9 @@ var redis = require('../utils/redis');
 var userModel = require('../models/userModel');
 var jobTopicModel = require('../models/jobTopicModel');
 var jobModel = require('../models/jobModel');
+var distrinctProvinceModel = require('../models/districtProvinceModel');
+var tagModel = require('../models/tagModel');
+
 var convertBlobB64 = require('../middleware/convertBlobB64');
 var router = express.Router();
 
@@ -51,9 +54,8 @@ router.get('/jobsByJobTopic/:id', function (req, res, next) {
 
       //   }
     }
-    else
-    {
-      response(res,DEFINED_CODE.GET_DATA_SUCCESS,[])
+    else {
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, [])
     }
   }).catch((err) => {
     response(res, DEFINED_CODE.GET_DATA_FAIL, err);
@@ -220,13 +222,39 @@ router.put('/forget', (req, res, next) => {
 })
 
 //Get Jobs By Id
-router.get('/getJob/:id', function (req, res, next) {
+router.get('/getJobById/:id', function (req, res, next) {
   let id_job = req.params.id;
   jobModel.getJobById(id_job).then(data => {
-    res.json({ message: "Get Successfull", info: data, code: 1 });
+    response(res, DEFINED_CODE.GET_DATA_SUCCESS, data);
   }).catch(err => {
-    res.json({ err, code: 0 });
+    response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
   })
 });
-
+//Get All provinces
+router.get('/getProvinces/', function (req, res, next) {
+  let id_job = req.params.id;
+  distrinctProvinceModel.getAllProvinces().then(data => {
+    response(res, DEFINED_CODE.GET_DATA_SUCCESS, data);
+  }).catch(err => {
+    response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
+  })
+});
+//Get District by province
+router.get('/getDistricts/:id', function (req, res, next) {
+  let id_provinces = req.params.id;
+  distrinctProvinceModel.getAllDisTricts(id_provinces).then(data => {
+    response(res, DEFINED_CODE.GET_DATA_SUCCESS, data);
+  }).catch(err => {
+    response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
+  })
+});
+//Get All tags
+router.get('/getAllTags', function (req, res, next) {
+  let id_provinces = req.params.id;
+  tagModel.getAllTags().then(data => {
+    response(res, DEFINED_CODE.GET_DATA_SUCCESS, data);
+  }).catch(err => {
+    response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
+  })
+});
 module.exports = router;
