@@ -155,17 +155,17 @@ module.exports = {
     deleteJobById: (id) => {
         return db.query(`delete from jobs where id_job = ${id}`)
     },
-    getTenJobsTemporalRecent: () => {
+    getJobsTemporalRecent: (number) => {
         return db.query(`select j.* 
         from jobs as j  
         where j.isCompany = 0
-        order by j.post_date DESC limit 10`);
+        order by j.post_date DESC limit ${number}`);
     },
-    getTenJobsCompanyRecent: () => {
+    getJobsCompanyRecent: (number) => {
         return db.query(`select j.* 
         from jobs as j  
         where j.isCompany = 1
-        order by j.post_date DESC limit 10`);
+        order by j.post_date DESC limit ${number}`);
     },
     // sign_up: (account, company) => {
     //     let columnsUsers = `(email, password, fullname, dob, dial, address, isBusinessUser, gender, account_status)`;

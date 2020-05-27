@@ -230,23 +230,35 @@ router.get('/getJobById/:id', function (req, res, next) {
     response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
   })
 });
-//Get 10 Jobs Temporal Recent
-router.get('/getTenJobsTemporalRecent', function (req, res, next) {
+//Get Jobs Temporal Recent with params = length of data want to get
+router.get('/getJobsTemporalRecent/:number', function (req, res, next) {
+  let number = req.params.number;
+  if (number && number >= 5) {
+    jobModel.getJobsTemporalRecent(number).then(data => {
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, data);
+    }).catch(err => {
+      response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
+    })
+  }
+  else {
+    response(res, DEFINED_CODE.MISSING_FIELD_OR_PARAMS)
+  }
 
-  jobModel.getTenJobsTemporalRecent().then(data => {
-    response(res, DEFINED_CODE.GET_DATA_SUCCESS, data);
-  }).catch(err => {
-    response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
-  })
 });
-//Get 10 Jobs Company Recent
-router.get('/getTenJobsCompanyRecent', function (req, res, next) {
+//Get Jobs Company Recent with params = length of data want to get
+router.get('/getJobsCompanyRecent/:number', function (req, res, next) {
+  let number = req.params.number;
+  if (number && number >= 5) {
+    jobModel.getJobsCompanyRecent(number).then(data => {
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, data);
+    }).catch(err => {
+      response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
+    })
+  }
+  else {
+    response(res, DEFINED_CODE.MISSING_FIELD_OR_PARAMS)
+  }
 
-  jobModel.getTenJobsCompanyRecent().then(data => {
-    response(res, DEFINED_CODE.GET_DATA_SUCCESS, data);
-  }).catch(err => {
-    response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
-  })
 });
 //Get All provinces
 router.get('/getProvinces/', function (req, res, next) {
