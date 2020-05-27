@@ -146,26 +146,31 @@ module.exports = {
         })
         // return db.query(`select * from jobs where id_job = ${id}`);
     },
-    getJobByIdJobTopic: (id) => {
+    getJobByIdJobTopic: (id, page, number) => {
         return db.query(`select j.*,jri.img from jobs as j 
         left join job_related_images as jri
         on  j.id_job= jri.id_job
-        where j.job_topic = ${id} group by jri.id_job ;`);
+        where j.job_topic = ${id}
+        group by jri.id_job 
+        order by j.post_date DESC
+        limit ${page * number},${number};`);
     },
     deleteJobById: (id) => {
         return db.query(`delete from jobs where id_job = ${id}`)
     },
-    getJobsTemporalRecent: (number) => {
-        return db.query(`select j.* 
-        from jobs as j  
+    getJobsTemporalRecent: (number, page) => {
+        return db.query(`select j.*,jri.img
+        from jobs as j  LEFT JOIN job_related_images jri ON jri.id_job = j.id_job
         where j.isCompany = 0
-        order by j.post_date DESC limit ${number}`);
+		GROUP BY j.id_job
+        order by j.post_date DESC limit ${page * number},${number}`);
     },
-    getJobsCompanyRecent: (number) => {
-        return db.query(`select j.* 
-        from jobs as j  
+    getJobsCompanyRecent: (number, page) => {
+        return db.query(`select j.*,jri.img
+        from jobs as j  LEFT JOIN job_related_images jri ON jri.id_job = j.id_job
         where j.isCompany = 1
-        order by j.post_date DESC limit ${number}`);
+		GROUP BY j.id_job
+        order by j.post_date DESC limit ${page * number},${number}`);
     },
     // sign_up: (account, company) => {
     //     let columnsUsers = `(email, password, fullname, dob, dial, address, isBusinessUser, gender, account_status)`;
