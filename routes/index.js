@@ -33,6 +33,8 @@ router.get('/allJobsTopics', function (req, res, next) {
     res.json({ message: err1, code: 0 });
   })
 });
+
+// Get Jobs by Topic
 router.get('/jobsByJobTopic/:id', function (req, res, next) {
   console.log('params:', req.params);
   let job_topic = req.params.id;
@@ -60,6 +62,64 @@ router.get('/jobsByJobTopic/:id', function (req, res, next) {
 
   })
 });
+
+//Search Jobs
+
+// Get Jobs by Topic
+router.post('/getJobsList', function (req, res, next) {
+  let page = Number.parseInt(req.body.page);
+  // Lấy danh sách các query cần thiết
+  let queryArr = [];
+  let query = req.body.query;
+  for (let i in query) {
+    if (query[i]) {
+      if (i === 'title')
+      {
+        queryArr.push({ field: i, text: `= '%${query[i]}%'` });
+      }
+      else if(i === 'expire_date')
+      {
+        queryArr.push({ field: i, text: `= '${query[i]}'` });
+      }
+      else if(i === 'salary')
+      {
+        queryArr.push({ field: i, text: `>= '${query[i]}'` });
+      }
+      else if(i === 'employer')
+      {
+        queryArr.push({ field: i, text: ` = u.id_user and u.fullname = '${query[i]}'` });
+      }
+      else
+      {
+        queryArr.push({ field: i, text: `= ${query[i]}` });
+      }
+    }
+  };
+
+
+  jobModel.getJobsList(queryArr).then(data => {    
+    let realData =  data.slice((page - 1)*8, (page - 1)*8 + 8);
+    if (realData.length > 0) {
+      
+      realData.forEach(element => {
+        if (element.img) {
+          let buffer = new Buffer(element.img);
+          let bufferBase64 = buffer.toString('base64');
+          element.img = bufferBase64;
+        }
+      });
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, realData);
+    }
+    else
+    {
+      response(res,DEFINED_CODE.GET_DATA_SUCCESS,[])
+    }
+  }).catch((err) => {
+    response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+  })
+});
+
+
 /* Signup */
 router.post('/signup', (req, res) => {
   console.log('body:', req.body);

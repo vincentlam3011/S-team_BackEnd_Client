@@ -152,9 +152,25 @@ module.exports = {
         on  j.id_job= jri.id_job
         where j.job_topic = ${id} group by jri.id_job ;`);
     },
+    getJobsList:(queryArr) => {
+        let query = '', count = 0;
+
+        for(let e of queryArr)
+        {
+            if(count !== 0)
+            {
+                query += ' and';
+            }
+            query += ` j.${e.field} ${e.text}`;
+            count++;
+        }
+        return db.query(`select j.*, jri.img from jobs as j left join job_related_images as jri
+        on j.id_job = jri.id_job, users as u where ${query} group by j.id_job`);
+    },
     deleteJobById: (id) => {
         return db.query(`delete from jobs where id_job = ${id}`)
     }
+
     // sign_up: (account, company) => {
     //     let columnsUsers = `(email, password, fullname, dob, dial, address, isBusinessUser, gender, account_status)`;
     //     let valuesUsers = `('${account.email}', '${account.password}', '${account.fullname}', '${account.dob}', '${account.dial}', '${account.address}' 
