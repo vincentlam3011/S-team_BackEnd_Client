@@ -149,15 +149,18 @@ module.exports = {
                     }
                     if (data[2]) {
                         data[2].forEach(element => {
-                            if(element.avatarImg)
-                            {
+                            if (element.avatarImg) {
                                 element.avatarImg = convertBlobB64.convertBlobToB64(element.avatarImg);
                             }
                             dataReturn.dealers.push(element);
                         })
                     }
 
-
+                    Object.keys(dataReturn).forEach(key => {
+                        if (dataReturn[key] === null) {
+                            dataReturn[key]=-1
+                        }
+                    });
                     resolve(dataReturn);
                 }
                 else resolve();
