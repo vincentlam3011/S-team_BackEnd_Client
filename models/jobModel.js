@@ -94,18 +94,29 @@ module.exports = {
     },
     getJobById: (id) => {
         return new Promise((resolve, reject) => {
-            let query = `select  distinct  j.*,jt.id_tag,t.name as tag_name,s.name as name_status
+            let query = `select  distinct  j.*,jt.id_tag,t.name as tag_name,s.name as name_status,  jtp.start_date,jtp.end_date,jtp.salary_type,jp.deadline
             from jobs as j 
             left join jobs_tags as jt
             on  j.id_job= jt.id_job
-            left join tags as t on t.id_tag = jt.id_tag, statuses as s
+            left join tags as t on t.id_tag = jt.id_tag
+			left join jobs_production as jp on jp.id_job = j.id_job
+			left join jobs_temporal as jtp on jtp.id_job = j.id_job,
+            statuses as s
+       
             where j.id_job=${id} and s.id_status = j.id_status;
             
             select  distinct  j.id_job,jri.img
             from jobs as j 
             left join job_related_images as jri
             on  j.id_job= jri.id_job
-            where j.id_job=${id}`
+            where j.id_job=${id};
+            
+            select  distinct  j.id_job,app.proposed_price,u.fullname,u.avatarImg
+            from jobs as j 
+            left join applicants as app
+            on  j.id_job= app.id_job
+            join users as u on u.id_user = app.id_user
+            where j.id_job=${id};`
             db.query(query).then(data => {
                 if (data[0]) {
                     let dataReturn = new Object(data[0][0]);
@@ -113,6 +124,8 @@ module.exports = {
                     delete dataReturn.tag_name;
                     dataReturn.tags = [];
                     dataReturn.imgs = [];
+                    dataReturn.dealers = [];
+
                     if (data[0]) {
                         data[0].forEach(element => {
                             if (element.id_tag) {
@@ -134,6 +147,16 @@ module.exports = {
 
                         })
                     }
+                    if (data[2]) {
+                        data[2].forEach(element => {
+                            if(element.avatarImg)
+                            {
+                                element.avatarImg = convertBlobB64.convertBlobToB64(element.avatarImg);
+                            }
+                            dataReturn.dealers.push(element);
+                        })
+                    }
+
 
                     resolve(dataReturn);
                 }
