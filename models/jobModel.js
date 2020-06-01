@@ -111,7 +111,7 @@ module.exports = {
             on  j.id_job= jri.id_job
             where j.id_job=${id};
             
-            select  distinct  j.id_job,app.proposed_price,u.fullname,u.avatarImg,u.id_user,u.dial,u.email
+            select  distinct  j.id_job,app.proposed_price,u.fullname,u.id_user,u.dial,u.email
             from jobs as j 
             left join applicants as app
             on  j.id_job= app.id_job
@@ -149,9 +149,9 @@ module.exports = {
                     }
                     if (data[2]) {
                         data[2].forEach(element => {
-                            if (element.avatarImg) {
-                                element.avatarImg = convertBlobB64.convertBlobToB64(element.avatarImg);
-                            }
+                            // if (element.avatarImg) {
+                            //     element.avatarImg = convertBlobB64.convertBlobToB64(element.avatarImg);
+                            // }
                             dataReturn.dealers.push(element);
                         })
                     }
