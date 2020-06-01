@@ -94,16 +94,16 @@ module.exports = {
     },
     getJobById: (id) => {
         return new Promise((resolve, reject) => {
-            let query = `select  distinct  j.*,jt.id_tag,t.name as tag_name,s.name as name_status,  jtp.start_date,jtp.end_date,jtp.salary_type,jp.deadline
+            let query = `select  distinct  j.*,u.fullname as name_employer,jt.id_tag,t.name as tag_name,s.name as name_status,  jtp.start_date,jtp.end_date,jtp.salary_type,jp.deadline
             from jobs as j 
             left join jobs_tags as jt
             on  j.id_job= jt.id_job
             left join tags as t on t.id_tag = jt.id_tag
 			left join jobs_production as jp on jp.id_job = j.id_job
 			left join jobs_temporal as jtp on jtp.id_job = j.id_job,
-            statuses as s
+            statuses as s,users as u
        
-            where j.id_job=${id} and s.id_status = j.id_status;
+            where j.id_job=${id} and s.id_status = j.id_status and u.id_user=j.employer;
             
             select  distinct  j.id_job,jri.img
             from jobs as j 
@@ -111,7 +111,7 @@ module.exports = {
             on  j.id_job= jri.id_job
             where j.id_job=${id};
             
-            select  distinct  j.id_job,app.proposed_price,u.fullname,u.avatarImg
+            select  distinct  j.id_job,app.proposed_price,u.fullname,u.avatarImg,u.id_user,u.dial,u.email
             from jobs as j 
             left join applicants as app
             on  j.id_job= app.id_job
