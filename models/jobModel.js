@@ -167,7 +167,7 @@ module.exports = {
         console.log(query);
         return db.query(`
         select j.*, jri.img, jt.id_tag, t.name as tag_name
-        from (((jobs as j left join job_related_images as jri on j.id_job = jri.id_job) left join jobs_tags as jt on j.id_job = jt.id_job) left join tags as t on t.id_tag = jt.id_tag), users as u
+        from (((jobs as j left join job_related_images as jri on j.id_job = jri.id_job) left join jobs_tags as jt on j.id_job = jt.id_job) left join tags as t on t.id_tag = jt.id_tag), users as u, jobs_tags as jt2
         ${queryArr.length > 0 ? ('where ' + query) : '' }
         group by j.id_job, jt.id_tag`);
     },

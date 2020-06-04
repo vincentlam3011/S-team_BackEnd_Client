@@ -110,7 +110,10 @@ router.post('/getJobsList', function (req, res, next) {
         queryArr.push({ field: i, text: `>= '${query[i]}'` });
       }
       else if (i === 'employer') {
-        queryArr.push({ field: i, text: ` = u.id_user and u.fullname = '${query[i]}'` });
+        queryArr.push({ field: i, text: `= u.id_user and u.fullname = '${query[i]}'` });
+      }
+      else if (i === 'tag') {
+        queryArr.push({field: 'id_job', text: `= jt2.id_job and jt2.id_tag = ${query[i]}`});
       }
       else {
         queryArr.push({ field: i, text: `= ${query[i]}` });
