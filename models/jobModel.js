@@ -172,10 +172,13 @@ module.exports = {
         group by j.id_job, jt.id_tag`);
     },
     countFinishedJob: () => {
-        return db.query(`select count(*) as finishedJobNum from jobs where id_status = 2`);
+        return db.query(`select count(*) as finishedJobNum from jobs where id_status = 4`);
     },
-    countUnfinishedJob: () => {
-        return db.query(`select count(*) as unfinishedJobNum from jobs where id_status != 2`);
+    countApplyingJob: () => {
+        return db.query(`select count(*) as applyingJobNum from jobs where id_status = 1`);
+    },
+    countProcessingJob: () => {
+        return db.query(`select count(*) as processingJobNum from jobs where id_status = 3`);
     },
     deleteJobById: (id) => {
         return db.query(`delete from jobs where id_job = ${id}`)

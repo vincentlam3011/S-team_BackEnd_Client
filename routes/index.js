@@ -31,9 +31,8 @@ router.get('/allJobsTopics', function (req, res, next) {
       });
       res.json({ message: 'Get Data Success', data, code: 1 })
     }
-    else
-    {
-      res.json({message: 'Get Data Failure', data: [], code: 0});
+    else {
+      res.json({ message: 'Get Data Failure', data: [], code: 0 });
     }
 
   }).catch((err1) => {
@@ -60,9 +59,8 @@ router.get('/jobsByJobTopic/:id', function (req, res, next) {
 
       //   }
     }
-    else
-    {
-      response(res,DEFINED_CODE.GET_DATA_SUCCESS,[])
+    else {
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, [])
     }
   }).catch((err) => {
     response(res, DEFINED_CODE.GET_DATA_FAIL, err);
@@ -75,12 +73,11 @@ router.get('/jobsByJobTopic/:id', function (req, res, next) {
 // Get Province
 router.get('/getAllProvinces', function (req, res, next) {
   districtProvinceModel.getAllProvinces().then(data => {
-    if (data.length > 0) {      
+    if (data.length > 0) {
       res.json({ message: 'Get Data Success', data, code: 1 })
     }
-    else
-    {
-      res.json({message: 'Get Data Failure',data: [], code: 0});
+    else {
+      res.json({ message: 'Get Data Failure', data: [], code: 0 });
     }
   }).catch((err1) => {
     res.json({ message: err1, code: 0 });
@@ -91,59 +88,50 @@ router.get('/getAllProvinces', function (req, res, next) {
 router.post('/getJobsList', function (req, res, next) {
   let page = Number.parseInt(req.body.page) || 1;
   let take = Number.parseInt(req.body.take) || 6;
-  let isASC = Number.parseInt(req.body.isASC) || 1;  
+  let isASC = Number.parseInt(req.body.isASC) || 1;
   // Lấy danh sách các query cần thiết
   let queryArr = [];
   let query = req.body.query;
   for (let i in query) {
     if (query[i]) {
-      if (i === 'title')
-      {
+      if (i === 'title') {
         queryArr.push({ field: i, text: `LIKE '%${query[i]}%'` });
       }
-      else if(i === 'expire_date')
-      {
+      else if (i === 'expire_date') {
         queryArr.push({ field: i, text: `= '${query[i]}'` });
       }
-      else if(i === 'salary')
-      {
+      else if (i === 'salary') {
         queryArr.push({ field: i, text: `>= '${query[i].bot}'` });
-        if(query[i].top != 0)
-        {
+        if (query[i].top != 0) {
           queryArr.push({ field: i, text: `< '${query[i].top}'` });
         }
       }
-      else if(i === 'vacancy')
-      {
+      else if (i === 'vacancy') {
         queryArr.push({ field: i, text: `>= '${query[i]}'` });
       }
-      else if(i === 'employer')
-      {
+      else if (i === 'employer') {
         queryArr.push({ field: i, text: ` = u.id_user and u.fullname = '${query[i]}'` });
       }
-      else
-      {
+      else {
         queryArr.push({ field: i, text: `= ${query[i]}` });
       }
     }
   };
 
 
-  jobModel.getJobsList(queryArr).then(data => { 
-    const jobs = _.groupBy(data, "id_job");          
+  jobModel.getJobsList(queryArr).then(data => {
+    const jobs = _.groupBy(data, "id_job");
     var finalData = [];
     _.forEach(jobs, (value, key) => {
-      
+
       const tags = _.map(value, item => {
         const { id_tag, tag_name } = item;
-        if(id_tag === null || tag_name === null)
-        {
+        if (id_tag === null || tag_name === null) {
           return null;
         }
-        else
-        {
+        else {
           return { id_tag, tag_name };
-        }        
+        }
       })
 
       const temp = {
@@ -173,14 +161,13 @@ router.post('/getJobsList', function (req, res, next) {
       finalData.push(temp);
     })
     // Đảo ngược chuỗi vì id_job thêm sau cũng là mới nhất
-    if(isASC !== 1)
-    {
+    if (isASC !== 1) {
       finalData = finalData.reverse();
-    }    
+    }
 
-    let realData =  finalData.slice((page - 1)*take, (page - 1)*take + take);
+    let realData = finalData.slice((page - 1) * take, (page - 1) * take + take);
     if (realData.length > 0) {
-      
+
       realData.forEach(element => {
         if (element.img) {
           let buffer = new Buffer(element.img);
@@ -188,10 +175,10 @@ router.post('/getJobsList', function (req, res, next) {
           element.img = bufferBase64;
         }
       });
-      
+
     }
     // console.log(realData);
-    response(res, DEFINED_CODE.GET_DATA_SUCCESS, {jobList:realData, count:finalData.length, page: page}); 
+    response(res, DEFINED_CODE.GET_DATA_SUCCESS, { jobList: realData, count: finalData.length, page: page });
 
   }).catch((err) => {
     response(res, DEFINED_CODE.GET_DATA_FAIL, err);
@@ -201,7 +188,7 @@ router.post('/getJobsList', function (req, res, next) {
 /* Get top rated user */
 router.get('/getTopUsers', function (req, res, next) {
   userModel.getTopUsers().then(data => {
-    if (data.length > 0) {      
+    if (data.length > 0) {
       res.json({ message: 'Get Data Success', data, code: 1 })
     }
   }).catch((err1) => {
@@ -212,47 +199,60 @@ router.get('/getTopUsers', function (req, res, next) {
 
 /* Get statistic */
 router.get('/getStatistic', function (req, res, next) {
-  let memberNum = 0, finishedJobNum = 0, unfinishedJobNum = 0;
+  let memberNum = 0, finishedJobNum = 0, applyingJobNum = 0, processingJobNum = 0;
   userModel.countUsers().then(usersData => {
-    if(usersData.length > 0) // success
+    if (usersData.length > 0) // success
     {
       memberNum = usersData[0].memberNum;
       jobModel.countFinishedJob().then(finJobData => {
-        if(finJobData.length > 0 ) // success
+        if (finJobData.length > 0) // success
         {
           finishedJobNum = finJobData[0].finishedJobNum;
-          jobModel.countUnfinishedJob().then(unfinJobData => {
-            if(unfinJobData.length > 0) // success
+          jobModel.countApplyingJob().then(appJobData => {
+            if (appJobData.length > 0) // success
             {
-              unfinishedJobNum = unfinJobData[0].unfinishedJobNum;      
-              res.json({ 
-                message: 'get data success', 
-                code: 1, 
-                data: {
-                  memberNum,
-                  finishedJobNum,
-                  unfinishedJobNum,
+              applyingJobNum = appJobData[0].applyingJobNum;
+              jobModel.countProcessingJob().then(procJobData => {
+                if (procJobData.length > 0) // success
+                {
+                  processingJobNum = procJobData[0].processingJobNum;
+                  res.json({
+                    message: 'get data success',
+                    code: 1,
+                    data: {
+                      memberNum,
+                      finishedJobNum,
+                      applyingJobNum,
+                      proccessingJobNum,
+                    }
+                  });
                 }
-              });        
+                else {
+                  res.json({ message: err, code: 0 });
+                }
+              }).catch((err3) => {
+                res.json({ message: err3, code: 0 });
+              })
             }
-            else
-            {
-              res.json({ message: err, code: 0});
+            else {
+              res.json({ message: err, code: 0 });
             }
+          }).catch((err1) => {
+            res.json({ message: err1, code: 0 });
           })
         }
-        else
-        {
-          res.json({ message: err, code: 0});
+        else {
+          res.json({ message: err, code: 0 });
         }
+      }).catch((err2) => {
+        res.json({ message: err2, code: 0 });
       })
     }
-    else
-    {
-      res.json({ message: err, code: 0});
+    else {
+      res.json({ message: err, code: 0 });
     }
   }).catch((err) => {
-    res.json({ message: err, code: 0});
+    res.json({ message: err, code: 0 });
   })
 });
 
