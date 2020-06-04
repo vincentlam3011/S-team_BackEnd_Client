@@ -9,8 +9,11 @@ var redis = require('../utils/redis');
 var userModel = require('../models/userModel');
 var jobTopicModel = require('../models/jobTopicModel');
 var jobModel = require('../models/jobModel');
+var districtProvinceModel = require('../models/districtProvinceModel');
 var convertBlobB64 = require('../middleware/convertBlobB64');
+
 var router = express.Router();
+var _ = require('lodash')
 
 var { response, DEFINED_CODE } = require('../config/response');
 var { mailer } = require('../utils/nodemailer');
@@ -27,6 +30,10 @@ router.get('/allJobsTopics', function (req, res, next) {
         element.img = convertBlobB64.convertBlobToB64(element.img);
       });
       res.json({ message: 'Get Data Success', data, code: 1 })
+    }
+    else
+    {
+      res.json({message: 'Get Data Failure', data: [], code: 0});
     }
 
   }).catch((err1) => {
@@ -65,9 +72,26 @@ router.get('/jobsByJobTopic/:id', function (req, res, next) {
 
 //Search Jobs
 
+// Get Province
+router.get('/getAllProvinces', function (req, res, next) {
+  districtProvinceModel.getAllProvinces().then(data => {
+    if (data.length > 0) {      
+      res.json({ message: 'Get Data Success', data, code: 1 })
+    }
+    else
+    {
+      res.json({message: 'Get Data Failure',data: [], code: 0});
+    }
+  }).catch((err1) => {
+    res.json({ message: err1, code: 0 });
+  })
+});
+
 // Get Jobs by Topic
 router.post('/getJobsList', function (req, res, next) {
-  let page = Number.parseInt(req.body.page);
+  let page = Number.parseInt(req.body.page) || 1;
+  let take = Number.parseInt(req.body.take) || 6;
+  let isASC = Number.parseInt(req.body.isASC) || 1;  
   // Lấy danh sách các query cần thiết
   let queryArr = [];
   let query = req.body.query;
@@ -75,13 +99,21 @@ router.post('/getJobsList', function (req, res, next) {
     if (query[i]) {
       if (i === 'title')
       {
-        queryArr.push({ field: i, text: `= '%${query[i]}%'` });
+        queryArr.push({ field: i, text: `LIKE '%${query[i]}%'` });
       }
       else if(i === 'expire_date')
       {
         queryArr.push({ field: i, text: `= '${query[i]}'` });
       }
       else if(i === 'salary')
+      {
+        queryArr.push({ field: i, text: `>= '${query[i].bot}'` });
+        if(query[i].top != 0)
+        {
+          queryArr.push({ field: i, text: `< '${query[i].top}'` });
+        }
+      }
+      else if(i === 'vacancy')
       {
         queryArr.push({ field: i, text: `>= '${query[i]}'` });
       }
@@ -97,8 +129,56 @@ router.post('/getJobsList', function (req, res, next) {
   };
 
 
-  jobModel.getJobsList(queryArr).then(data => {    
-    let realData =  data.slice((page - 1)*8, (page - 1)*8 + 8);
+  jobModel.getJobsList(queryArr).then(data => { 
+    const jobs = _.groupBy(data, "id_job");          
+    var finalData = [];
+    _.forEach(jobs, (value, key) => {
+      
+      const tags = _.map(value, item => {
+        const { id_tag, tag_name } = item;
+        if(id_tag === null || tag_name === null)
+        {
+          return null;
+        }
+        else
+        {
+          return { id_tag, tag_name };
+        }        
+      })
+
+      const temp = {
+        id_job: value[0].id_job,
+        // employer: value[0].employer,
+        title: value[0].title,
+        salary: value[0].salary,
+        job_topic: value[0].job_topic,
+        area_province: value[0].area_province,
+        area_district: value[0].area_district,
+        address: value[0].address,
+        lat: value[0].lat,
+        lng: value[0].lng,
+        description: value[0].description,
+        post_date: value[0].post_date,
+        expire_date: value[0].expire_date,
+        dealable: value[0].dealable,
+        job_type: value[0].job_type,
+        isOnline: value[0].isOnline,
+        isCompany: value[0].isCompany,
+        vacancy: value[0].vacancy,
+        // requirement: value[0].requirement,
+        id_status: value[0].id_status,
+        img: value[0].img,
+        tags: tags[0] === null ? [] : tags,
+      }
+      finalData.push(temp);
+    })
+    // Đảo ngược chuỗi vì id_job thêm sau cũng là mới nhất
+    if(isASC !== 1)
+    {
+      finalData = finalData.reverse();
+    }    
+
+    let realData =  finalData.slice((page - 1)*take, (page - 1)*take + take);
     if (realData.length > 0) {
       
       realData.forEach(element => {
@@ -108,14 +188,71 @@ router.post('/getJobsList', function (req, res, next) {
           element.img = bufferBase64;
         }
       });
-      response(res, DEFINED_CODE.GET_DATA_SUCCESS, realData);
+      
+    }
+    // console.log(realData);
+    response(res, DEFINED_CODE.GET_DATA_SUCCESS, {jobList:realData, count:finalData.length, page: page}); 
+
+  }).catch((err) => {
+    response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+  })
+});
+
+/* Get top rated user */
+router.get('/getTopUsers', function (req, res, next) {
+  userModel.getTopUsers().then(data => {
+    if (data.length > 0) {      
+      res.json({ message: 'Get Data Success', data, code: 1 })
+    }
+  }).catch((err1) => {
+    res.json({ message: err1, code: 0 });
+  })
+});
+
+
+/* Get statistic */
+router.get('/getStatistic', function (req, res, next) {
+  let memberNum = 0, finishedJobNum = 0, unfinishedJobNum = 0;
+  userModel.countUsers().then(usersData => {
+    if(usersData.length > 0) // success
+    {
+      memberNum = usersData[0].memberNum;
+      jobModel.countFinishedJob().then(finJobData => {
+        if(finJobData.length > 0 ) // success
+        {
+          finishedJobNum = finJobData[0].finishedJobNum;
+          jobModel.countUnfinishedJob().then(unfinJobData => {
+            if(unfinJobData.length > 0) // success
+            {
+              unfinishedJobNum = unfinJobData[0].unfinishedJobNum;      
+              res.json({ 
+                message: 'get data success', 
+                code: 1, 
+                data: {
+                  memberNum,
+                  finishedJobNum,
+                  unfinishedJobNum,
+                }
+              });        
+            }
+            else
+            {
+              res.json({ message: err, code: 0});
+            }
+          })
+        }
+        else
+        {
+          res.json({ message: err, code: 0});
+        }
+      })
     }
     else
     {
-      response(res,DEFINED_CODE.GET_DATA_SUCCESS,[])
+      res.json({ message: err, code: 0});
     }
   }).catch((err) => {
-    response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+    res.json({ message: err, code: 0});
   })
 });
 
