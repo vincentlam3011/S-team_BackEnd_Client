@@ -27,14 +27,11 @@ const ResponsedCode = {
     EDIT_COMPANY_FAIL: '-107',
     PASSWORD_RECOVERY_FAIL: '-108',
     /* DB error... */
+    GET_DATA_FAIL: '-200',
     SAVE_TOKEN_FAIL: '-201',
-    GET_DATA_FAIL : '-200',
-    CREATE_DATA_FAIL : '-204',
-    // Edit ~ Accepted
-    INTERACT_DATA_FAIL : '-203', 
-    ERROR_ID : '-202', 
-
-
+    INTERACT_DATA_FAIL: '-203',
+    ERROR_ID: '-202',
+    CREATE_DATA_FAIL: '-204',
     /* Mailing error */
     SEND_MAIL_FAIL: '-301',
     /* OK */
@@ -74,7 +71,7 @@ const mapCodeToMsg = {
 
     /* Nodemailer error messages */
     '-301': 'Sending email failed',
-    
+
     '-401': 'Get Data Fail',
     /* OK message */
     '101': "Logged in",
@@ -91,7 +88,7 @@ const mapCodeToMsg = {
     '301': "Mail sent",
 
 
-    
+
 }
 
 const mapCodeToHTTPStatus = {
