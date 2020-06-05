@@ -152,6 +152,31 @@ module.exports = {
         on  j.id_job= jri.id_job
         where j.job_topic = ${id} group by jri.id_job ;`);
     },
+    getJobsList:(queryArr) => {
+        let query = '', count = 0;
+
+        for(let e of queryArr)
+        {
+            if(count !== 0)
+            {
+                query += ' and';
+            }
+            query += ` j.${e.field} ${e.text}`;
+            count++;
+        }
+        console.log(query);
+        return db.query(`
+        select j.*, jri.img, jt.id_tag, t.name as tag_name
+        from (((jobs as j left join job_related_images as jri on j.id_job = jri.id_job) left join jobs_tags as jt on j.id_job = jt.id_job) left join tags as t on t.id_tag = jt.id_tag), users as u
+        ${queryArr.length > 0 ? ('where ' + query) : '' }
+        group by j.id_job, jt.id_tag`);
+    },
+    countFinishedJob: () => {
+        return db.query(`select count(*) as finishedJobNum from jobs where id_status = 2`);
+    },
+    countUnfinishedJob: () => {
+        return db.query(`select count(*) as unfinishedJobNum from jobs where id_status != 2`);
+    },
     deleteJobById: (id) => {
         return db.query(`delete from jobs where id_job = ${id}`)
     }
