@@ -156,11 +156,7 @@ module.exports = {
                         })
                     }
 
-                    Object.keys(dataReturn).forEach(key => {
-                        if (dataReturn[key] === null) {
-                            dataReturn[key]=-1
-                        }
-                    });
+                    
                     resolve(dataReturn);
                 }
                 else resolve();
