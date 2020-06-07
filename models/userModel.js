@@ -3,11 +3,11 @@ var db = require('../utils/db');
 module.exports = {
     getByEmail: (email, accStatus = 0) => {
         if (accStatus === 0)
-            return db.query(`select * exclude avatarImg from users where email = '${email}';`);
+            return db.query(`select id_user, fullname, dob, email, password, dial, address, isBusinessUser, gender, account_status, currentToken, activationToken, activationExpr from users where email = '${email}';`);
         else if (accStatus === 1)
-            return db.query(`select * exclude avatarImg from users where email = '${email}' and account_status = ${accStatus};`);
+            return db.query(`select id_user, fullname, dob, email, password, dial, address, isBusinessUser, gender, account_status, currentToken, activationToken, activationExpr from users where email = '${email}' and account_status = ${accStatus};`);
         else if (accStatus === -1) {
-            return db.query(`select * exclude avatarImg from users where email = '${email}' and account_status = 0;`);
+            return db.query(`select id_user, fullname, dob, email, password, dial, address, isBusinessUser, gender, account_status, currentToken, activationToken, activationExpr from users where email = '${email}' and account_status = 0;`);
         }
 
     },

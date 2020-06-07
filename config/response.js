@@ -101,6 +101,7 @@ const mapCodeToHTTPStatus = {
     '-201': HTTPStatus.BAD_REQUEST,
     '-202': HTTPStatus.OK,
     '-203': HTTPStatus.BAD_REQUEST,
+    '-204': HTTPStatus.INTERNAL_SERVER_ERROR,
     '-104': HTTPStatus.OK,
     '-105': HTTPStatus.OK,
     '-106': HTTPStatus.INTERNAL_SERVER_ERROR,

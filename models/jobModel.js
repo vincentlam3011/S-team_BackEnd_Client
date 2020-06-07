@@ -19,6 +19,7 @@ module.exports = {
         '${job.vacancy}',
         '${job.requirement}',
         '1')`;
+        console.log("IMG: "); console.log(images.length);
         let sqlQueryJobs = `insert into Jobs` + columsJob + ` values` + valueJob + `;`;
         if (images || tags) {
             let queryJobRealtedImages = '';
@@ -27,7 +28,6 @@ module.exports = {
                 images.forEach(element => {
                     element = convertBlobB64.convertB64ToBlob(element).toString('hex');
                     queryJobRealtedImages += "insert into job_related_images values((SELECT MAX(id_job) FROM jobs)" + ",x'" + element + "');";
-                    // console.log('queryJobRealtedImages:', queryJobRealtedImages);
                 });
             }
             if (tags) {
