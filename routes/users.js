@@ -46,7 +46,7 @@ router.get('/me', (req, res, next) => {
         response(res, DEFINED_CODE.GET_DATA_SUCCESS, { personal: personalInfo[0] });
       }
     }).catch(err => {
-      res.json(err);
+      response(res, DEFINED_CODE.GET_DATA_FAIL)
     })
 })
 
@@ -61,6 +61,9 @@ router.put('/changePassword', (req, res, next) => {
   var oldPassword = req.body.old_password;
   console.log(req.user.password);
   bcrypt.compare(oldPassword, req.user.password, (err, result) => {
+    if (err) {
+      response(res, DEFINED_CODE.CHANGE_PASSWORD_FAIL, err);
+    }
     if (result) {
       bcrypt.hash(newPassword, saltRounds, (err, hash) => {
         if (err) {

@@ -3,11 +3,11 @@ var db = require('../utils/db');
 module.exports = {
     getByEmail: (email, accStatus = 0) => {
         if (accStatus === 0)
-            return db.query(`select * from users where email = '${email}';`);
+            return db.query(`select id_user, fullname, dob, email, password, dial, address, isBusinessUser, gender, account_status, currentToken, activationToken, activationExpr from users where email = '${email}';`);
         else if (accStatus === 1)
-            return db.query(`select * from users where email = '${email}' and account_status = ${accStatus};`);
+            return db.query(`select id_user, fullname, dob, email, password, dial, address, isBusinessUser, gender, account_status, currentToken, activationToken, activationExpr from users where email = '${email}' and account_status = ${accStatus};`);
         else if (accStatus === -1) {
-            return db.query(`select * from users where email = '${email}' and account_status = 0;`);
+            return db.query(`select id_user, fullname, dob, email, password, dial, address, isBusinessUser, gender, account_status, currentToken, activationToken, activationExpr from users where email = '${email}' and account_status = 0;`);
         }
 
     },
@@ -36,10 +36,20 @@ module.exports = {
     getCurrentToken: (id) => {
         return db.query(`select currentToken from USERs where id_user = ${id}`);
     },
+    getTopUsers: () => {
+        return db.query(`select u.fullname,u.address,u.dial,u.email,u.avatarImg,j.*,AVG(ac.rating_fromEmployer) as rating from accepted as ac,users as u, applicants as ap, jobs as j
+        where ac.id_applicant = ap.id_applicant and ap.id_user = u.id_user and ap.id_job= j.id_job
+        GROUP BY u.id_user
+        ORDER BY AVG(ac.rating_fromEmployer) DESC
+        LIMIT 5;`)
+    },
     getUserInfo: (id) => {
         var userQuery = `select * from USERs where id_user = ${id};`;
         var companyQuery = `select * from COMPANIEs where id_user = ${id};`;
         return db.query(userQuery + ' ' + companyQuery);
+    },
+    countUsers: () => {
+        return db.query(`select count(*) as memberNum from users where account_status = 1 or account_status = 2`)
     },
     updateUserInfo: (id, updates) => {
         var updateQuery = `update users set `;

@@ -19,6 +19,7 @@ module.exports = {
         '${job.vacancy}',
         '${job.requirement}',
         '1')`;
+        console.log("IMG: "); console.log(images.length);
         let sqlQueryJobs = `insert into Jobs` + columsJob + ` values` + valueJob + `;`;
         if (images || tags) {
             let queryJobRealtedImages = '';
@@ -27,7 +28,6 @@ module.exports = {
                 images.forEach(element => {
                     element = convertBlobB64.convertB64ToBlob(element).toString('hex');
                     queryJobRealtedImages += "insert into job_related_images values((SELECT MAX(id_job) FROM jobs)" + ",x'" + element + "');";
-                    // console.log('queryJobRealtedImages:', queryJobRealtedImages);
                 });
             }
             if (tags) {
@@ -164,27 +164,21 @@ module.exports = {
             query += ` j.${e.field} ${e.text}`;
             count++;
         }
-        return db.query(`select j.*, jri.img from jobs as j left join job_related_images as jri
-        on j.id_job = jri.id_job, users as u where ${query} group by j.id_job`);
+        console.log(query);
+        return db.query(`
+        select j.*, jri.img, jt.id_tag, t.name as tag_name
+        from (((jobs as j left join job_related_images as jri on j.id_job = jri.id_job) left join jobs_tags as jt on j.id_job = jt.id_job) left join tags as t on t.id_tag = jt.id_tag), users as u
+        ${queryArr.length > 0 ? ('where ' + query) : '' }
+        group by j.id_job, jt.id_tag`);
+    },
+    countFinishedJob: () => {
+        return db.query(`select count(*) as finishedJobNum from jobs where id_status = 2`);
+    },
+    countUnfinishedJob: () => {
+        return db.query(`select count(*) as unfinishedJobNum from jobs where id_status != 2`);
     },
     deleteJobById: (id) => {
         return db.query(`delete from jobs where id_job = ${id}`)
     }
-
-    // sign_up: (account, company) => {
-    //     let columnsUsers = `(email, password, fullname, dob, dial, address, isBusinessUser, gender, account_status)`;
-    //     let valuesUsers = `('${account.email}', '${account.password}', '${account.fullname}', '${account.dob}', '${account.dial}', '${account.address}' 
-    //                         ,${account.isBusinessUser}, ${account.gender}, ${account.account_status})`;
-
-    //     let sqlQueryUsers = `insert into USERs` + columnsUsers + ` values` + valuesUsers + `;`;
-    //     if (company === null) {
-    //         return db.query(sqlQueryUsers);
-    //     }
-    //     let columnsCompanies = `(id_user, company_name, position, company_address, company_email, number_of_employees)`;
-    //     let valuesCompanies = `, '${company.company_name}', '${company.position}', '${company.company_address}'
-    //                                     ,'${company.company_email}', ${company.number_of_employees})`;
-
-    //     // var sqlQueryCompanies = `insert into COMPANIEs` + columnsCompanies + ` values` + valuesCompanies + `;`;
-    //     return db.transaction(sqlQueryUsers, columnsCompanies, valuesCompanies, `COMPANIEs`);
-    // },
+    
 }
