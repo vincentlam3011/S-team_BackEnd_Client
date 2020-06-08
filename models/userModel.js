@@ -45,8 +45,8 @@ module.exports = {
         LIMIT 5;`)
     },
     getUserInfo: (id) => {
-        var userQuery = `select * from USERs where id_user = ${id};`;
-        var companyQuery = `select * from COMPANIEs where id_user = ${id};`;
+        var userQuery = `select * from users where id_user = ${id};`;
+        var companyQuery = `select * from companies where id_user = ${id};`;
         return db.query(userQuery + ' ' + companyQuery);
     },
     countUsers: () => {
