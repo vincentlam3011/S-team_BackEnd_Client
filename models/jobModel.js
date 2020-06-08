@@ -94,7 +94,7 @@ module.exports = {
     },
     getJobById: (id) => {
         return new Promise((resolve, reject) => {
-            let query = `select  distinct  j.*,u.fullname as name_employer,jt.id_tag,t.name as tag_name,s.name as name_status,  jtp.start_date,jtp.end_date,jtp.salary_type,jp.deadline
+            let query = `select  distinct  j.*,u.fullname as name_employer,u.email,u.dial,jt.id_tag,t.name as tag_name,s.name as name_status,  jtp.start_date,jtp.end_date,jtp.salary_type,jp.deadline
             from jobs as j 
             left join jobs_tags as jt
             on  j.id_job= jt.id_job
