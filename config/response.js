@@ -17,7 +17,7 @@ const ResponsedCode = {
     /* Token errors */
     INVALID_TOKEN: '-001',
     NULL_TOKEN: '-002',
-    /* Login, signup error */
+    /* Login, signup, user error */
     WRONG_LOGIN_INFO: '-101',
     PASSWORD_NOT_MATCH: '-102',
     EMAIL_EXISTED: '-103',
@@ -30,6 +30,7 @@ const ResponsedCode = {
     //Get Fail
     GET_DATA_FAIL: '-200',
     /* DB error... */
+    GET_DATA_FAIL: '-200',
     SAVE_TOKEN_FAIL: '-201',
     // Missing ID params
     ERROR_ID: '-202',
@@ -39,6 +40,8 @@ const ResponsedCode = {
     CREATE_DATA_FAIL: '-204',
     // Missing body field or params
     MISSING_FIELD_OR_PARAMS: '-205',
+
+
 
     /* Mailing error */
     SEND_MAIL_FAIL: '-301',
@@ -50,13 +53,10 @@ const ResponsedCode = {
     EDIT_PERSONAL_SUCCESS: '106',
     EDIT_COMPANY_SUCCESS: '107',
     PASSWORD_RECOVERY_SUCCESS: '108',
-    SEND_MAIL_SUCCESS: '301',
     GET_DATA_SUCCESS: '200',
     CREATED_DATA_SUCCESS: '201',
     INTERACT_DATA_SUCCESS: '202',
-
-
-
+    SEND_MAIL_SUCCESS: '301',
 };
 
 const mapCodeToMsg = {
@@ -108,6 +108,7 @@ const mapCodeToHTTPStatus = {
     '-101': HTTPStatus.OK,
     '-102': HTTPStatus.OK,
     '-103': HTTPStatus.OK,
+
     '-104': HTTPStatus.OK,
     '-105': HTTPStatus.OK,
     '-106': HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -116,6 +117,7 @@ const mapCodeToHTTPStatus = {
     '-200': HTTPStatus.BAD_REQUEST,
     '-201': HTTPStatus.INTERNAL_SERVER_ERROR,
     '-202': HTTPStatus.INTERNAL_SERVER_ERROR,
+
     '-203': HTTPStatus.BAD_REQUEST,
     '-204': HTTPStatus.BAD_REQUEST,
     '-205': HTTPStatus.BAD_REQUEST,
