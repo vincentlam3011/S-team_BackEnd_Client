@@ -30,9 +30,11 @@ router.get('/me', (req, res, next) => {
     secret: 'S_Team',
   });
   var id_user = decodedPayload.id;
+  console.log('id_user:', id_user);
   userModel.getUserInfo(id_user)
     .then(data => {
       var personalInfo = data[0];
+      console.log('data:', data)
       var companyInfo = data[1];
       if (personalInfo[0].avatarImg !== null) {
         let avatar = personalInfo[0].avatarImg;
