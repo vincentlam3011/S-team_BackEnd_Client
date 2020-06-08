@@ -27,6 +27,7 @@ router.get('/allJobsTopics', function (req, res, next) {
 });
 router.post("/addJob", function (req, res, next) {
     let job = JSON.parse(JSON.stringify(req.body));
+
     let province = job.area_province;
     let district = job.area_district;
     districtProvinceModel.getByName(district, province)

@@ -17,7 +17,7 @@ module.exports = {
         let valueJob = `('${applicants.id_user}',
         '${applicants.id_job}','${applicants.proposed_price}',
         x'${applicants.attachment}')`;
-        let sqlQueryApplicants = `insert into Applicants` + columsJob + ` values` + valueJob + `;`;
+        let sqlQueryApplicants = `insert into applicants` + columsJob + ` values` + valueJob + `;`;
         return db.query(sqlQueryApplicants)
 
 
@@ -25,7 +25,7 @@ module.exports = {
     editApplicant: (applicants) => {
         applicants.attachment = convertBlobB64.convertB64ToBlob(applicants.attachment).toString('hex');
 
-        let sqlQueryApplicants = `update Applicants SET proposed_price ='${applicants.proposed_price}',attachment=x'${applicants.attachment}'
+        let sqlQueryApplicants = `update applicants SET proposed_price ='${applicants.proposed_price}',attachment=x'${applicants.attachment}'
         WHERE id_applicant = '${applicants.id_applicant}';`;
         console.log('sqlQueryApplicants:', sqlQueryApplicants)
         return db.query(sqlQueryApplicants)

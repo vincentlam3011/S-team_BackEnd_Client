@@ -19,7 +19,7 @@ module.exports = {
         var valuesUsers = `('${account.email}', '${account.password}', '${account.fullname}', '${account.dob}', '${account.dial}', '${account.address}' 
                             ,${account.isBusinessUser}, ${account.gender}, ${account.account_status}, '${account.activationToken}', '${account.activationExpr}')`;
 
-        var sqlQueryUsers = `insert into USERs` + columnsUsers + ` values` + valuesUsers + `;`;
+        var sqlQueryUsers = `insert into users` + columnsUsers + ` values` + valuesUsers + `;`;
         if (company === null) {
             return db.query(sqlQueryUsers);
         }
@@ -31,10 +31,11 @@ module.exports = {
         return db.transaction(sqlQueryUsers, columnsCompanies, valuesCompanies, `COMPANIEs`);
     },
     editToken: (id, token) => {
-        return db.query(`update USERs set currentToken = '${token}' where id_user = ${id}`);
+        console.log('token in edit token:', token)
+        return db.query(`update users set currentToken = '${token}' where id_user = ${id}`);
     },
     getCurrentToken: (id) => {
-        return db.query(`select currentToken from USERs where id_user = ${id}`);
+        return db.query(`select currentToken from users where id_user = ${id}`);
     },
     getTopUsers: () => {
         return db.query(`select u.fullname,u.address,u.dial,u.email,u.avatarImg,j.*,AVG(ac.rating_fromEmployer) as rating from accepted as ac,users as u, applicants as ap, jobs as j
