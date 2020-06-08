@@ -22,7 +22,7 @@ passport.use(new LocalStrategy(
                 if (data.length > 0) {
                     console.log("RAW: " + data[0].password)
                     bcrypt.compare(password, data[0].password, (err, res) => {
-                        console.log("Is decrypted" + res)
+                        // console.log("Is decrypted" + res)
                         if (res) {
                             return cb(null, { loginUser: data[0] }, { message: 'Logged in successfully', code: 3 });
                         }
