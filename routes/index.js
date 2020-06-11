@@ -9,7 +9,7 @@ var redis = require('../utils/redis');
 var userModel = require('../models/userModel');
 var jobTopicModel = require('../models/jobTopicModel');
 var jobModel = require('../models/jobModel');
-var distrinctProvinceModel = require('../models/districtProvinceModel');
+var districtProvinceModel = require('../models/districtProvinceModel');
 var tagModel = require('../models/tagModel');
 
 
@@ -543,7 +543,7 @@ router.get('/getJobsCompanyRecent/', function (req, res, next) {
 });
 //Get All provinces
 router.get('/getProvinces/', function (req, res, next) {
-  distrinctProvinceModel.getAllProvinces().then(data => {
+  districtProvinceModel.getAllProvinces().then(data => {
     response(res, DEFINED_CODE.GET_DATA_SUCCESS, data);
   }).catch(err => {
     response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
@@ -552,7 +552,7 @@ router.get('/getProvinces/', function (req, res, next) {
 //Get District by province
 router.get('/getDistricts/:id', function (req, res, next) {
   let id_provinces = req.params.id;
-  distrinctProvinceModel.getAllDisTricts(id_provinces).then(data => {
+  districtProvinceModel.getAllDisTricts(id_provinces).then(data => {
     response(res, DEFINED_CODE.GET_DATA_SUCCESS, data);
   }).catch(err => {
     response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
