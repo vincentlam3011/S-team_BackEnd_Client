@@ -143,8 +143,8 @@ router.post('/getJobsList', function (req, res, next) {
         title: value[0].title,
         salary: value[0].salary,
         job_topic: value[0].job_topic,
-        area_province: value[0].area_province,
-        area_district: value[0].area_district,
+        province: value[0].province,
+        district: value[0].district,
         address: value[0].address,
         lat: value[0].lat,
         lng: value[0].lng,
@@ -217,8 +217,8 @@ router.get('/getStatistic', function (req, res, next) {
               applyingJobNum = appJobData[0].applyingJobNum;
               jobModel.countProcessingJob().then(procJobData => {
                 if (procJobData.length > 0) // success
-                {
-                  processingJobNum = procJobData[0].processingJobNum;
+                {                  
+                  console.log('processingJobNum: ', procJobData[0].processingJobNum);
                   res.json({
                     message: 'get data success',
                     code: 1,
@@ -226,36 +226,36 @@ router.get('/getStatistic', function (req, res, next) {
                       memberNum,
                       finishedJobNum,
                       applyingJobNum,
-                      proccessingJobNum,
+                      proccessingJobNum: procJobData[0].processingJobNum,
                     }
                   });
                 }
                 else {
-                  res.json({ message: err, code: 0 });
+                  res.json({ message: 'processing num 0', code: 0 });
                 }
               }).catch((err3) => {
-                res.json({ message: err3, code: 0 });
+                res.json({ message: 'processing num error', code: 0 });
               })
             }
             else {
-              res.json({ message: err, code: 0 });
+              res.json({ message: 'applying num 0', code: 0 });
             }
           }).catch((err1) => {
-            res.json({ message: err1, code: 0 });
+            res.json({ message: 'applying num error', code: 0 });
           })
         }
         else {
-          res.json({ message: err, code: 0 });
+          res.json({ message: 'finished num 0', code: 0 });
         }
       }).catch((err2) => {
-        res.json({ message: err2, code: 0 });
+        res.json({ message: 'finished num error', code: 0 });
       })
     }
     else {
-      res.json({ message: err, code: 0 });
+      res.json({ message: 'member num 0', code: 0 });
     }
   }).catch((err) => {
-    res.json({ message: err, code: 0 });
+    res.json({ message: 'member num error', code: 0 });
   })
 });
 
