@@ -108,7 +108,7 @@ router.put('/editPersonalInfo', (req, res, next) => {
   };
   userModel.updateUserInfo(id_user, updates)
     .then(data => {
-      response(res, DEFINED_CODE.EDIT_PERSONAL_SUCCESS, {data,});
+      response(res, DEFINED_CODE.EDIT_PERSONAL_SUCCESS, {RowChanged: data.changedRows,});
     }).catch(err => {
       response(res, DEFINED_CODE.EDIT_PERSONAL_FAIL, err);
     })
