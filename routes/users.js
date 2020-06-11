@@ -30,9 +30,11 @@ router.get('/me', (req, res, next) => {
     secret: 'S_Team',
   });
   var id_user = decodedPayload.id;
+  console.log('id_user:', id_user);
   userModel.getUserInfo(id_user)
     .then(data => {
       var personalInfo = data[0];
+      console.log('data:', data)
       var companyInfo = data[1];
       if (personalInfo[0].avatarImg !== null) {
         let avatar = personalInfo[0].avatarImg;
@@ -46,7 +48,7 @@ router.get('/me', (req, res, next) => {
         response(res, DEFINED_CODE.GET_DATA_SUCCESS, { personal: personalInfo[0] });
       }
     }).catch(err => {
-      res.json(err);
+      response(res, DEFINED_CODE.GET_DATA_FAIL)
     })
 })
 
@@ -61,6 +63,9 @@ router.put('/changePassword', (req, res, next) => {
   var oldPassword = req.body.old_password;
   console.log(req.user.password);
   bcrypt.compare(oldPassword, req.user.password, (err, result) => {
+    if (err) {
+      response(res, DEFINED_CODE.CHANGE_PASSWORD_FAIL, err);
+    }
     if (result) {
       bcrypt.hash(newPassword, saltRounds, (err, hash) => {
         if (err) {
