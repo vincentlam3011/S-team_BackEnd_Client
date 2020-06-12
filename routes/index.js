@@ -96,7 +96,7 @@ router.get('/getAllProvinces', function (req, res, next) {
   })
 });
 
-// Get Jobs by Topic
+// Get Jobs
 router.post('/getJobsList', function (req, res, next) {
   let page = Number.parseInt(req.body.page) || 1;
   let take = Number.parseInt(req.body.take) || 6;

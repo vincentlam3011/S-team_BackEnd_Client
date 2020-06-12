@@ -77,7 +77,7 @@ module.exports = {
                 queryDeleteJobRealtedImages = `DELETE FROM job_related_images where id_job = ${job.id_job};`
                 images.forEach(element => {
                     element = convertBlobB64.convertB64ToBlob(element).toString('hex');
-                    queryJobRealtedImages += `insert into job_related_images values(${job.id_job},x'${element}');`;
+                    queryJobRealtedImages += `insert into job_related_images values(${job.id_job}, x'${element}');`;
                     // console.log('queryJobRealtedImages:', queryJobRealtedImages);
                 });
 
