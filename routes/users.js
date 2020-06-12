@@ -94,6 +94,7 @@ router.put('/editPersonalInfo', (req, res, next) => {
     secret: 'S_Team',
   });
   var id_user = decodedPayload.id;
+  console.log("id user: ",id_user);
   var updates = [];
   var body = req.body;
   for (var i in body) {
