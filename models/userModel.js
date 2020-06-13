@@ -57,7 +57,7 @@ module.exports = {
     updateUserInfo: (id, updates) => {
         var updateQuery = `update users set `;
         for (i = 0; i < updates.length; i++) {
-            if (updates[i].field === "avatarImg") {
+            if (updates[i].field === "avatarImg" || updates[i].field === "portrait" || updates[i].field === "frontIdPaper" || updates[i].field === "backIdPaper") {
                 updates[i].value = convertBlobB64.convertB64ToBlob(updates[i].value).toString('hex');
                 updateQuery += updates[i].field + ` = ` + `x'` + updates[i].value + `'`;
             } else {
