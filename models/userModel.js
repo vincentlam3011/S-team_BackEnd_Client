@@ -1,4 +1,5 @@
 var db = require('../utils/db');
+var convertBlobB64 = require('../middleware/convertBlobB64');
 
 module.exports = {
     getByEmail: (email, accStatus = 0) => {
@@ -56,7 +57,12 @@ module.exports = {
     updateUserInfo: (id, updates) => {
         var updateQuery = `update users set `;
         for (i = 0; i < updates.length; i++) {
-            updateQuery += updates[i].field + ' = ' + updates[i].value;
+            if (updates[i].field === "avatarImg") {
+                updates[i].value = convertBlobB64.convertB64ToBlob(updates[i].value).toString('hex');
+                updateQuery += updates[i].field + ` = ` + `x'` + updates[i].value + `'`;
+            } else {
+                updateQuery += updates[i].field + ' = ' + updates[i].value;
+            }
             if (i < (updates.length - 1)) {
                 updateQuery += ',';
             }

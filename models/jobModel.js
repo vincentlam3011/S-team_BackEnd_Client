@@ -21,6 +21,14 @@ module.exports = {
         '1')`;
         let sqlQueryJobs = `insert into jobs` + columsJob + ` values` + valueJob + `;`;
 
+        console.log("Job type   " + job.job_type);
+        let querySubJob = ``;
+        if (job.job_type === 0) {
+            querySubJob = `insert into jobs_temporal values((select max(id_job) from jobs), null,'${job.start_date}', '${job.end_date}');`
+        } else {
+            querySubJob = `insert into jobs_production values((select max(id_job) from jobs), '${job.end_date}');`
+        }
+
         if (images || tags) {
             let queryJobRealtedImages = '';
             let queryJobTags = '';
@@ -37,10 +45,10 @@ module.exports = {
                     // console.log('queryJobRealtedImages:', queryJobRealtedImages);
                 });
             }
-            return db.query(sqlQueryJobs + queryJobRealtedImages + queryJobTags)
+            return db.query(sqlQueryJobs + queryJobRealtedImages + queryJobTags + querySubJob);
         }
         else {
-            return db.query(sqlQueryJobs)
+            return db.query(sqlQueryJobs + querySubJob);
         }
 
     },
@@ -69,7 +77,7 @@ module.exports = {
                 queryDeleteJobRealtedImages = `DELETE FROM job_related_images where id_job = ${job.id_job};`
                 images.forEach(element => {
                     element = convertBlobB64.convertB64ToBlob(element).toString('hex');
-                    queryJobRealtedImages += `insert into job_related_images values(${job.id_job},x'${element}');`;
+                    queryJobRealtedImages += `insert into job_related_images values(${job.id_job}, x'${element}');`;
                     // console.log('queryJobRealtedImages:', queryJobRealtedImages);
                 });
 
@@ -156,7 +164,7 @@ module.exports = {
                         })
                     }
 
-                    
+
                     resolve(dataReturn);
                 }
                 else resolve();
@@ -177,13 +185,11 @@ module.exports = {
         order by j.post_date DESC
         limit ${page * number},${number};`);
     },
-    getJobsList:(queryArr) => {
+    getJobsList: (queryArr) => {
         let query = '', count = 0;
 
-        for(let e of queryArr)
-        {
-            if(count !== 0)
-            {
+        for (let e of queryArr) {
+            if (count !== 0) {
                 query += ' and';
             }
             query += ` j.${e.field} ${e.text}`;
