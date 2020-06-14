@@ -200,6 +200,42 @@ router.post('/getJobsList', function (req, res, next) {
   })
 });
 
+/* Get a user's info (limited) */
+router.get('/profile/:id', (req, res, next) => {
+  var id_user = req.params.id;
+  userModel.getUserInfo(id_user)
+    .then(data => {
+      var personalInfo = data[0];
+      console.log('data:', data)
+      var companyInfo = data[1];
+      if (personalInfo[0].avatarImg !== null) {
+        let avatar = personalInfo[0].avatarImg;
+        let buffer = new Buffer(avatar);
+        let bufferB64 = buffer.toString('base64');
+        personalInfo[0].avatarImg = bufferB64;
+      }
+      let limitedInfo = {
+        id_user: personalInfo[0].id_user,
+        fullname: personalInfo[0].fullname,
+        dob: personalInfo[0].dob,
+        email: personalInfo[0].email,
+        dial: personalInfo[0].dial,
+        address: personalInfo[0].address,
+        isBusinessUser: personalInfo[0].isBusinessUser,
+        gender: personalInfo[0].gender,
+        avatarImg: personalInfo[0].avatarImg,
+        account_status: personalInfo[0].account_status,
+      }
+      if (personalInfo[0].isBusinessUser) {
+        response(res, DEFINED_CODE.GET_DATA_SUCCESS, { personal: limitedInfo, company: companyInfo[0] });
+      } else {
+        response(res, DEFINED_CODE.GET_DATA_SUCCESS, { personal: limitedInfo });
+      }
+    }).catch(err => {
+      response(res, DEFINED_CODE.GET_DATA_FAIL)
+    })
+})
+
 /* Get top rated user */
 router.get('/getTopUsers', function (req, res, next) {
   userModel.getTopUsers().then(data => {
@@ -281,11 +317,11 @@ router.post('/verifyAddr', (req, res, next) => {
     name: province,
   }
   districtProvinceModel.addArea(pro, dis, false)
-  .then(data => {
-    res.json(data.results2.insertId);
-  }).catch(err => {
-    res.json(err);
-  })
+    .then(data => {
+      res.json(data.results2.insertId);
+    }).catch(err => {
+      res.json(err);
+    })
 })
 
 /* Signup */
