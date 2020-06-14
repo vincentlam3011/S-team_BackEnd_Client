@@ -94,13 +94,15 @@ module.exports = {
     },
     getJobById: (id) => {
         return new Promise((resolve, reject) => {
-            let query = `select  distinct  j.*,u.fullname as name_employer,u.email,u.dial,jt.id_tag,t.name as tag_name,s.name as name_status,  jtp.start_date,jtp.end_date,jtp.salary_type,jp.deadline
+            let query = `select  distinct  j.*,pr.name as name_province,ds.name as name_district,u.fullname as name_employer,u.email,u.dial,jt.id_tag,t.name as tag_name,s.name as name_status,  jtp.start_date,jtp.end_date,jtp.salary_type,jp.deadline
             from jobs as j 
             left join jobs_tags as jt
             on  j.id_job= jt.id_job
             left join tags as t on t.id_tag = jt.id_tag
 			left join jobs_production as jp on jp.id_job = j.id_job
-			left join jobs_temporal as jtp on jtp.id_job = j.id_job,
+            left join jobs_temporal as jtp on jtp.id_job = j.id_job
+            left join provinces as pr on pr.id_province = j.area_province
+            left join districts as ds on ds.id_district = j.area_district,
             statuses as s,users as u
        
             where j.id_job=${id} and s.id_status = j.id_status and u.id_user=j.employer;
