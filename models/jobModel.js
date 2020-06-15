@@ -102,18 +102,16 @@ module.exports = {
     },
     getJobById: (id) => {
         return new Promise((resolve, reject) => {
-            let query = `select  distinct  j.*,pr.name as name_province,ds.name as name_district,u.fullname as name_employer,u.email,u.dial,jt.id_tag,t.name as tag_name,s.name as name_status,  jtp.start_date,jtp.end_date,jtp.salary_type,jp.deadline
+            let query = `select  distinct  j.*,p.name as province_name, d.name as district_name, job_topics.name as topic_name, u.fullname as name_employer,u.email,u.dial,jt.id_tag,t.name as tag_name,s.name as name_status,  jtp.start_date,jtp.end_date,jtp.salary_type,jp.deadline
             from jobs as j 
             left join jobs_tags as jt
             on  j.id_job= jt.id_job
             left join tags as t on t.id_tag = jt.id_tag
 			left join jobs_production as jp on jp.id_job = j.id_job
-            left join jobs_temporal as jtp on jtp.id_job = j.id_job
-            left join provinces as pr on pr.id_province = j.area_province
-            left join districts as ds on ds.id_district = j.area_district,
-            statuses as s,users as u
+			left join jobs_temporal as jtp on jtp.id_job = j.id_job,
+            statuses as s,users as u, provinces as p, districts as d, job_topics
        
-            where j.id_job=${id} and s.id_status = j.id_status and u.id_user=j.employer;
+            where j.id_job=${id} and s.id_status = j.id_status and u.id_user=j.employer and j.area_province = p.id_province and j.area_district = d.id_district and j.job_topic = job_topics.id_jobtopic;
             
             select  distinct  j.id_job,jri.img
             from jobs as j 
@@ -199,19 +197,16 @@ module.exports = {
         }
         console.log(query);
         return db.query(`
-        select j.*, jri.img, p.name as province, d.name as district, jt.id_tag, t.name as tag_name
-        from (((jobs as j left join job_related_images as jri on j.id_job = jri.id_job) left join jobs_tags as jt on j.id_job = jt.id_job) left join tags as t on t.id_tag = jt.id_tag), users as u, jobs_tags as jt2, provinces as p, districts as d
-        ${queryArr.length > 0 ? ('where ' + query + ' and j.area_province = p.id_province and j.area_district = d.id_district') : '' }
+        select j.*, jri.img, jt.id_tag, t.name as tag_name
+        from (((jobs as j left join job_related_images as jri on j.id_job = jri.id_job) left join jobs_tags as jt on j.id_job = jt.id_job) left join tags as t on t.id_tag = jt.id_tag), users as u
+        ${queryArr.length > 0 ? ('where ' + query) : ''}
         group by j.id_job, jt.id_tag`);
     },
     countFinishedJob: () => {
-        return db.query(`select count(*) as finishedJobNum from jobs where id_status = 4`);
+        return db.query(`select count(*) as finishedJobNum from jobs where id_status = 2`);
     },
-    countApplyingJob: () => {
-        return db.query(`select count(*) as applyingJobNum from jobs where id_status = 1`);
-    },
-    countProcessingJob: () => {
-        return db.query(`select count(*) as processingJobNum from jobs where id_status = 3`);
+    countUnfinishedJob: () => {
+        return db.query(`select count(*) as unfinishedJobNum from jobs where id_status != 2`);
     },
     deleteJobById: (id) => {
         return db.query(`delete from jobs where id_job = ${id}`)
