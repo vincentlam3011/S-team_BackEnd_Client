@@ -203,7 +203,6 @@ router.get('/profile/:id', (req, res, next) => {
   userModel.getUserInfo(id_user)
     .then(data => {
       var personalInfo = data[0];
-      console.log('data:', data)
       var companyInfo = data[1];
       if (personalInfo[0].avatarImg !== null) {
         let avatar = personalInfo[0].avatarImg;
