@@ -34,11 +34,33 @@ router.get('/me', (req, res, next) => {
     .then(data => {
       var personalInfo = data[0];
       var companyInfo = data[1];
+      // avatar
       if (personalInfo[0].avatarImg !== null) {
         let avatar = personalInfo[0].avatarImg;
         let buffer = new Buffer(avatar);
         let bufferB64 = buffer.toString('base64');
         personalInfo[0].avatarImg = bufferB64;
+      }
+      // portrait
+      if (personalInfo[0].portrait !== null) {
+        let portrait = personalInfo[0].portrait;
+        let buffer = new Buffer(portrait);
+        let bufferB64 = buffer.toString('base64');
+        personalInfo[0].portrait = bufferB64;
+      }
+      // front ID
+      if (personalInfo[0].frontIdPaper !== null) {
+        let frontIdPaper = personalInfo[0].frontIdPaper;
+        let buffer = new Buffer(frontIdPaper);
+        let bufferB64 = buffer.toString('base64');
+        personalInfo[0].frontIdPaper = bufferB64;
+      }
+      // back ID
+      if (personalInfo[0].backIdPaper !== null) {
+        let backIdPaper = personalInfo[0].backIdPaper;
+        let buffer = new Buffer(backIdPaper);
+        let bufferB64 = buffer.toString('base64');
+        personalInfo[0].backIdPaper = bufferB64;
       }
       if (personalInfo[0].isBusinessUser) {
         response(res, DEFINED_CODE.GET_DATA_SUCCESS, { personal: personalInfo[0], company: companyInfo[0] });
@@ -92,6 +114,7 @@ router.put('/editPersonalInfo', (req, res, next) => {
     secret: 'S_Team',
   });
   var id_user = decodedPayload.id;
+  console.log("id user: ",id_user);
   var updates = [];
   var body = req.body;
   for (var i in body) {
@@ -106,7 +129,7 @@ router.put('/editPersonalInfo', (req, res, next) => {
   };
   userModel.updateUserInfo(id_user, updates)
     .then(data => {
-      response(res, DEFINED_CODE.EDIT_PERSONAL_SUCCESS, { RowChanged: data.changedRows });
+      response(res, DEFINED_CODE.EDIT_PERSONAL_SUCCESS, {RowChanged: data.changedRows,});
     }).catch(err => {
       response(res, DEFINED_CODE.EDIT_PERSONAL_FAIL, err);
     })

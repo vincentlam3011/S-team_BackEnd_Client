@@ -122,7 +122,10 @@ router.post('/getJobsList', function (req, res, next) {
         queryArr.push({ field: i, text: `>= '${query[i]}'` });
       }
       else if (i === 'employer') {
-        queryArr.push({ field: i, text: ` = u.id_user and u.fullname = '${query[i]}'` });
+        queryArr.push({ field: i, text: `= u.id_user and u.fullname = '${query[i]}'` });
+      }
+      else if (i === 'tag') {
+        queryArr.push({field: 'id_job', text: `= jt2.id_job and jt2.id_tag = ${query[i]}`});
       }
       else {
         queryArr.push({ field: i, text: `= ${query[i]}` });
@@ -152,8 +155,8 @@ router.post('/getJobsList', function (req, res, next) {
         title: value[0].title,
         salary: value[0].salary,
         job_topic: value[0].job_topic,
-        area_province: value[0].area_province,
-        area_district: value[0].area_district,
+        province: value[0].province,
+        district: value[0].district,
         address: value[0].address,
         lat: value[0].lat,
         lng: value[0].lng,
@@ -246,7 +249,7 @@ router.get('/getTopUsers', function (req, res, next) {
 
 /* Get statistic */
 router.get('/getStatistic', function (req, res, next) {
-  let memberNum = 0, finishedJobNum = 0, unfinishedJobNum = 0;
+  let memberNum = 0, finishedJobNum = 0, applyingJobNum = 0, processingJobNum = 0;
   userModel.countUsers().then(usersData => {
     if (usersData.length > 0) // success
     {
@@ -255,35 +258,51 @@ router.get('/getStatistic', function (req, res, next) {
         if (finJobData.length > 0) // success
         {
           finishedJobNum = finJobData[0].finishedJobNum;
-          jobModel.countUnfinishedJob().then(unfinJobData => {
-            if (unfinJobData.length > 0) // success
+          jobModel.countApplyingJob().then(appJobData => {
+            if (appJobData.length > 0) // success
             {
-              unfinishedJobNum = unfinJobData[0].unfinishedJobNum;
-              res.json({
-                message: 'get data success',
-                code: 1,
-                data: {
-                  memberNum,
-                  finishedJobNum,
-                  unfinishedJobNum,
+              applyingJobNum = appJobData[0].applyingJobNum;
+              jobModel.countProcessingJob().then(procJobData => {
+                if (procJobData.length > 0) // success
+                {                  
+                  console.log('processingJobNum: ', procJobData[0].processingJobNum);
+                  res.json({
+                    message: 'get data success',
+                    code: 1,
+                    data: {
+                      memberNum,
+                      finishedJobNum,
+                      applyingJobNum,
+                      proccessingJobNum: procJobData[0].processingJobNum,
+                    }
+                  });
                 }
-              });
+                else {
+                  res.json({ message: 'processing num 0', code: 0 });
+                }
+              }).catch((err3) => {
+                res.json({ message: 'processing num error', code: 0 });
+              })
             }
             else {
-              res.json({ message: err, code: 0 });
+              res.json({ message: 'applying num 0', code: 0 });
             }
+          }).catch((err1) => {
+            res.json({ message: 'applying num error', code: 0 });
           })
         }
         else {
-          res.json({ message: err, code: 0 });
+          res.json({ message: 'finished num 0', code: 0 });
         }
+      }).catch((err2) => {
+        res.json({ message: 'finished num error', code: 0 });
       })
     }
     else {
-      res.json({ message: err, code: 0 });
+      res.json({ message: 'member num 0', code: 0 });
     }
   }).catch((err) => {
-    res.json({ message: err, code: 0 });
+    res.json({ message: 'member num error', code: 0 });
   })
 });
 
