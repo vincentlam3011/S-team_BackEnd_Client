@@ -103,6 +103,7 @@ router.post('/getJobsList', function (req, res, next) {
   let isASC = Number.parseInt(req.body.isASC) || 1;
   // Lấy danh sách các query cần thiết
   let queryArr = [];
+  let multiTags = [];
   let query = req.body.query;
   for (let i in query) {
     if (query[i]) {
@@ -124,8 +125,8 @@ router.post('/getJobsList', function (req, res, next) {
       else if (i === 'employer') {
         queryArr.push({ field: i, text: `= u.id_user and u.fullname = '${query[i]}'` });
       }
-      else if (i === 'tag') {
-        queryArr.push({field: 'id_job', text: `= jt2.id_job and jt2.id_tag = ${query[i]}`});
+      else if (i === 'tags') {
+        multiTags = query[i];
       }
       else {
         queryArr.push({ field: i, text: `= ${query[i]}` });
@@ -134,11 +135,11 @@ router.post('/getJobsList', function (req, res, next) {
   };
 
 
-  jobModel.getJobsList(queryArr).then(data => {
+  jobModel.getJobsList(queryArr, multiTags).then(data => {
     const jobs = _.groupBy(data, "id_job");
     var finalData = [];
+    
     _.forEach(jobs, (value, key) => {
-
       const tags = _.map(value, item => {
         const { id_tag, tag_name } = item;
         if (id_tag === null || tag_name === null) {
@@ -152,6 +153,7 @@ router.post('/getJobsList', function (req, res, next) {
       const temp = {
         id_job: value[0].id_job,
         // employer: value[0].employer,
+        relevance: value[0].relevance,
         title: value[0].title,
         salary: value[0].salary,
         job_topic: value[0].job_topic,
@@ -179,6 +181,10 @@ router.post('/getJobsList', function (req, res, next) {
     if (isASC !== 1) {
       finalData = finalData.reverse();
     }
+    if(multiTags.length > 0) {
+      finalData = _.orderBy(finalData, 'relevance', 'desc');
+    }
+    
 
     let realData = finalData.slice((page - 1) * take, (page - 1) * take + take);
     if (realData.length > 0) {
@@ -193,7 +199,7 @@ router.post('/getJobsList', function (req, res, next) {
 
     }
     // console.log(realData);
-    response(res, DEFINED_CODE.GET_DATA_SUCCESS, { jobList: realData, count: finalData.length, page: page });
+    response(res, DEFINED_CODE.GET_DATA_SUCCESS, { jobList: realData, total: finalData.length, page: page });
 
   }).catch((err) => {
     response(res, DEFINED_CODE.GET_DATA_FAIL, err);

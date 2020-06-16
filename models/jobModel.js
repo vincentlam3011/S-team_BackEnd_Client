@@ -185,8 +185,8 @@ module.exports = {
         order by j.post_date DESC
         limit ${page * number},${number};`);
     },
-    getJobsList: (queryArr) => {
-        let query = '', count = 0;
+    getJobsList: (queryArr, multipleTags) => {
+        let query = '', count = 0, tags = '';
 
         for (let e of queryArr) {
             if (count !== 0) {
@@ -195,11 +195,27 @@ module.exports = {
             query += ` j.${e.field} ${e.text}`;
             count++;
         }
-        console.log(query);
+
+        if(multipleTags.length > 0)
+        {
+            tags += multipleTags[0];
+            multipleTags.forEach((e,i)=>{
+                if(i!== 0) 
+                {
+                    tags+=`, ${e}`;
+                }
+            })
+        }
+        // return db.query(`
+        // select j.*, jri.img, jt.id_tag, t.name as tag_name, p.name as province, d.name as district
+        // from (((jobs as j left join job_related_images as jri on j.id_job = jri.id_job) left join jobs_tags as jt on j.id_job = jt.id_job) left join tags as t on t.id_tag = jt.id_tag), users as u, provinces as p, districts as d, jobs_tags as jt1
+        // ${queryArr.length > 0 ? ('where ' + query +' j.area_province = p.id_province and j.area_district = d.id_district') : 'j.area_province = p.id_province and j.area_district = d.id_district'}
+        // group by j.id_job, jt.id_tag`);
         return db.query(`
-        select j.*, jri.img, jt.id_tag, t.name as tag_name
-        from (((jobs as j left join job_related_images as jri on j.id_job = jri.id_job) left join jobs_tags as jt on j.id_job = jt.id_job) left join tags as t on t.id_tag = jt.id_tag), users as u
-        ${queryArr.length > 0 ? ('where ' + query) : ''}
+        select j.*, jri.img, jt.id_tag, t.name as tag_name, p.name as province, d.name as district${multipleTags.length > 0 ? ', matches.relevance as relevance' : ''}
+        from (((jobs as j left join job_related_images as jri on j.id_job = jri.id_job) left join jobs_tags as jt on j.id_job = jt.id_job) left join tags as t on t.id_tag = jt.id_tag), users as u, provinces as p, districts as d
+        ${multipleTags.length > 0 ? ',(SELECT j2.id_job as id,count(j2.id_job) as relevance FROM jobs as j2, jobs_tags as jt2 WHERE j2.id_job = jt2.id_job AND jt2.id_tag IN ('+tags+') GROUP BY j2.id_job) AS matches' : ''}
+        ${queryArr.length > 0 ? ('where ' + query +' j.area_province = p.id_province and j.area_district = d.id_district ') : 'where j.area_province = p.id_province and j.area_district = d.id_district'} ${multipleTags.length > 0 ? ' and matches.id = j.id_job':''}
         group by j.id_job, jt.id_tag`);
     },
     countFinishedJob: () => {
