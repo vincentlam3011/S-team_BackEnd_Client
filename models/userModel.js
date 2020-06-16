@@ -51,6 +51,11 @@ module.exports = {
         var companyQuery = `select * from companies where id_user = ${id};`;
         return db.query(userQuery + ' ' + companyQuery);
     },
+    getUserInfoNotPrivate: (id) => {
+        var userQuery = `select id_user, fullname, dob, email, dial, address, identity, isBusinessUser, gender, avatarImg from users where id_user = ${id};`;
+        var companyQuery = `select * from companies where id_user = ${id};`;
+        return db.query(userQuery + ' ' + companyQuery);
+    },
     countUsers: () => {
         return db.query(`select count(*) as memberNum from users where account_status = 1 or account_status = 2`)
     },

@@ -561,6 +561,28 @@ router.get('/getJobById/:id', function (req, res, next) {
     response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
   })
 });
+
+//Get Jobs By Id
+router.get('/getUserInfoNotPrivate/:id', function (req, res, next) {
+  let employer = req.params.id;
+  userModel.getUserInfoNotPrivate(employer).then(data => {
+    let personalInfo = data[0];
+    let companyInfo = data[1];
+
+    if (personalInfo[0].avatarImg !== null) {
+      let avatar = personalInfo[0].avatarImg;
+      let buffer = new Buffer(avatar);
+      let bufferB64 = buffer.toString('base64');
+      personalInfo[0].avatarImg = bufferB64;
+    }
+    
+    response(res, DEFINED_CODE.GET_DATA_SUCCESS, { personal: personalInfo[0], company: companyInfo[0] });
+  }).catch(err => {
+    response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
+  })
+});
+
+
 //Get Jobs Temporal Recent with params = length of data want to get
 router.get('/getJobsTemporalRecent/', function (req, res, next) {
   let page = req.query.page;
