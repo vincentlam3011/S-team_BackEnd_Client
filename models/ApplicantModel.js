@@ -11,6 +11,10 @@ module.exports = {
         let sqlQueryApplicants = `SELECT A.*,U.fullname,U.email FROM APPLICANTS AS A, USERS AS U WHERE A.id_user = U.id_user and A.id_user= ${id}`;
         return db.query(sqlQueryApplicants);
     },
+    getApplicantsByUserIdJobId: (id_user, id_job) => {
+        let sqlQueryApplicants = `SELECT * FROM APPLICANTS WHERE id_user = ${id_user} and id_job = ${id_job}`;
+        return db.query(sqlQueryApplicants);
+    },
     addApplicant: (applicants) => {
         applicants.attachment = convertBlobB64.convertB64ToBlob(applicants.attachment).toString('hex');
         let columsJob = `(id_user,id_job,proposed_price,attachment)`
@@ -19,19 +23,20 @@ module.exports = {
         x'${applicants.attachment}')`;
         let sqlQueryApplicants = `insert into applicants` + columsJob + ` values` + valueJob + `;`;
         return db.query(sqlQueryApplicants)
+    },
+    updateNewPrice: (applicants) => {
+        applicants.attachment = convertBlobB64.convertB64ToBlob(applicants.attachment).toString('hex');
 
-
+        let sqlQueryApplicants = `update applicants SET proposed_price ='${applicants.proposed_price}',attachment=x'${applicants.attachment}'
+        WHERE id_user = '${applicants.id_user}' and id_job = '${applicants.id_job};`;
+        return db.query(sqlQueryApplicants)
     },
     editApplicant: (applicants) => {
         applicants.attachment = convertBlobB64.convertB64ToBlob(applicants.attachment).toString('hex');
 
         let sqlQueryApplicants = `update applicants SET proposed_price ='${applicants.proposed_price}',attachment=x'${applicants.attachment}'
         WHERE id_applicant = '${applicants.id_applicant}';`;
-        console.log('sqlQueryApplicants:', sqlQueryApplicants)
         return db.query(sqlQueryApplicants)
-
-
-
     },
     deleteApplicant: (id) => {
         return db.query(`delete from APPLICANTS where id_applicant = ${id}`)

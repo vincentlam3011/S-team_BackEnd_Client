@@ -562,7 +562,7 @@ router.get('/getJobById/:id', function (req, res, next) {
   })
 });
 
-//Get Jobs By Id
+//getUserInfoNotPrivate By Id
 router.get('/getUserInfoNotPrivate/:id', function (req, res, next) {
   let employer = req.params.id;
   userModel.getUserInfoNotPrivate(employer).then(data => {

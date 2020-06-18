@@ -152,7 +152,6 @@ module.exports = {
                                     img
                                 );
                             }
-
                         })
                     }
                     if (data[2]) {
@@ -215,14 +214,17 @@ module.exports = {
         select j.*, jri.img, jt.id_tag, t.name as tag_name, p.name as province, d.name as district${multipleTags.length > 0 ? ', matches.relevance as relevance' : ''}
         from (((jobs as j left join job_related_images as jri on j.id_job = jri.id_job) left join jobs_tags as jt on j.id_job = jt.id_job) left join tags as t on t.id_tag = jt.id_tag), users as u, provinces as p, districts as d
         ${multipleTags.length > 0 ? ',(SELECT j2.id_job as id,count(j2.id_job) as relevance FROM jobs as j2, jobs_tags as jt2 WHERE j2.id_job = jt2.id_job AND jt2.id_tag IN ('+tags+') GROUP BY j2.id_job) AS matches' : ''}
-        ${queryArr.length > 0 ? ('where ' + query +' j.area_province = p.id_province and j.area_district = d.id_district ') : 'where j.area_province = p.id_province and j.area_district = d.id_district'} ${multipleTags.length > 0 ? ' and matches.id = j.id_job':''}
+        ${queryArr.length > 0 ? ('where ' + query +' and j.area_province = p.id_province and j.area_district = d.id_district ') : 'where j.area_province = p.id_province and j.area_district = d.id_district'} ${multipleTags.length > 0 ? ' and matches.id = j.id_job':''}
         group by j.id_job, jt.id_tag`);
     },
     countFinishedJob: () => {
         return db.query(`select count(*) as finishedJobNum from jobs where id_status = 2`);
     },
-    countUnfinishedJob: () => {
-        return db.query(`select count(*) as unfinishedJobNum from jobs where id_status != 2`);
+    countApplyingJob: () => {
+        return db.query(`select count(*) as applyingJobNum from jobs where id_status = 1`);
+    },
+    countProcessingJob: () => {
+        return db.query(`select count(*) as processingJobNum from jobs where id_status = 3`);
     },
     deleteJobById: (id) => {
         return db.query(`delete from jobs where id_job = ${id}`)
