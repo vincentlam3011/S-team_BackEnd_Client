@@ -42,7 +42,6 @@ router.post('/getApplicantsByUserId', function (req, res, next) {
 router.post('/addApplicant', function (req, res, next) {
     let applicants = JSON.parse(JSON.stringify(req.body));
     applicantModel.addApplicant(applicants).then(data => {
-
         response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data);
     }).catch(err => {
         response(err, DEFINED_CODE.INTERACT_DATA_FAIL);
