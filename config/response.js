@@ -142,16 +142,20 @@ const mapCodeToHTTPStatus = {
 /* Handle response */
 const response = (res, definedCode, data = null) => {
     if (data === null)
+    {            
         res.status(mapCodeToHTTPStatus[definedCode]).json({
             code: definedCode,
             message: mapCodeToMsg[definedCode],
         })
+    }
     else
+    {
         res.status(mapCodeToHTTPStatus[definedCode]).json({
             data: data,
             code: definedCode,
             message: mapCodeToMsg[definedCode],
         })
+    }
 };
 
 module.exports.DEFINED_CODE = ResponsedCode;

@@ -41,12 +41,10 @@ router.post('/getApplicantsByUserId', function (req, res, next) {
 //Add New Applicants 
 router.post('/addApplicant', function (req, res, next) {
     let applicants = JSON.parse(JSON.stringify(req.body));
-    applicantModel.getApplicantsByUserId(applicants.id_user, applicants.id_job).then(data=>{
-        console.log(data);
+    applicantModel.getApplicantsByUserIdJobId(applicants.id_user, applicants.id_job).then(data=>{
         if(data.length > 0)
         { // đã tồn tại
             applicantModel.updateNewPrice(applicants).then(updateData => {
-                console.log(updateData);
                 response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, updateData);
             }).catch(err => {
                 response(err, DEFINED_CODE.INTERACT_DATA_FAIL);
@@ -55,7 +53,6 @@ router.post('/addApplicant', function (req, res, next) {
         else
         {
             applicantModel.addApplicant(applicants).then(addData => {
-                console.log(addData);
                 response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, addData);
             }).catch(err => {
                 response(err, DEFINED_CODE.INTERACT_DATA_FAIL);

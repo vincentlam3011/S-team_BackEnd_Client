@@ -27,8 +27,8 @@ module.exports = {
     updateNewPrice: (applicants) => {
         applicants.attachment = convertBlobB64.convertB64ToBlob(applicants.attachment).toString('hex');
 
-        let sqlQueryApplicants = `update applicants SET proposed_price ='${applicants.proposed_price}',attachment=x'${applicants.attachment}'
-        WHERE id_user = '${applicants.id_user}' and id_job = '${applicants.id_job};`;
+        let sqlQueryApplicants = `update applicants SET proposed_price =${applicants.proposed_price}, attachment=x'${applicants.attachment}'
+        WHERE id_user = ${applicants.id_user} and id_job = ${applicants.id_job};`;
         return db.query(sqlQueryApplicants)
     },
     editApplicant: (applicants) => {
