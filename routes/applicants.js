@@ -41,12 +41,26 @@ router.post('/getApplicantsByUserId', function (req, res, next) {
 //Add New Applicants 
 router.post('/addApplicant', function (req, res, next) {
     let applicants = JSON.parse(JSON.stringify(req.body));
-    applicantModel.addApplicant(applicants).then(data => {
-        response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data);
-    }).catch(err => {
+    applicantModel.getApplicantsByUserIdJobId(applicants.id_user, applicants.id_job).then(data=>{
+        if(data.length > 0)
+        { // đã tồn tại
+            applicantModel.updateNewPrice(applicants).then(updateData => {
+                response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, updateData);
+            }).catch(err => {
+                response(err, DEFINED_CODE.INTERACT_DATA_FAIL);
+            })
+        }
+        else
+        {
+            applicantModel.addApplicant(applicants).then(addData => {
+                response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, addData);
+            }).catch(err => {
+                response(err, DEFINED_CODE.INTERACT_DATA_FAIL);
+            })
+        }
+    }).catch(err=>{
         response(err, DEFINED_CODE.INTERACT_DATA_FAIL);
     })
-
 });
 //Edit Applicants 
 router.post('/editApplicant', function (req, res, next) {
