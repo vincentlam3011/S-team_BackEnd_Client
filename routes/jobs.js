@@ -1,5 +1,6 @@
-
 var express = require('express');
+var jwt = require('jsonwebtoken');
+var _ = require('lodash')
 
 var jobTopicModel = require('../models/jobTopicModel');
 var jobModel = require('../models/jobModel');
@@ -11,6 +12,171 @@ var { response, DEFINED_CODE } = require('../config/response');
 router.get('/', function (req, res, next) {
     res.render('index', { title: 'Express' });
 });
+
+// Get Jobs by applicant id
+router.post('/getJobsByApplicant', function (req, res, next) {
+    let page = Number.parseInt(req.body.page) || 1;
+    let take = Number.parseInt(req.body.take) || 6;
+    let isASC = Number.parseInt(req.body.isASC) || 1;
+    let status = Number.parseInt(req.body.status);
+
+    var token = req.headers.authorization.slice(7);
+    var decodedPayload = jwt.decode(token, {
+        secret: 'S_Team',
+    });
+    let id_user = decodedPayload.id;
+
+    jobModel.getJobsByApplicantId(id_user, status).then(data => {
+        
+        let jobs = _.groupBy(data, "id_job");
+        var finalData = [];
+        
+        _.forEach(jobs, (value, key) => {
+            const tags = _.map(value, item => {
+                const { id_tag, tag_name } = item;
+                if (id_tag === null || tag_name === null) {
+                    return null;
+                }
+                else {
+                    return { id_tag, tag_name };
+                }
+            })
+
+            const temp = {
+                id_job: value[0].id_job,
+                // employer: value[0].employer,
+                relevance: value[0].relevance,
+                title: value[0].title,
+                salary: value[0].salary,
+                job_topic: value[0].job_topic,
+                province: value[0].province,
+                district: value[0].district,
+                address: value[0].address,
+                lat: value[0].lat,
+                lng: value[0].lng,
+                description: value[0].description,
+                post_date: value[0].post_date,
+                expire_date: value[0].expire_date,
+                dealable: value[0].dealable,
+                job_type: value[0].job_type,
+                isOnline: value[0].isOnline,
+                isCompany: value[0].isCompany,
+                vacancy: value[0].vacancy,
+                // requirement: value[0].requirement,
+                id_status: value[0].id_status,
+                img: value[0].img,
+                tags: tags[0] === null ? [] : tags,
+            }
+            finalData.push(temp);
+        })
+        // Đảo ngược chuỗi vì id_job thêm sau cũng là mới nhất
+        if (isASC !== 1) {
+            finalData = finalData.reverse();
+        }
+
+        let realData = finalData.slice((page - 1) * take, (page - 1) * take + take);
+        if (realData.length > 0) {
+
+            realData.forEach(element => {
+                if (element.img) {
+                    let buffer = new Buffer(element.img);
+                    let bufferBase64 = buffer.toString('base64');
+                    element.img = bufferBase64;
+                }
+            });
+
+        }
+
+        console.log('flag 2');
+        // console.log(realData);
+        response(res, DEFINED_CODE.GET_DATA_SUCCESS, { jobList: realData, total: finalData.length, page: page });
+
+    }).catch((err) => {
+        console.log(err);
+        response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+    })
+});
+
+// Get jobs by employer id
+router.post('/getJobsByEmployer', function (req, res, next) {
+    let page = Number.parseInt(req.body.page) || 1;
+    let take = Number.parseInt(req.body.take) || 6;
+    let isASC = Number.parseInt(req.body.isASC) || 1;
+    let status = Number.parseInt(req.body.status);
+
+    var token = req.headers.authorization.slice(7);
+    var decodedPayload = jwt.decode(token, {
+        secret: 'S_Team',
+    });
+    let employer = decodedPayload.id;
+
+    jobModel.getJobsByEmployerId(employer, status).then(data => {
+        const jobs = _.groupBy(data, "id_job");
+        var finalData = [];
+
+        _.forEach(jobs, (value, key) => {
+            const tags = _.map(value, item => {
+                const { id_tag, tag_name } = item;
+                if (id_tag === null || tag_name === null) {
+                    return null;
+                }
+                else {
+                    return { id_tag, tag_name };
+                }
+            })
+
+            const temp = {
+                id_job: value[0].id_job,
+                // employer: value[0].employer,
+                relevance: value[0].relevance,
+                title: value[0].title,
+                salary: value[0].salary,
+                job_topic: value[0].job_topic,
+                province: value[0].province,
+                district: value[0].district,
+                address: value[0].address,
+                lat: value[0].lat,
+                lng: value[0].lng,
+                description: value[0].description,
+                post_date: value[0].post_date,
+                expire_date: value[0].expire_date,
+                dealable: value[0].dealable,
+                job_type: value[0].job_type,
+                isOnline: value[0].isOnline,
+                isCompany: value[0].isCompany,
+                vacancy: value[0].vacancy,
+                // requirement: value[0].requirement,
+                id_status: value[0].id_status,
+                img: value[0].img,
+                tags: tags[0] === null ? [] : tags,
+            }
+            finalData.push(temp);
+        })
+        // Đảo ngược chuỗi vì id_job thêm sau cũng là mới nhất
+        if (isASC !== 1) {
+            finalData = finalData.reverse();
+        }
+
+        let realData = finalData.slice((page - 1) * take, (page - 1) * take + take);
+        if (realData.length > 0) {
+
+            realData.forEach(element => {
+                if (element.img) {
+                    let buffer = new Buffer(element.img);
+                    let bufferBase64 = buffer.toString('base64');
+                    element.img = bufferBase64;
+                }
+            });
+
+        }
+        // console.log(realData);
+        response(res, DEFINED_CODE.GET_DATA_SUCCESS, { jobList: realData, total: finalData.length, page: page });
+
+    }).catch((err) => {
+        response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+    })
+});
+
 router.get('/allJobsTopics', function (req, res, next) {
     jobTopicModel.getAllJobTopics().then(data => {
         if (data.length > 0) {
