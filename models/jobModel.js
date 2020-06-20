@@ -214,6 +214,14 @@ module.exports = {
         ${queryArr.length > 0 ? ('where ' + query +' and j.area_province = p.id_province and j.area_district = d.id_district ') : 'where j.area_province = p.id_province and j.area_district = d.id_district'} ${multipleTags.length > 0 ? ' and matches.id = j.id_job':''}
         group by j.id_job, jt.id_tag`);
     },
+    getJobPostListForIOS: (job_type) => {
+        console.log(job_type);
+        return db.query(`
+        select j.*, jri.img, p.name as province, d.name as district
+        from (jobs as j left join job_related_images as jri on j.id_job = jri.id_job), provinces as p, districts as d
+        where j.job_type = ${job_type} and j.area_province = p.id_province and j.area_district = d.id_district
+        group by j.id_job`);
+    },
     getJobsByApplicantId: (id_user, status) => {
         return db.query(`
         select j.*, jri.img, jt.id_tag, t.name as tag_name, p.name as province, d.name as district

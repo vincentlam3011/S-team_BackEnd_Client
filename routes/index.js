@@ -206,6 +206,36 @@ router.post('/getJobsList', function (req, res, next) {
   })
 });
 
+
+// Get Jobs for IOS
+router.post('/getJobPostListForIOS', function (req, res, next) {
+  let take = Number.parseInt(req.body.take) || 6;
+  let job_type = Number.parseInt(req.body.job_type) || 0;
+  
+  jobModel.getJobPostListForIOS(job_type).then(data => {
+    console.log(data);
+    let finalData = _.orderBy(data, 'post_date', 'desc'); 
+    console.log(finalData);
+    let realData = finalData.slice(0,take);
+    console.log(realData);
+    if (realData.length > 0) {
+      realData.forEach(element => {
+        if (element.img) {
+          let buffer = new Buffer(element.img);
+          let bufferBase64 = buffer.toString('base64');
+          element.img = bufferBase64;
+        }
+      });
+
+    }
+    // console.log(realData);
+    response(res, DEFINED_CODE.GET_DATA_SUCCESS, { jobList: realData});
+
+  }).catch((err) => {
+    response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+  })
+});
+
 /* Get a user's info (limited) */
 router.get('/profile/:id', (req, res, next) => {
   var id_user = req.params.id;
