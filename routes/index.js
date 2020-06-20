@@ -25,6 +25,7 @@ var { mailer } = require('../utils/nodemailer');
 router.get('/', function (req, res, next) {
   res.render('index', { title: 'Express' });
 });
+
 //Get Jobs Topic
 router.get('/allJobsTopics', function (req, res, next) {
   jobTopicModel.getAllJobTopics().then(data => {
@@ -232,6 +233,22 @@ router.post('/getJobPostListForIOS', function (req, res, next) {
     response(res, DEFINED_CODE.GET_DATA_FAIL, err);
   })
 });
+
+// Get Job Topics for IOS
+router.get('/getJobTopicsForIOS', function (req, res, next) {
+  jobTopicModel.getJobTopicsForIOS().then(data => {
+    if (data.length > 0) {
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, data);
+    }
+    else {
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, { note: "No data" });
+    }
+
+  }).catch((err1) => {
+    response(res, DEFINED_CODE.GET_DATA_FAIL, err1);
+  })
+});
+
 
 /* Get a user's info (limited) */
 router.get('/profile/:id', (req, res, next) => {

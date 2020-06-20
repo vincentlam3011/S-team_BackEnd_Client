@@ -215,7 +215,6 @@ module.exports = {
         group by j.id_job, jt.id_tag`);
     },
     getJobPostListForIOS: (job_type) => {
-        console.log(job_type);
         return db.query(`
         select j.*, jri.img, p.name as province, d.name as district
         from (jobs as j left join job_related_images as jri on j.id_job = jri.id_job), provinces as p, districts as d
@@ -228,6 +227,13 @@ module.exports = {
         from (((jobs as j left join job_related_images as jri on j.id_job = jri.id_job) left join jobs_tags as jt on j.id_job = jt.id_job) left join tags as t on t.id_tag = jt.id_tag), users as u, provinces as p, districts as d, applicants as a
         where j.id_job = a.id_job and a.id_user = ${id_user} and j.area_province = p.id_province and j.area_district = d.id_district and j.id_status = ${status}
         group by j.id_job, jt.id_tag`);
+    },
+    getApplyingJobsByEmployerId: (id_user) => {
+        return db.query(`
+        select j.*, count(a.id_job) as candidates
+        from (jobs as j left JOIN applicants as a on j.id_job = a.id_job)
+        where j.employer = ${id_user} and j.id_status = 1
+        group by j.id_job`);
     },
     getJobsByEmployerId: (id_user, status) => {
         return db.query(`

@@ -177,6 +177,33 @@ router.post('/getJobsByEmployer', function (req, res, next) {
     })
 });
 
+// Get applying jobs by employer id
+router.post('/getApplyingJobsByEmployerId', function (req, res, next) {
+    let page = Number.parseInt(req.body.page) || 1;
+    let take = Number.parseInt(req.body.take) || 6;
+    let isASC = Number.parseInt(req.body.isASC) || 1;
+
+    var token = req.headers.authorization.slice(7);
+    var decodedPayload = jwt.decode(token, {
+        secret: 'S_Team',
+    });
+    let employer = decodedPayload.id;
+
+    jobModel.getApplyingJobsByEmployerId(employer).then(data => {
+        let finalData = [];
+        if (isASC !== 1) {
+            finalData = _.groupBy(data,'post_date','desc');
+        }
+
+        let realData = finalData.slice((page - 1) * take, (page - 1) * take + take);
+        
+        response(res, DEFINED_CODE.GET_DATA_SUCCESS, { jobList: realData, total: finalData.length, page: page });
+
+    }).catch((err) => {
+        response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+    })
+});
+
 router.get('/allJobsTopics', function (req, res, next) {
     jobTopicModel.getAllJobTopics().then(data => {
         if (data.length > 0) {
