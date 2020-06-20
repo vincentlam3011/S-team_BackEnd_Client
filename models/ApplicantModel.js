@@ -16,11 +16,13 @@ module.exports = {
         return db.query(sqlQueryApplicants);
     },
     addApplicant: (applicants) => {
-        applicants.attachment = convertBlobB64.convertB64ToBlob(applicants.attachment).toString('hex');
-        let columsJob = `(id_user,id_job,proposed_price,attachment)`
+        // if (applicants.attachment !== null && applicants.attachment !== '') {
+            applicants.attachment = convertBlobB64.convertB64ToBlob(applicants.attachment).toString('hex');
+        // }
+        let columsJob = `(id_user,id_job,proposed_price,attachment, introduction_string)`
         let valueJob = `('${applicants.id_user}',
         '${applicants.id_job}','${applicants.proposed_price}',
-        x'${applicants.attachment}')`;
+        x'${applicants.attachment}', '${applicants.introduction_string}')`;
         let sqlQueryApplicants = `insert into applicants` + columsJob + ` values` + valueJob + `;`;
         return db.query(sqlQueryApplicants)
     },
@@ -34,7 +36,7 @@ module.exports = {
     editApplicant: (applicants) => {
         applicants.attachment = convertBlobB64.convertB64ToBlob(applicants.attachment).toString('hex');
 
-        let sqlQueryApplicants = `update applicants SET proposed_price ='${applicants.proposed_price}',attachment=x'${applicants.attachment}'
+        let sqlQueryApplicants = `update applicants SET proposed_price ='${applicants.proposed_price}',attachment=x'${applicants.attachment}', introduction_string = '${applicants.introduction_string}'
         WHERE id_applicant = '${applicants.id_applicant}';`;
         return db.query(sqlQueryApplicants)
     },

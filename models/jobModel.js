@@ -5,7 +5,8 @@ module.exports = {
     addJob: (job) => {
         let images = job.images;
         let tags = job.tags;
-        let columsJob = `(employer,title,salary,job_topic,area_province,area_district,address,lat,lng,description,expire_date,dealable,job_type,isOnline,isCompany,vacancy,requirement,id_status)`
+        console.log("Tags"); console.log(tags);
+        let columsJob = `(employer,title,salary,job_topic,area_province,area_district,address,lat,lng,description,expire_date,dealable,job_type,isOnline,isCompany,vacancy,requirement,id_status,benefit)`
         let valueJob = `('${job.employer}',
         '${job.title}','${job.salary}',
         '${job.job_topic}',
@@ -18,7 +19,8 @@ module.exports = {
         ${job.isCompany},
         '${job.vacancy}',
         '${job.requirement}',
-        '1')`;
+        '1',
+        '${job.benefit}')`;
         let sqlQueryJobs = `insert into jobs` + columsJob + ` values` + valueJob + `;`;
 
         console.log("Job type   " + job.job_type);
@@ -41,7 +43,7 @@ module.exports = {
             if (tags) {
                 tags.forEach(element => {
 
-                    queryJobTags += "insert into jobs_tags values((SELECT MAX(id_job) FROM jobs)" + ",'" + element.tag_id + "');";
+                    queryJobTags += "insert into jobs_tags values((SELECT MAX(id_job) FROM jobs)" + ",'" + element.id_tag + "');";
                     // console.log('queryJobRealtedImages:', queryJobRealtedImages);
                 });
             }

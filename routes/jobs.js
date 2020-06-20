@@ -235,7 +235,7 @@ router.post("/addJob", function (req, res, next) {
                 jobModel.addJob(job).then(data => {
                     response(res, DEFINED_CODE.CREATED_DATA_SUCCESS, data);
                 }).catch((err) => {
-                    // response(err, DEFINED_CODE.CREATE_DATA_FAIL);
+                    // response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
                     res.json(err);
                 })
                 return;
@@ -259,7 +259,8 @@ router.post("/addJob", function (req, res, next) {
                                 jobModel.addJob(job).then(data => {
                                     response(res, DEFINED_CODE.CREATED_DATA_SUCCESS, data);
                                 }).catch((err) => {
-                                    // response(err, DEFINED_CODE.CREATE_DATA_FAIL);
+                                    console.log(err);
+                                    // response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
                                     res.json(err);
                                 })
                             }).catch(err => {
@@ -281,7 +282,7 @@ router.post("/addJob", function (req, res, next) {
                         jobModel.addJob(job).then(data => {
                             response(res, DEFINED_CODE.CREATED_DATA_SUCCESS, data);
                         }).catch((err) => {
-                            // response(err, DEFINED_CODE.CREATE_DATA_FAIL);
+                            // response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
                             res.json(err);
                         })
                     }).catch(err => {
@@ -289,7 +290,9 @@ router.post("/addJob", function (req, res, next) {
                     })
             }
         }).catch(err => {
-            response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+            // console.log(err);
+            // response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+            res.json(err);
         })
 })
 router.post("/editJob", function (req, res, next) {
