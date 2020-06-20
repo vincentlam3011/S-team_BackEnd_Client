@@ -213,11 +213,8 @@ router.post('/getJobPostListForIOS', function (req, res, next) {
   let job_type = Number.parseInt(req.body.job_type) || 0;
   
   jobModel.getJobPostListForIOS(job_type).then(data => {
-    console.log(data);
     let finalData = _.orderBy(data, 'post_date', 'desc'); 
-    console.log(finalData);
     let realData = finalData.slice(0,take);
-    console.log(realData);
     if (realData.length > 0) {
       realData.forEach(element => {
         if (element.img) {
