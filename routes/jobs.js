@@ -97,6 +97,46 @@ router.post('/getJobsByApplicant', function (req, res, next) {
     })
 });
 
+// Get Jobs by applicant id
+router.post('/getJobsByApplicantId', function (req, res, next) {
+    let page = Number.parseInt(req.body.page) || 1;
+    let take = Number.parseInt(req.body.take) || 6;
+    let isASC = Number.parseInt(req.body.isASC) || 1;
+    let status = Number.parseInt(req.body.status) || 1;
+
+    var token = req.headers.authorization.slice(7);
+    var decodedPayload = jwt.decode(token, {
+        secret: 'S_Team',
+    });
+    let id_user = decodedPayload.id;
+
+    jobModel.getJobsByApplicantId(id_user, status).then(data => {
+         let finalData = data;
+        
+        // Đảo ngược chuỗi vì id_job thêm sau cũng là mới nhất
+        if (isASC !== 1) {
+            finalData = _.groupBy(finalData, 'post_date', 'desc');
+        }
+
+        let realData = finalData.slice((page - 1) * take, (page - 1) * take + take);
+        if (realData.length > 0) {
+            realData.forEach(element => {
+              if (element.avatarImg) {
+                let buffer = new Buffer(element.avatarImg);
+                let bufferBase64 = buffer.toString('base64');
+                element.avatarImg = bufferBase64;
+              }
+            });      
+        }
+
+        response(res, DEFINED_CODE.GET_DATA_SUCCESS, { jobList: realData, total: finalData.length, page: page });
+
+    }).catch((err) => {
+        console.log(err);
+        response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+    })
+});
+
 // Get jobs by employer id
 router.post('/getJobsByEmployer', function (req, res, next) {
     let page = Number.parseInt(req.body.page) || 1;
@@ -177,24 +217,23 @@ router.post('/getJobsByEmployer', function (req, res, next) {
     })
 });
 
-// Get applying jobs by employer id
-router.post('/getApplyingJobsByEmployerId', function (req, res, next) {
+// Get jobs by employer id and status
+router.post('/getJobsByEmployerId', function (req, res, next) {
     let page = Number.parseInt(req.body.page) || 1;
     let take = Number.parseInt(req.body.take) || 6;
     let isASC = Number.parseInt(req.body.isASC) || 1;
+    let status = Number.parseInt(req.body.status) || 1;
 
     var token = req.headers.authorization.slice(7);
     var decodedPayload = jwt.decode(token, {
         secret: 'S_Team',
     });
     let employer = decodedPayload.id;
-
-    jobModel.getApplyingJobsByEmployerId(employer).then(data => {
-        let finalData = [];
+    jobModel.getJobsByEmployerId(employer, status).then(data => {
+        let finalData = data;
         if (isASC !== 1) {
             finalData = _.groupBy(data,'post_date','desc');
         }
-
         let realData = finalData.slice((page - 1) * take, (page - 1) * take + take);
         
         response(res, DEFINED_CODE.GET_DATA_SUCCESS, { jobList: realData, total: finalData.length, page: page });
