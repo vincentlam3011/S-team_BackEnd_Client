@@ -139,7 +139,7 @@ router.post('/getJobsList', function (req, res, next) {
   jobModel.getJobsList(queryArr, multiTags).then(data => {
     const jobs = _.groupBy(data, "id_job");
     var finalData = [];
-    
+
     _.forEach(jobs, (value, key) => {
       const tags = _.map(value, item => {
         const { id_tag, tag_name } = item;
@@ -182,10 +182,10 @@ router.post('/getJobsList', function (req, res, next) {
     if (isASC !== 1) {
       finalData = finalData.reverse();
     }
-    if(multiTags.length > 0) {
+    if (multiTags.length > 0) {
       finalData = _.orderBy(finalData, 'relevance', 'desc');
     }
-    
+
 
     let realData = finalData.slice((page - 1) * take, (page - 1) * take + take);
     if (realData.length > 0) {
@@ -212,10 +212,10 @@ router.post('/getJobsList', function (req, res, next) {
 router.post('/getJobPostListForIOS', function (req, res, next) {
   let take = Number.parseInt(req.body.take) || 6;
   let job_type = Number.parseInt(req.body.job_type) || 0;
-  
+
   jobModel.getJobPostListForIOS(job_type).then(data => {
-    let finalData = _.orderBy(data, 'post_date', 'desc'); 
-    let realData = finalData.slice(0,take);
+    let finalData = _.orderBy(data, 'post_date', 'desc');
+    let realData = finalData.slice(0, take);
     if (realData.length > 0) {
       realData.forEach(element => {
         if (element.img) {
@@ -227,7 +227,7 @@ router.post('/getJobPostListForIOS', function (req, res, next) {
 
     }
     // console.log(realData);
-    response(res, DEFINED_CODE.GET_DATA_SUCCESS, { jobList: realData});
+    response(res, DEFINED_CODE.GET_DATA_SUCCESS, { jobList: realData });
 
   }).catch((err) => {
     response(res, DEFINED_CODE.GET_DATA_FAIL, err);
@@ -314,7 +314,7 @@ router.get('/getStatistic', function (req, res, next) {
               applyingJobNum = appJobData[0].applyingJobNum;
               jobModel.countProcessingJob().then(procJobData => {
                 if (procJobData.length > 0) // success
-                {                  
+                {
                   console.log('processingJobNum: ', procJobData[0].processingJobNum);
                   res.json({
                     message: 'get data success',
@@ -468,7 +468,7 @@ router.post('/login', (req, res, next) => {
         if (err) {
           res.send(err);
         }
-        let payload = { id: user.loginUser.id_user, isBusinessUser: user.loginUser.isBusinessUser };
+        let payload = { id: user.loginUser.id_user, isBusinessUser: user.loginUser.isBusinessUser, email: user.loginUser.email };
         const token = jwt.sign(payload, 'S_Team', { expiresIn: '24h' });
         if (req.user.loginUser.currentToken !== null)
           redis.setKey(req.user.loginUser.currentToken);
@@ -619,7 +619,7 @@ router.get('/getUserInfoNotPrivate/:id', function (req, res, next) {
       let bufferB64 = buffer.toString('base64');
       personalInfo[0].avatarImg = bufferB64;
     }
-    
+
     response(res, DEFINED_CODE.GET_DATA_SUCCESS, { personal: personalInfo[0], company: companyInfo[0] });
   }).catch(err => {
     response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);

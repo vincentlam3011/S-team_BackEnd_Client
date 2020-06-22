@@ -10,19 +10,16 @@ var passport = require('../passport');
 var applicantModel = require('../models/ApplicantModel');
 
 //Get Applicants by JobId
-router.post('/getByJobId', function (req, res, next) {
+router.post('/getByJobId', function  (req, res, next) {
     let id_job = req.body.id_job;
     applicantModel.getApplicantsByJobId(id_job).then(data => {
-        data.forEach(element => {
-            element.attachment = convertBlobB64.convertBlobToB64(element.attachment);
-        });
-        resspone(res, DEFINED_CODE.GET_DATA_SUCCESS, data);
-
+        for (let i = 0; i < data.length; i++) {
+            data[i].attachment = convertBlobB64.convertBlobToB64(data[i].attachment);
+        }
+        response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data);
     }).catch(err => {
-        resspone(err, DEFINED_CODE.GET_DATA_FAIL);
+        response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
     })
-    // res.send('respond with a resource');
-    // res.json(req.headers.authorization.slice(7));
 });
 
 //Get Applicants by UserId
@@ -47,13 +44,13 @@ router.post('/addApplicant', function (req, res, next) {
     });
     var id_user = decodedPayload.id;
     applicants.id_user = id_user;
-    console.log(applicants);
+    console.log(applicants.id_user);
     applicantModel.getApplicantsByUserIdJobId(id_user, applicants.id_job).then(data => {
         if (data.length > 0) { // đã tồn tại
             applicantModel.updateNewPrice(applicants).then(updateData => {
                 response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, updateData);
             }).catch(err => {
-                response(res, DEFINED_CODE.INTERACT_DATA_FAIL);
+                response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
             })
         }
         else {
@@ -64,7 +61,8 @@ router.post('/addApplicant', function (req, res, next) {
             })
         }
     }).catch(err => {
-        response(res, DEFINED_CODE.INTERACT_DATA_FAIL);
+        response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
+        // res.json(err)
     })
 });
 //Edit Applicants 

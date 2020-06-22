@@ -230,6 +230,7 @@ router.post('/getJobsByEmployerId', function (req, res, next) {
     });
     let employer = decodedPayload.id;
     jobModel.getJobsByEmployerId(employer, status).then(data => {
+        console.log("Status: " + status);
         let finalData = data;
         if (isASC !== 1) {
             finalData = _.groupBy(data,'post_date','desc');
