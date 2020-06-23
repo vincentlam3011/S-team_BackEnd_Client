@@ -29,6 +29,7 @@ router.get('/', function (req, res, next) {
 //Get Jobs Topic
 router.get('/allJobsTopics', function (req, res, next) {
   jobTopicModel.getAllJobTopics().then(data => {
+    // console.log('dataJobTopic:', data)
     if (data.length > 0) {
       data.forEach(element => {
         element.img = convertBlobB64.convertBlobToB64(element.img);
@@ -135,8 +136,10 @@ router.post('/getJobsList', function (req, res, next) {
     }
   };
 
-
+  console.log('queryArr:', queryArr)
+  console.log('multiTags:', multiTags)
   jobModel.getJobsList(queryArr, multiTags).then(data => {
+    console.log('data:', data)
     const jobs = _.groupBy(data, "id_job");
     var finalData = [];
 
@@ -199,7 +202,7 @@ router.post('/getJobsList', function (req, res, next) {
       });
 
     }
-    // console.log(realData);
+   
     response(res, DEFINED_CODE.GET_DATA_SUCCESS, { jobList: realData, total: finalData.length, page: page });
 
   }).catch((err) => {
@@ -561,6 +564,7 @@ router.post('/resendActivation', (req, res, next) => {
 /* Forgot password */
 router.put('/forget', (req, res, next) => {
   var email = req.body.email;
+  console.log('email:', email)
   userModel.getByEmail(email, 1)
     .then(data => {
       if (data.length > 0) {
@@ -579,6 +583,7 @@ router.put('/forget', (req, res, next) => {
                 + 'If you did not request this, please ignore this email.\n\n'
                 + 'F2L Support team',
             };
+            console.log('newPassword:', newPassword)
             userModel.updateUserInfo(data[0].id_user, [{ field: 'password', value: `'${hashed}'` }])
               .then(result => {
                 mailer(mailOptions, 'F2L S_Team', email, res);

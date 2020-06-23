@@ -7,6 +7,8 @@ var jobModel = require('../models/jobModel');
 var districtProvinceModel = require('../models/districtProvinceModel');
 var router = express.Router();
 var { response, DEFINED_CODE } = require('../config/response');
+var firebase = require('../middleware/firebaseFunction')
+
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
@@ -27,10 +29,10 @@ router.post('/getJobsByApplicant', function (req, res, next) {
     let id_user = decodedPayload.id;
 
     jobModel.getJobsByApplicantId(id_user, status).then(data => {
-        
+
         let jobs = _.groupBy(data, "id_job");
         var finalData = [];
-        
+
         _.forEach(jobs, (value, key) => {
             const tags = _.map(value, item => {
                 const { id_tag, tag_name } = item;
@@ -111,8 +113,8 @@ router.post('/getJobsByApplicantId', function (req, res, next) {
     let id_user = decodedPayload.id;
 
     jobModel.getJobsByApplicantId(id_user, status).then(data => {
-         let finalData = data;
-        
+        let finalData = data;
+
         // Đảo ngược chuỗi vì id_job thêm sau cũng là mới nhất
         if (isASC !== 1) {
             finalData = _.groupBy(finalData, 'post_date', 'desc');
@@ -121,12 +123,12 @@ router.post('/getJobsByApplicantId', function (req, res, next) {
         let realData = finalData.slice((page - 1) * take, (page - 1) * take + take);
         if (realData.length > 0) {
             realData.forEach(element => {
-              if (element.avatarImg) {
-                let buffer = new Buffer(element.avatarImg);
-                let bufferBase64 = buffer.toString('base64');
-                element.avatarImg = bufferBase64;
-              }
-            });      
+                if (element.avatarImg) {
+                    let buffer = new Buffer(element.avatarImg);
+                    let bufferBase64 = buffer.toString('base64');
+                    element.avatarImg = bufferBase64;
+                }
+            });
         }
 
         response(res, DEFINED_CODE.GET_DATA_SUCCESS, { jobList: realData, total: finalData.length, page: page });
@@ -233,10 +235,10 @@ router.post('/getJobsByEmployerId', function (req, res, next) {
         console.log("Status: " + status);
         let finalData = data;
         if (isASC !== 1) {
-            finalData = _.groupBy(data,'post_date','desc');
+            finalData = _.groupBy(data, 'post_date', 'desc');
         }
         let realData = finalData.slice((page - 1) * take, (page - 1) * take + take);
-        
+
         response(res, DEFINED_CODE.GET_DATA_SUCCESS, { jobList: realData, total: finalData.length, page: page });
 
     }).catch((err) => {
@@ -392,5 +394,34 @@ router.delete("/deleteJob", function (req, res, next) {
 
     }
 
+}),
+    router.post("/createNewChatConversation", async function (req, res, next) {
+
+        const { email1, email2 } = req.body;
+        if (email1 && email2) {
+            firebase.createConversation(email1, email2);
+
+        }
+        else
+            response(res, DEFINED_CODE.ERROR_ID);
+
+
+
+    })
+
+router.post("/sendMessage", async function (req, res, next) {
+
+    const { email1, email2 } = req.body;
+    if (email1 && email2) {
+        firebase.sendMessage(email1, email2);
+
+    }
+    else
+        response(res, DEFINED_CODE.ERROR_ID);
+
+
+
 })
+
+
 module.exports = router;

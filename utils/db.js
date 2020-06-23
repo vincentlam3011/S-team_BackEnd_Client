@@ -6,13 +6,13 @@ var createConnection = () => {
         // port: '3306',
         // user: 'admin',
         // password: 'rootsteam',
-        // database: 'f2l_test_deploy',
+        // database: 'F2L_TEST_BY_HAO',
 
         host: 'localhost',
         port: '3306',
         user: 'root',
-        password: '30111998',
-        database: 'f2l',
+        password: 'root',
+        database: 'f2l_test_deploy_02',
 
         dateStrings: true,
         timezone: 'Z',
