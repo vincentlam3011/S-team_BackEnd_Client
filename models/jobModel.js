@@ -213,14 +213,14 @@ module.exports = {
         select j.*, jri.img, jt.id_tag, t.name as tag_name, p.name as province, d.name as district${multipleTags.length > 0 ? ', matches.relevance as relevance' : ''}
         from (((jobs as j left join job_related_images as jri on j.id_job = jri.id_job) left join jobs_tags as jt on j.id_job = jt.id_job) left join tags as t on t.id_tag = jt.id_tag), users as u, provinces as p, districts as d
         ${multipleTags.length > 0 ? ',(SELECT j2.id_job as id,count(j2.id_job) as relevance FROM jobs as j2, jobs_tags as jt2 WHERE j2.id_job = jt2.id_job AND jt2.id_tag IN ('+tags+') GROUP BY j2.id_job) AS matches' : ''}
-        ${queryArr.length > 0 ? ('where ' + query +' and j.area_province = p.id_province and j.area_district = d.id_district ') : 'where j.area_province = p.id_province and j.area_district = d.id_district'} ${multipleTags.length > 0 ? ' and matches.id = j.id_job':''}
+        ${queryArr.length > 0 ? ('where ' + query +' and j.area_province = p.id_province and j.area_district = d.id_district and j.id_status = 1 ') : 'where j.area_province = p.id_province and j.area_district = d.id_district and j.id_status = 1 '} ${multipleTags.length > 0 ? ' and matches.id = j.id_job':''}
         group by j.id_job, jt.id_tag`);
     },
     getJobPostListForIOS: (job_type) => {
         return db.query(`
         select j.*, jri.img, p.name as province, d.name as district
         from (jobs as j left join job_related_images as jri on j.id_job = jri.id_job), provinces as p, districts as d
-        where j.job_type = ${job_type} and j.area_province = p.id_province and j.area_district = d.id_district
+        where j.job_type = ${job_type} and j.area_province = p.id_province and j.area_district = d.id_district and j.id_status = 1 
         group by j.id_job`);
     },
     getJobsByApplicantId: (id_user, status) => {
