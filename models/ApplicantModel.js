@@ -9,11 +9,11 @@ module.exports = {
         return db.query(sqlQueryApplicants);
     },
     getApplicantsByUserId: (id) => {
-        let sqlQueryApplicants = `SELECT A.*,U.fullname,U.email FROM APPLICANTS AS A, USERS AS U WHERE A.id_user = U.id_user and A.id_user= ${id}`;
+        let sqlQueryApplicants = `SELECT A.*,U.fullname,U.email FROM applicants AS A, users AS U WHERE A.id_user = U.id_user and A.id_user= ${id}`;
         return db.query(sqlQueryApplicants);
     },
     getApplicantsByUserIdJobId: (id_user, id_job) => {
-        let sqlQueryApplicants = `SELECT * FROM APPLICANTS WHERE id_user = ${id_user} and id_job = ${id_job}`;
+        let sqlQueryApplicants = `SELECT * FROM applicants WHERE id_user = ${id_user} and id_job = ${id_job}`;
         return db.query(sqlQueryApplicants);
     },
     addApplicant: (applicants) => {
@@ -42,7 +42,7 @@ module.exports = {
         return db.query(sqlQueryApplicants)
     },
     deleteApplicant: (id) => {
-        return db.query(`delete from APPLICANTS where id_applicant = ${id}`)
+        return db.query(`delete from applicants where id_applicant = ${id}`)
     }
     // sign_up: (account, company) => {
     //     let columnsUsers = `(email, password, fullname, dob, dial, address, isBusinessUser, gender, account_status)`;
