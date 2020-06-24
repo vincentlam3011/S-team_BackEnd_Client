@@ -139,21 +139,21 @@ router.post('/getJobsList', function (req, res, next) {
   console.log('queryArr:', queryArr)
   console.log('multiTags:', multiTags)
   jobModel.getJobsList(queryArr, multiTags).then(data => {
-    console.log('data:', data)
+    console.log('data:', data.length)
     const jobs = _.groupBy(data, "id_job");
     var finalData = [];
-
+    let tags_temp = [];
     _.forEach(jobs, (value, key) => {
       const tags = _.map(value, item => {
-        const { id_tag, tag_name } = item;
-        if (id_tag === null || tag_name === null) {
-          return null;
+        const { id_tag, tag_name, tag_status } = item;
+        if (id_tag === null || tag_name === null || tag_status === 0) {
+          // return null;
         }
         else {
-          return { id_tag, tag_name };
+          // return { id_tag, tag_name };
+          tags_temp.push({ id_tag, tag_name });
         }
       })
-
       const temp = {
         id_job: value[0].id_job,
         // employer: value[0].employer,
@@ -177,7 +177,7 @@ router.post('/getJobsList', function (req, res, next) {
         // requirement: value[0].requirement,
         id_status: value[0].id_status,
         img: value[0].img,
-        tags: tags[0] === null ? [] : tags,
+        tags: tags_temp[0] === null ? [] : tags_temp,
       }
       finalData.push(temp);
     })
@@ -188,7 +188,6 @@ router.post('/getJobsList', function (req, res, next) {
     if (multiTags.length > 0) {
       finalData = _.orderBy(finalData, 'relevance', 'desc');
     }
-
 
     let realData = finalData.slice((page - 1) * take, (page - 1) * take + take);
     if (realData.length > 0) {
@@ -202,7 +201,7 @@ router.post('/getJobsList', function (req, res, next) {
       });
 
     }
-   
+
     response(res, DEFINED_CODE.GET_DATA_SUCCESS, { jobList: realData, total: finalData.length, page: page });
 
   }).catch((err) => {
