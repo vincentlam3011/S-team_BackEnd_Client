@@ -262,7 +262,6 @@ router.get('/allJobsTopics', function (req, res, next) {
 });
 router.post("/addJob", function (req, res, next) {
     let job = JSON.parse(JSON.stringify(req.body));
-
     let province = job.area_province;
     let district = job.area_district;
     districtProvinceModel.getByName(district, province)
@@ -289,19 +288,15 @@ router.post("/addJob", function (req, res, next) {
                 let dis = {
                     name: district,
                 }
-                console.log(pro); console.log(dis);
                 districtProvinceModel.addArea(pro, dis, false)
                     .then(newDis => {
                         districtProvinceModel.getDisById(newDis.results2.insertId)
                             .then(disData => {
-                                console.log(disData)
                                 job.area_province = disData[0].id_province;
                                 job.area_district = disData[0].id_district;
-                                console.log(job);
                                 jobModel.addJob(job).then(data => {
                                     response(res, DEFINED_CODE.CREATED_DATA_SUCCESS, data);
                                 }).catch((err) => {
-                                    console.log(err);
                                     // response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
                                     res.json(err);
                                 })
