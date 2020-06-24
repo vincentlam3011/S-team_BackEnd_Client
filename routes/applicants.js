@@ -44,7 +44,7 @@ router.post('/getByJobId', (req, res, next) => {
             }
             response(res, DEFINED_CODE.GET_DATA_SUCCESS, { applicantsList: realData, total: finalData.length, page: page })
         }).catch(err => {
-            res.json(err);
+            response(res, DEFINED_CODE.GET_DATA_FAIL, err);
         })
 })
 

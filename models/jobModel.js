@@ -113,7 +113,7 @@ module.exports = {
 			left join jobs_temporal as jtp on jtp.id_job = j.id_job,
             statuses as s,users as u, provinces as p, districts as d, job_topics
        
-            where j.id_job=${id} and s.id_status = j.id_status and u.id_user=j.employer and j.area_province = p.id_province and j.area_district = d.id_district and j.job_topic = job_topics.id_jobtopic;
+            where job_topics.status = 1 and t.status = 1 and j.id_job=${id} and s.id_status = j.id_status and u.id_user=j.employer and j.area_province = p.id_province and j.area_district = d.id_district and j.job_topic = job_topics.id_jobtopic;
             
             select  distinct  j.id_job,jri.img
             from jobs as j 
@@ -194,35 +194,29 @@ module.exports = {
             count++;
         }
 
-        if(multipleTags.length > 0)
-        {
+        if (multipleTags.length > 0) {
             tags += multipleTags[0];
-            multipleTags.forEach((e,i)=>{
-                if(i!== 0) 
-                {
-                    tags+=`, ${e}`;
+            multipleTags.forEach((e, i) => {
+                if (i !== 0) {
+                    tags += `, ${e}`;
                 }
             })
         }
-        console.log(`
-        select j.*, jri.img, jt.id_tag, t.name as tag_name, p.name as province, d.name as district${multipleTags.length > 0 ? ', matches.relevance as relevance' : ''}
+        let today = new Date();
+        let todayStr = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+        let finalQuery = `
+        select j.*, jri.img, jt.id_tag, t.name as tag_name, t.status as tag_status, p.name as province, d.name as district${multipleTags.length > 0 ? ', matches.relevance as relevance' : ''}
         from (((jobs as j left join job_related_images as jri on j.id_job = jri.id_job) left join jobs_tags as jt on j.id_job = jt.id_job) left join tags as t on t.id_tag = jt.id_tag), users as u, provinces as p, districts as d
-        ${multipleTags.length > 0 ? ',(SELECT j2.id_job as id,count(j2.id_job) as relevance FROM jobs as j2, jobs_tags as jt2 WHERE j2.id_job = jt2.id_job AND jt2.id_tag IN ('+tags+') GROUP BY j2.id_job) AS matches' : ''}
-        ${queryArr.length > 0 ? ('where ' + query +' and j.area_province = p.id_province and j.area_district = d.id_district ') : 'where j.area_province = p.id_province and j.area_district = d.id_district'} ${multipleTags.length > 0 ? ' and matches.id = j.id_job':''}
-        group by j.id_job, jt.id_tag`);
+        ${multipleTags.length > 0 ? ',(SELECT j2.id_job as id,count(j2.id_job) as relevance FROM jobs as j2, jobs_tags as jt2 WHERE j2.id_job = jt2.id_job AND jt2.id_tag IN (' + tags + ') GROUP BY j2.id_job) AS matches' : ''}
+        ${queryArr.length > 0 ? ('where ' + query + ' and j.area_province = p.id_province and j.area_district = d.id_district and j.expire_date > "' + todayStr + '" ') : 'where j.area_province = p.id_province and j.area_district = d.id_district and j.expire_date > "' + todayStr + '" '} ${multipleTags.length > 0 ? ' and matches.id = j.id_job' : ''}
+        group by j.id_job, jt.id_tag`
         // return db.query(`
         // select j.*, jri.img, jt.id_tag, t.name as tag_name, p.name as province, d.name as district
         // from (((jobs as j left join job_related_images as jri on j.id_job = jri.id_job) left join jobs_tags as jt on j.id_job = jt.id_job) left join tags as t on t.id_tag = jt.id_tag), users as u, provinces as p, districts as d, jobs_tags as jt1
         // ${queryArr.length > 0 ? ('where ' + query +' j.area_province = p.id_province and j.area_district = d.id_district') : 'j.area_province = p.id_province and j.area_district = d.id_district'}
         // group by j.id_job, jt.id_tag`);
-        let today = new Date();
-        let todayStr = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
-        return db.query(`
-        select j.*, jri.img, jt.id_tag, t.name as tag_name, p.name as province, d.name as district${multipleTags.length > 0 ? ', matches.relevance as relevance' : ''}
-        from (((jobs as j left join job_related_images as jri on j.id_job = jri.id_job) left join jobs_tags as jt on j.id_job = jt.id_job) left join tags as t on t.id_tag = jt.id_tag), users as u, provinces as p, districts as d
-        ${multipleTags.length > 0 ? ',(SELECT j2.id_job as id,count(j2.id_job) as relevance FROM jobs as j2, jobs_tags as jt2 WHERE j2.id_job = jt2.id_job AND jt2.id_tag IN ('+tags+') GROUP BY j2.id_job) AS matches' : ''}
-        ${queryArr.length > 0 ? ('where ' + query +' and j.area_province = p.id_province and j.area_district = d.id_district and j.expire_date > "' + todayStr + '" ') : 'where j.area_province = p.id_province and j.area_district = d.id_district and j.expire_date > "' + todayStr + '" '} ${multipleTags.length > 0 ? ' and matches.id = j.id_job':''}
-        group by j.id_job, jt.id_tag`);
+        // console.log(finalQuery);
+        return db.query(finalQuery);
     },
     getJobPostListForIOS: (job_type) => {
         let today = new Date();
@@ -234,16 +228,14 @@ module.exports = {
         group by j.id_job`);
     },
     getJobsByApplicantId: (id_user, status) => {
-        if(status === 1)
-        {
+        if (status === 1) {
             return db.query(`
             select j.*, u.fullname, u.email, u.dial, u.avatarImg, p.name as province, d.name as district, jp.deadline as deadline, jt.start_date as start_date, jt.end_date as end_date, jt.salary_type
             from ((jobs as j left join jobs_production as jp on j.id_job = jp.id_job) left join jobs_temporal as jt on j.id_job = jt.id_job), users as u, provinces as p, districts as d, applicants as a
             where j.id_job = a.id_job and a.id_user = ${id_user} and j.employer = u.id_user and j.area_province = p.id_province and j.area_district = d.id_district and j.id_status = ${status}
             group by j.id_job`);
-        }        
-        else
-        {
+        }
+        else {
             return db.query(`
             select j.*, u.fullname, u.email, u.dial, u.avatarImg, p.name as province, d.name as district, jp.deadline as deadline, jt.start_date as start_date, jt.end_date as end_date, jt.salary_type
             from ((jobs as j left join jobs_production as jp on j.id_job = jp.id_job) left join jobs_temporal as jt on j.id_job = jt.id_job), users as u, provinces as p, districts as d, accepted as a
@@ -252,23 +244,21 @@ module.exports = {
         }
     },
     getJobsByEmployerId: (id_user, status) => {
-        if(status === 1)
-        {
+        if (status === 1) {
             return db.query(`
             select j.*, count(a.id_job) as candidates,jp.deadline as deadline, jt.start_date as start_date, jt.end_date as end_date, jt.salary_type, p.name as province, d.name as district
             from (((jobs as j left JOIN applicants as a on j.id_job = a.id_job) left join jobs_production as jp on j.id_job = jp.id_job) left join jobs_temporal as jt on j.id_job = jt.id_job), provinces as p, districts as d
             where j.employer = ${id_user} and j.id_status = ${status} and j.area_province = p.id_province and j.area_district = d.id_district
             group by j.id_job`);
         }
-        else
-        {
+        else {
             return db.query(`
             select j.*, count(a.id_job) as candidates,jp.deadline as deadline, jt.start_date as start_date, jt.end_date as end_date, jt.salary_type, p.name as province, d.name as district
             from (((jobs as j left JOIN accepted as a on j.id_job = a.id_job) left join jobs_production as jp on j.id_job = jp.id_job) left join jobs_temporal as jt on j.id_job = jt.id_job), provinces as p, districts as d
             where j.employer = ${id_user} and j.id_status = ${status} and j.area_province = p.id_province and j.area_district = d.id_district
             group by j.id_job`);
         }
-        
+
     },
     // getJobsByEmployerId: (id_user, status) => {
     //     return db.query(`
