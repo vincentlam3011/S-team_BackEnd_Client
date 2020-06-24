@@ -4,7 +4,8 @@ var convertBlobB64 = require('../middleware/convertBlobB64');
 module.exports = {
 
     getApplicantsByJobId: (id) => {
-        let sqlQueryApplicants = `SELECT A.*,U.fullname,U.email FROM APPLICANTS AS A, USERS AS U WHERE A.id_user = U.id_user and A.id_job= ${id}`;
+        let sqlQueryApplicants = `select u.id_user, u.fullname, u.email, u.dial, a.proposed_price, a.attachment, a.introduction_string from users as u, applicants as a, jobs as j
+        where j.id_job = a.id_job and a.id_user = u.id_user and j.id_job = ${id} order by a.proposed_price asc;`
         return db.query(sqlQueryApplicants);
     },
     getApplicantsByUserId: (id) => {
@@ -17,7 +18,7 @@ module.exports = {
     },
     addApplicant: (applicants) => {
         // if (applicants.attachment !== null && applicants.attachment !== '') {
-            applicants.attachment = convertBlobB64.convertB64ToBlob(applicants.attachment).toString('hex');
+        applicants.attachment = convertBlobB64.convertB64ToBlob(applicants.attachment).toString('hex');
         // }
         let columsJob = `(id_user,id_job,proposed_price,attachment, introduction_string)`
         let valueJob = `('${applicants.id_user}',
