@@ -632,7 +632,7 @@ router.get('/getJobById/:id', function (req, res, next) {
     })
 
     let jobInfo = data[0][0];
-    
+
 
     finalData = {
       id_job: jobInfo.id_job,
@@ -757,11 +757,12 @@ router.get('/getDistricts/:id', function (req, res, next) {
 });
 //Get All tags
 router.get('/getAllTags', function (req, res, next) {
-  let id_provinces = req.params.id;
   tagModel.getAllTags().then(data => {
     response(res, DEFINED_CODE.GET_DATA_SUCCESS, data);
   }).catch(err => {
-    response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
+    console.log(err);
+    // response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+    res.json(err);
   })
 });
 module.exports = router;
