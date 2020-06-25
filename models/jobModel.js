@@ -25,7 +25,7 @@ module.exports = {
 
         console.log("Job type   " + job.job_type);
         let querySubJob = ``;
-        if (job.job_type === 0) {
+        if (job.job_type == 0) {
             querySubJob = `insert into jobs_temporal values((select max(id_job) from jobs), null,'${job.start_date}', '${job.end_date}');`
         } else {
             querySubJob = `insert into jobs_production values((select max(id_job) from jobs), '${job.end_date}');`
