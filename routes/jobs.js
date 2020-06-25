@@ -276,10 +276,16 @@ router.post("/addJob", function (req, res, next) {
                 job.area_district = resData.district[0].id_district;
                 job.area_province = resData.province[0].id_province;
                 jobModel.addJob(job).then(data => {
-                    response(res, DEFINED_CODE.CREATED_DATA_SUCCESS, data);
+                    jobTopicModel.updateJobsCount(job.job_topic, true)
+                        .then(finalResult => {
+                            response(res, DEFINED_CODE.CREATED_DATA_SUCCESS, "Job added, count increased");
+                        }).catch(err => {
+                            response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
+                        })
+                    // response(res, DEFINED_CODE.CREATED_DATA_SUCCESS, data);
                 }).catch((err) => {
-                    // response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
-                    res.json(err);
+                    response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
+                    // res.json(err);
                 })
                 return;
             }
@@ -297,16 +303,24 @@ router.post("/addJob", function (req, res, next) {
                                 job.area_province = disData[0].id_province;
                                 job.area_district = disData[0].id_district;
                                 jobModel.addJob(job).then(data => {
-                                    response(res, DEFINED_CODE.CREATED_DATA_SUCCESS, data);
+                                    jobTopicModel.updateJobsCount(job.job_topic, true)
+                                        .then(finalResult => {
+                                            response(res, DEFINED_CODE.CREATED_DATA_SUCCESS, "Job added, count increased");
+                                        }).catch(err => {
+                                            response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
+                                        })
+                                    // response(res, DEFINED_CODE.CREATED_DATA_SUCCESS, data);
                                 }).catch((err) => {
-                                    // response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
-                                    res.json(err);
+                                    response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
+                                    // res.json(err);
                                 })
                             }).catch(err => {
-                                res.json(err);
+                                response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
+                                // res.json(err);
                             })
                     }).catch(err => {
-                        res.json(err);
+                        response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
+                        // res.json(err);
                     })
             } else { // Đã có tỉnh
                 let pro = resData.province[0];
@@ -319,19 +333,26 @@ router.post("/addJob", function (req, res, next) {
                         job.area_province = pro.id_province;
                         job.area_district = newDis.insertId;
                         jobModel.addJob(job).then(data => {
+                            jobTopicModel.updateJobsCount(job.job_topic, true)
+                                .then(finalResult => {
+                                    response(res, DEFINED_CODE.CREATED_DATA_SUCCESS, "Job added, count increased");
+                                }).catch(err => {
+                                    response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
+                                })
                             response(res, DEFINED_CODE.CREATED_DATA_SUCCESS, data);
                         }).catch((err) => {
-                            // response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
-                            res.json(err);
+                            response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
+                            // res.json(err);
                         })
                     }).catch(err => {
-                        res.json(err);
+                        response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
+                        // res.json(err);
                     })
             }
         }).catch(err => {
             // console.log(err);
-            // response(res, DEFINED_CODE.GET_DATA_FAIL, err);
-            res.json(err);
+            response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+            // res.json(err);
         })
 })
 router.post("/editJob", function (req, res, next) {
@@ -447,7 +468,7 @@ router.post("/acceptApplicant", function (req, res, next) {
         secret: 'S_Team',
     });
     emailEmployer = decoded.email;
-    let =nameEmployer = decoded.fullname;
+    let = nameEmployer = decoded.fullname;
     const { id_job, id_user, email, job_title } = req.body;
 
     if (id_job && id_user && email && emailEmployer) {
