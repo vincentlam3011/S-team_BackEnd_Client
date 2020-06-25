@@ -199,10 +199,11 @@ module.exports = {
     },
     getJobsByEmployerId: (id_user, status) => {
         if (status === 1) {
+           
             return db.query(`
             select j.*, count(a.id_job) as candidates,jp.deadline as deadline, jt.start_date as start_date, jt.end_date as end_date, jt.salary_type, p.name as province, d.name as district
             from (((jobs as j left JOIN applicants as a on j.id_job = a.id_job) left join jobs_production as jp on j.id_job = jp.id_job) left join jobs_temporal as jt on j.id_job = jt.id_job), provinces as p, districts as d
-            where j.employer = ${id_user} and j.id_status = ${status} and j.area_province = p.id_province and j.area_district = d.id_district
+            where j.employer = ${id_user} and j.id_status = ${status} and a.id_status=4 and j.area_province = p.id_province and j.area_district = d.id_district
             group by j.id_job`);
         }
         else {
@@ -247,21 +248,20 @@ module.exports = {
 		GROUP BY j.id_job
         order by j.post_date DESC limit ${page * number},${number}`);
     },
-    // sign_up: (account, company) => {
-    //     let columnsUsers = `(email, password, fullname, dob, dial, address, isBusinessUser, gender, account_status)`;
-    //     let valuesUsers = `('${account.email}', '${account.password}', '${account.fullname}', '${account.dob}', '${account.dial}', '${account.address}' 
-    //                         ,${account.isBusinessUser}, ${account.gender}, ${account.account_status})`;
-
-    //     let sqlQueryUsers = `insert into USERs` + columnsUsers + ` values` + valuesUsers + `;`;
-    //     if (company === null) {
-    //         return db.query(sqlQueryUsers);
-    //     }
-    //     let columnsCompanies = `(id_user, company_name, position, company_address, company_email, number_of_employees)`;
-    //     let valuesCompanies = `, '${company.company_name}', '${company.position}', '${company.company_address}'
-    //                                     ,'${company.company_email}', ${company.number_of_employees})`;
-
-    //     // var sqlQueryCompanies = `insert into COMPANIEs` + columnsCompanies + ` values` + valuesCompanies + `;`;
-    //     return db.transaction(sqlQueryUsers, columnsCompanies, valuesCompanies, `COMPANIEs`);
-    // },
-
+    setCancelRecruit: (id_job)=>{
+        return db.query(`update jobs set id_status = 2 where id_job= ${id_job}`);
+    },
+    acceptApplicant:(id_job,id_user)=>{
+   
+        return db.query(`
+        insert into accepted (id_applicant,id_job) SELECT * FROM (SELECT id_applicant,${id_job} from applicants where id_job=${id_job} and id_user=${id_user}) as tmp;
+        update applicants set id_status = 5 where id_job =${id_job} and id_user=${id_user};
+        `);
+    },
+    rejectApplicant:(id_job,id_user)=>{
+        return db.query(`delete from applicants where id_job =${id_job} and id_user=${id_user} `);
+    },
+    finishJob: (id_job)=>{
+        return db.query(`update jobs set id_status=3 where id_job=${id_job}`)
+    }
 }

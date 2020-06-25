@@ -5,6 +5,8 @@ var _ = require('lodash')
 var jobTopicModel = require('../models/jobTopicModel');
 var jobModel = require('../models/jobModel');
 var districtProvinceModel = require('../models/districtProvinceModel');
+var applicantModel = require('../models/ApplicantModel');
+
 var router = express.Router();
 var { response, DEFINED_CODE } = require('../config/response');
 var firebase = require('../middleware/firebaseFunction')
@@ -234,11 +236,11 @@ router.post('/getJobsByEmployerId', function (req, res, next) {
     jobModel.getJobsByEmployerId(employer, status).then(data => {
         console.log("Status: " + status);
         let finalData = data;
+        console.log('data:', data)
         if (isASC !== 1) {
             finalData = _.groupBy(data, 'post_date', 'desc');
         }
         let realData = finalData.slice((page - 1) * take, (page - 1) * take + take);
-
         response(res, DEFINED_CODE.GET_DATA_SUCCESS, { jobList: realData, total: finalData.length, page: page });
 
     }).catch((err) => {
@@ -417,6 +419,129 @@ router.post("/sendMessage", async function (req, res, next) {
 
 
 })
+router.post("/cancelRecruit", function (req, res, next) {
+    let id_job = req.body.id_job;
+    if (id_job) {
+        jobModel.setCancelRecruit(id_job).then(data => {
+            response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data);
+
+        }).catch(err => {
+            response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
+
+        })
+
+    }
+    else {
+        response(res, DEFINED_CODE.ERROR_ID);
+
+    }
+})
+router.post("/acceptApplicant", function (req, res, next) {
+    let emailEmployer = '';
+    if (!req.headers.authorization) {
+        console.log("No token");
+        response(res, DEFINED_CODE.NULL_TOKEN);
+    }
+    token = req.headers.authorization.slice(7);
+    let decoded = jwt.decode(token, {
+        secret: 'S_Team',
+    });
+    emailEmployer = decoded.email;
+    let =nameEmployer = decoded.fullname;
+    const { id_job, id_user, email, job_title } = req.body;
+
+    if (id_job && id_user && email && emailEmployer) {
+        jobModel.acceptApplicant(id_job, id_user).then(data => {
+            response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data);
+            firebase.createConversation(emailEmployer, email);
+            let content = {
+                fullname: nameEmployer,
+                job: job_title,
+                type: 1,
+                date: Date.now()
+            }
+            firebase.pushNotificationsFirebase(email, content)
+        }).catch(err => {
+            response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
+
+        })
+
+    }
+    else {
+        response(res, DEFINED_CODE.ERROR_ID);
+
+    }
+});
+router.post("/rejectApplicant", function (req, res, next) {
+    if (!req.headers.authorization) {
+        console.log("No token");
+        response(res, DEFINED_CODE.NULL_TOKEN);
+    }
+    token = req.headers.authorization.slice(7);
+    let decoded = jwt.decode(token, {
+        secret: 'S_Team',
+    });
+    let nameEmployer = decoded.fullname;
+    const { id_job, id_user, email, job_title } = req.body;
+    if (id_job && id_user) {
+        jobModel.rejectApplicant(id_job, id_user).then(data => {
+            response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data);
+            let content = {
+                fullname: nameEmployer,
+                job: job_title,
+                type: 0,
+                date: Date.now()
+            }
+            firebase.pushNotificationsFirebase(email, content)
+        }).catch(err => {
+            response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
+
+        })
+
+    }
+    else {
+        response(res, DEFINED_CODE.ERROR_ID);
+
+    }
+})
+router.post("/finishJob", function (req, res, next) {
+    if (!req.headers.authorization) {
+        console.log("No token");
+        response(res, DEFINED_CODE.NULL_TOKEN);
+    }
+    token = req.headers.authorization.slice(7);
+    let decoded = jwt.decode(token, {
+        secret: 'S_Team',
+    });
+    let nameEmployer = decoded.fullname;
+    const { id_job, job_title } = req.body;
+    if (id_job && job_title) {
+        let content = {
+            fullname: nameEmployer,
+            job: job_title,
+            type: 2,
+            date: Date.now()
+        }
+        jobModel.finishJob(id_job).then(rs => {
+            applicantModel.getApplicantsByJobId(id_job, 5).then(data => {
+                console.log('data:', data);
+                data.forEach(element => {
+                    firebase.pushNotificationsFirebase(element.email, content)
+
+                })
+            })
+            response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, rs);
 
 
+        }).catch(err => {
+            response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
+
+        })
+
+    }
+    else {
+        response(res, DEFINED_CODE.ERROR_ID);
+
+    }
+})
 module.exports = router;

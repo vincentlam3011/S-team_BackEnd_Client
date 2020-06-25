@@ -10,6 +10,7 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var jobsRouter = require('./routes/jobs');
 var applicantsRouter = require('./routes/applicants');
+var acceptedRouted = require('./routes/accepted');
 
 var app = express();
 var bodyParser = require('body-parser');
@@ -47,6 +48,8 @@ app.use('/', indexRouter);
 app.use('/users', validateTokenInBlacklist, passportStrategy, usersRouter);
 app.use('/jobs', validateTokenInBlacklist, passportStrategy, jobsRouter);
 app.use('/applicants', validateTokenInBlacklist, passportStrategy, applicantsRouter);
+app.use('/accepted', validateTokenInBlacklist, passportStrategy, acceptedRouted);
+
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

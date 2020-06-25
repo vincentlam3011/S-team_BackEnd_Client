@@ -27,7 +27,8 @@ router.post('/getByJobId', (req, res, next) => {
     let take = Number.parseInt(req.body.take) || 6;
     let isASC = Number.parseInt(req.body.isASC) || 1;
     let id = Number.parseInt(req.body.id);
-    applicantModel.getApplicantsByJobId(id)
+    let id_status =  Number.parseInt(req.body.id_status);
+    applicantModel.getApplicantsByJobId(id,id_status)
         .then(data => {
             var finalData = data;
             if (isASC !== 1) {

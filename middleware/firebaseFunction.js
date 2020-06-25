@@ -70,7 +70,7 @@ module.exports = {
                 .doc(email)
                 .set({
                     email: email,
-                    listNotify: [{ content }],
+                    listNotify: [content],
                     isRead: true
                 })
         }
@@ -84,9 +84,7 @@ module.exports = {
                 .doc(email)
                 .update({
                     listNotify: admin.firestore.FieldValue.arrayUnion({
-                        content,
-                        date: moment().format('DD-MM-YYYY'),
-                        time: moment().format('hh:mm a')
+                        content
 
                     }),
                     isRead: false

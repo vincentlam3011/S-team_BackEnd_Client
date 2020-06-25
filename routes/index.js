@@ -470,7 +470,7 @@ router.post('/login', (req, res, next) => {
         if (err) {
           res.send(err);
         }
-        let payload = { id: user.loginUser.id_user, isBusinessUser: user.loginUser.isBusinessUser, email: user.loginUser.email };
+        let payload = { id: user.loginUser.id_user,fullname:user.loginUser.fullname, isBusinessUser: user.loginUser.isBusinessUser, email: user.loginUser.email };
         const token = jwt.sign(payload, 'S_Team', { expiresIn: '24h' });
         if (req.user.loginUser.currentToken !== null)
           redis.setKey(req.user.loginUser.currentToken);
