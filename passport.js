@@ -15,12 +15,14 @@ passport.use(new LocalStrategy(
         usernameField: 'email',
         passwordField: 'password',
     },
+    
     function (username, password, cb) {
+
         return userModel.getByEmail(username, 1)
             .then((data) => {  
                 console.log(JSON.stringify(data))
                 if (data.length > 0) {
-                    console.log("RAW: " + data[0].password)
+                    console.log("RAW: " + data[0].password,15)
                     bcrypt.compare(password, data[0].password, (err, res) => {
                         // console.log("Is decrypted" + res)
                         if (res) {

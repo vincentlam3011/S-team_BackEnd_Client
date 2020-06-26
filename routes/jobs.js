@@ -5,8 +5,12 @@ var _ = require('lodash')
 var jobTopicModel = require('../models/jobTopicModel');
 var jobModel = require('../models/jobModel');
 var districtProvinceModel = require('../models/districtProvinceModel');
+var applicantModel = require('../models/ApplicantModel');
+
 var router = express.Router();
 var { response, DEFINED_CODE } = require('../config/response');
+var firebase = require('../middleware/firebaseFunction')
+
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
@@ -27,10 +31,10 @@ router.post('/getJobsByApplicant', function (req, res, next) {
     let id_user = decodedPayload.id;
 
     jobModel.getJobsByApplicantId(id_user, status).then(data => {
-        
+
         let jobs = _.groupBy(data, "id_job");
         var finalData = [];
-        
+
         _.forEach(jobs, (value, key) => {
             const tags = _.map(value, item => {
                 const { id_tag, tag_name } = item;
@@ -111,8 +115,8 @@ router.post('/getJobsByApplicantId', function (req, res, next) {
     let id_user = decodedPayload.id;
 
     jobModel.getJobsByApplicantId(id_user, status).then(data => {
-         let finalData = data;
-        
+        let finalData = data;
+
         // Đảo ngược chuỗi vì id_job thêm sau cũng là mới nhất
         if (isASC !== 1) {
             finalData = _.groupBy(finalData, 'post_date', 'desc');
@@ -121,12 +125,12 @@ router.post('/getJobsByApplicantId', function (req, res, next) {
         let realData = finalData.slice((page - 1) * take, (page - 1) * take + take);
         if (realData.length > 0) {
             realData.forEach(element => {
-              if (element.avatarImg) {
-                let buffer = new Buffer(element.avatarImg);
-                let bufferBase64 = buffer.toString('base64');
-                element.avatarImg = bufferBase64;
-              }
-            });      
+                if (element.avatarImg) {
+                    let buffer = new Buffer(element.avatarImg);
+                    let bufferBase64 = buffer.toString('base64');
+                    element.avatarImg = bufferBase64;
+                }
+            });
         }
 
         response(res, DEFINED_CODE.GET_DATA_SUCCESS, { jobList: realData, total: finalData.length, page: page });
@@ -232,11 +236,11 @@ router.post('/getJobsByEmployerId', function (req, res, next) {
     jobModel.getJobsByEmployerId(employer, status).then(data => {
         console.log("Status: " + status);
         let finalData = data;
+        console.log('data:', data)
         if (isASC !== 1) {
-            finalData = _.groupBy(data,'post_date','desc');
+            finalData = _.groupBy(data, 'post_date', 'desc');
         }
         let realData = finalData.slice((page - 1) * take, (page - 1) * take + take);
-        
         response(res, DEFINED_CODE.GET_DATA_SUCCESS, { jobList: realData, total: finalData.length, page: page });
 
     }).catch((err) => {
@@ -260,7 +264,6 @@ router.get('/allJobsTopics', function (req, res, next) {
 });
 router.post("/addJob", function (req, res, next) {
     let job = JSON.parse(JSON.stringify(req.body));
-
     let province = job.area_province;
     let district = job.area_district;
     districtProvinceModel.getByName(district, province)
@@ -273,10 +276,16 @@ router.post("/addJob", function (req, res, next) {
                 job.area_district = resData.district[0].id_district;
                 job.area_province = resData.province[0].id_province;
                 jobModel.addJob(job).then(data => {
-                    response(res, DEFINED_CODE.CREATED_DATA_SUCCESS, data);
+                    jobTopicModel.updateJobsCount(job.job_topic, true)
+                        .then(finalResult => {
+                            response(res, DEFINED_CODE.CREATED_DATA_SUCCESS, "Job added, count increased");
+                        }).catch(err => {
+                            response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
+                        })
+                    // response(res, DEFINED_CODE.CREATED_DATA_SUCCESS, data);
                 }).catch((err) => {
-                    // response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
-                    res.json(err);
+                    response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
+                    // res.json(err);
                 })
                 return;
             }
@@ -287,27 +296,31 @@ router.post("/addJob", function (req, res, next) {
                 let dis = {
                     name: district,
                 }
-                console.log(pro); console.log(dis);
                 districtProvinceModel.addArea(pro, dis, false)
                     .then(newDis => {
                         districtProvinceModel.getDisById(newDis.results2.insertId)
                             .then(disData => {
-                                console.log(disData)
                                 job.area_province = disData[0].id_province;
                                 job.area_district = disData[0].id_district;
-                                console.log(job);
                                 jobModel.addJob(job).then(data => {
-                                    response(res, DEFINED_CODE.CREATED_DATA_SUCCESS, data);
+                                    jobTopicModel.updateJobsCount(job.job_topic, true)
+                                        .then(finalResult => {
+                                            response(res, DEFINED_CODE.CREATED_DATA_SUCCESS, "Job added, count increased");
+                                        }).catch(err => {
+                                            response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
+                                        })
+                                    // response(res, DEFINED_CODE.CREATED_DATA_SUCCESS, data);
                                 }).catch((err) => {
-                                    console.log(err);
-                                    // response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
-                                    res.json(err);
+                                    response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
+                                    // res.json(err);
                                 })
                             }).catch(err => {
-                                res.json(err);
+                                response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
+                                // res.json(err);
                             })
                     }).catch(err => {
-                        res.json(err);
+                        response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
+                        // res.json(err);
                     })
             } else { // Đã có tỉnh
                 let pro = resData.province[0];
@@ -320,19 +333,26 @@ router.post("/addJob", function (req, res, next) {
                         job.area_province = pro.id_province;
                         job.area_district = newDis.insertId;
                         jobModel.addJob(job).then(data => {
+                            jobTopicModel.updateJobsCount(job.job_topic, true)
+                                .then(finalResult => {
+                                    response(res, DEFINED_CODE.CREATED_DATA_SUCCESS, "Job added, count increased");
+                                }).catch(err => {
+                                    response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
+                                })
                             response(res, DEFINED_CODE.CREATED_DATA_SUCCESS, data);
                         }).catch((err) => {
-                            // response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
-                            res.json(err);
+                            response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
+                            // res.json(err);
                         })
                     }).catch(err => {
-                        res.json(err);
+                        response(res, DEFINED_CODE.CREATE_DATA_FAIL, err);
+                        // res.json(err);
                     })
             }
         }).catch(err => {
             // console.log(err);
-            // response(res, DEFINED_CODE.GET_DATA_FAIL, err);
-            res.json(err);
+            response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+            // res.json(err);
         })
 })
 router.post("/editJob", function (req, res, next) {
@@ -392,5 +412,157 @@ router.delete("/deleteJob", function (req, res, next) {
 
     }
 
+}),
+    router.post("/createNewChatConversation", async function (req, res, next) {
+
+        const { email1, email2 } = req.body;
+        if (email1 && email2) {
+            firebase.createConversation(email1, email2);
+
+        }
+        else
+            response(res, DEFINED_CODE.ERROR_ID);
+
+
+
+    })
+
+router.post("/sendMessage", async function (req, res, next) {
+
+    const { email1, email2 } = req.body;
+    if (email1 && email2) {
+        firebase.sendMessage(email1, email2);
+
+    }
+    else
+        response(res, DEFINED_CODE.ERROR_ID);
+
+
+
+})
+router.post("/cancelRecruit", function (req, res, next) {
+    let id_job = req.body.id_job;
+    if (id_job) {
+        jobModel.setCancelRecruit(id_job).then(data => {
+            response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data);
+
+        }).catch(err => {
+            response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
+
+        })
+
+    }
+    else {
+        response(res, DEFINED_CODE.ERROR_ID);
+
+    }
+})
+router.post("/acceptApplicant", function (req, res, next) {
+    let emailEmployer = '';
+    if (!req.headers.authorization) {
+        console.log("No token");
+        response(res, DEFINED_CODE.NULL_TOKEN);
+    }
+    token = req.headers.authorization.slice(7);
+    let decoded = jwt.decode(token, {
+        secret: 'S_Team',
+    });
+    emailEmployer = decoded.email;
+    let = nameEmployer = decoded.fullname;
+    const { id_job, id_user, email, job_title } = req.body;
+
+    if (id_job && id_user && email && emailEmployer) {
+        jobModel.acceptApplicant(id_job, id_user).then(data => {
+            response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data);
+            firebase.createConversation(emailEmployer, email);
+            let content = {
+                fullname: nameEmployer,
+                job: job_title,
+                type: 1,
+                date: Date.now()
+            }
+            firebase.pushNotificationsFirebase(email, content)
+        }).catch(err => {
+            response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
+
+        })
+
+    }
+    else {
+        response(res, DEFINED_CODE.ERROR_ID);
+
+    }
+});
+router.post("/rejectApplicant", function (req, res, next) {
+    if (!req.headers.authorization) {
+        console.log("No token");
+        response(res, DEFINED_CODE.NULL_TOKEN);
+    }
+    token = req.headers.authorization.slice(7);
+    let decoded = jwt.decode(token, {
+        secret: 'S_Team',
+    });
+    let nameEmployer = decoded.fullname;
+    const { id_job, id_user, email, job_title } = req.body;
+    if (id_job && id_user) {
+        jobModel.rejectApplicant(id_job, id_user).then(data => {
+            response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data);
+            let content = {
+                fullname: nameEmployer,
+                job: job_title,
+                type: 0,
+                date: Date.now()
+            }
+            firebase.pushNotificationsFirebase(email, content)
+        }).catch(err => {
+            response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
+
+        })
+
+    }
+    else {
+        response(res, DEFINED_CODE.ERROR_ID);
+
+    }
+})
+router.post("/finishJob", function (req, res, next) {
+    if (!req.headers.authorization) {
+        console.log("No token");
+        response(res, DEFINED_CODE.NULL_TOKEN);
+    }
+    token = req.headers.authorization.slice(7);
+    let decoded = jwt.decode(token, {
+        secret: 'S_Team',
+    });
+    let nameEmployer = decoded.fullname;
+    const { id_job, job_title } = req.body;
+    if (id_job && job_title) {
+        let content = {
+            fullname: nameEmployer,
+            job: job_title,
+            type: 2,
+            date: Date.now()
+        }
+        jobModel.finishJob(id_job).then(rs => {
+            applicantModel.getApplicantsByJobId(id_job, 5).then(data => {
+                console.log('data:', data);
+                data.forEach(element => {
+                    firebase.pushNotificationsFirebase(element.email, content)
+
+                })
+            })
+            response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, rs);
+
+
+        }).catch(err => {
+            response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
+
+        })
+
+    }
+    else {
+        response(res, DEFINED_CODE.ERROR_ID);
+
+    }
 })
 module.exports = router;

@@ -29,6 +29,7 @@ router.get('/', function (req, res, next) {
 //Get Jobs Topic
 router.get('/allJobsTopics', function (req, res, next) {
   jobTopicModel.getAllJobTopics().then(data => {
+    // console.log('dataJobTopic:', data)
     if (data.length > 0) {
       data.forEach(element => {
         element.img = convertBlobB64.convertBlobToB64(element.img);
@@ -135,22 +136,24 @@ router.post('/getJobsList', function (req, res, next) {
     }
   };
 
-
+  console.log('queryArr:', queryArr)
+  console.log('multiTags:', multiTags)
   jobModel.getJobsList(queryArr, multiTags).then(data => {
+    console.log('data:', data.length)
     const jobs = _.groupBy(data, "id_job");
     var finalData = [];
-
+    let tags_temp = [];
     _.forEach(jobs, (value, key) => {
       const tags = _.map(value, item => {
-        const { id_tag, tag_name } = item;
-        if (id_tag === null || tag_name === null) {
-          return null;
+        const { id_tag, tag_name, tag_status } = item;
+        if (id_tag === null || tag_name === null || tag_status === 0) {
+          // return null;
         }
         else {
-          return { id_tag, tag_name };
+          // return { id_tag, tag_name };
+          tags_temp.push({ id_tag, tag_name });
         }
       })
-
       const temp = {
         id_job: value[0].id_job,
         // employer: value[0].employer,
@@ -174,7 +177,7 @@ router.post('/getJobsList', function (req, res, next) {
         // requirement: value[0].requirement,
         id_status: value[0].id_status,
         img: value[0].img,
-        tags: tags[0] === null ? [] : tags,
+        tags: tags_temp[0] === null ? [] : tags_temp,
       }
       finalData.push(temp);
     })
@@ -185,7 +188,6 @@ router.post('/getJobsList', function (req, res, next) {
     if (multiTags.length > 0) {
       finalData = _.orderBy(finalData, 'relevance', 'desc');
     }
-
 
     let realData = finalData.slice((page - 1) * take, (page - 1) * take + take);
     if (realData.length > 0) {
@@ -199,7 +201,7 @@ router.post('/getJobsList', function (req, res, next) {
       });
 
     }
-    // console.log(realData);
+
     response(res, DEFINED_CODE.GET_DATA_SUCCESS, { jobList: realData, total: finalData.length, page: page });
 
   }).catch((err) => {
@@ -468,7 +470,7 @@ router.post('/login', (req, res, next) => {
         if (err) {
           res.send(err);
         }
-        let payload = { id: user.loginUser.id_user, isBusinessUser: user.loginUser.isBusinessUser, email: user.loginUser.email };
+        let payload = { id: user.loginUser.id_user,fullname:user.loginUser.fullname, isBusinessUser: user.loginUser.isBusinessUser, email: user.loginUser.email };
         const token = jwt.sign(payload, 'S_Team', { expiresIn: '24h' });
         if (req.user.loginUser.currentToken !== null)
           redis.setKey(req.user.loginUser.currentToken);
@@ -561,6 +563,7 @@ router.post('/resendActivation', (req, res, next) => {
 /* Forgot password */
 router.put('/forget', (req, res, next) => {
   var email = req.body.email;
+  console.log('email:', email)
   userModel.getByEmail(email, 1)
     .then(data => {
       if (data.length > 0) {
@@ -579,6 +582,7 @@ router.put('/forget', (req, res, next) => {
                 + 'If you did not request this, please ignore this email.\n\n'
                 + 'F2L Support team',
             };
+            console.log('newPassword:', newPassword)
             userModel.updateUserInfo(data[0].id_user, [{ field: 'password', value: `'${hashed}'` }])
               .then(result => {
                 mailer(mailOptions, 'F2L S_Team', email, res);
@@ -600,9 +604,76 @@ router.put('/forget', (req, res, next) => {
 router.get('/getJobById/:id', function (req, res, next) {
   let id_job = req.params.id;
   jobModel.getJobById(id_job).then(data => {
-    response(res, DEFINED_CODE.GET_DATA_SUCCESS, data);
+
+    var finalData;
+    var tags_temp = [];
+    var imgs_temp = [];
+
+    const tags = _.groupBy(data[0], "id_tag");
+
+    _.forEach(tags, (value, key) => {
+      const tag = _.map(value, item => {
+        const { id_tag, tag_name, tag_status } = item;
+        if (id_tag === null || tag_name === null || tag_status === 0) {
+
+        } else {
+          tags_temp.push(tag_name);
+        }
+      });
+    })
+
+    data[1].forEach(element => {
+      if (element.img) {
+        let buffer = new Buffer(element.img);
+        let bufferBase64 = buffer.toString('base64');
+        element.img = bufferBase64;
+        imgs_temp.push(element.img);
+      }
+    })
+
+    let jobInfo = data[0][0];
+
+
+    finalData = {
+      id_job: jobInfo.id_job,
+      employer: jobInfo.employer,
+      title: jobInfo.title,
+      salary: jobInfo.salary,
+      job_topic: jobInfo.job_topic,
+      area_province: jobInfo.area_province,
+      area_district: jobInfo.area_district,
+      address: jobInfo.address,
+      lat: jobInfo.lat,
+      lng: jobInfo.lng,
+      description: jobInfo.description,
+      post_date: jobInfo.post_date,
+      expire_date: jobInfo.expire_date,
+      dealable: jobInfo.dealable,
+      job_type: jobInfo.job_type,
+      isOnline: jobInfo.isOnline,
+      isCompany: jobInfo.isCompany,
+      vacancy: jobInfo.vacancy,
+      requirement: jobInfo.requirement,
+      id_status: jobInfo.id_status,
+      benefit: jobInfo.benefit,
+      province_name: jobInfo.province_name,
+      district_name: jobInfo.district_name,
+      topic_name: jobInfo.topic_name,
+      name_employer: jobInfo.name_employer,
+      email: jobInfo.email,
+      dial: jobInfo.dial,
+      name_status: jobInfo.name_status,
+      start_date: jobInfo.start_date,
+      end_date: jobInfo.end_date,
+      salary_type: jobInfo.salary_type,
+      deadline: jobInfo.deadline,
+      tags: tags_temp,
+      imgs: imgs_temp,
+      dealers: data[2],
+    }
+    response(res, DEFINED_CODE.GET_DATA_SUCCESS, finalData);
   }).catch(err => {
-    response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
+    response(res, DEFINED_CODE.GET_DATA_FAIL, err);
   })
 });
 
@@ -688,11 +759,12 @@ router.get('/getDistricts/:id', function (req, res, next) {
 });
 //Get All tags
 router.get('/getAllTags', function (req, res, next) {
-  let id_provinces = req.params.id;
   tagModel.getAllTags().then(data => {
     response(res, DEFINED_CODE.GET_DATA_SUCCESS, data);
   }).catch(err => {
-    response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
+    console.log(err);
+    // response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+    res.json(err);
   })
 });
 module.exports = router;

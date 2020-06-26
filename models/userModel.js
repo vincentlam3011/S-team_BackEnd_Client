@@ -28,9 +28,7 @@ module.exports = {
         var columnsCompanies = `(id_user, company_name, position, company_address, company_email, number_of_employees)`;
         var valuesCompanies = `, '${company.company_name}', '${company.position}', '${company.company_address}'
                                         ,'${company.company_email}', ${company.number_of_employees})`;
-
-        // var sqlQueryCompanies = `insert into COMPANIEs` + columnsCompanies + ` values` + valuesCompanies + `;`;
-        return db.transaction(sqlQueryUsers, columnsCompanies, valuesCompanies, `COMPANIEs`);
+        return db.transaction(sqlQueryUsers, columnsCompanies, valuesCompanies, `companies`);
     },
     editToken: (id, token) => {
         console.log('token in edit token:', token)
@@ -94,5 +92,8 @@ module.exports = {
     },
     verifyActivation: (token) => {
         return db.query(`select id_user, account_status, activationToken, timestampdiff(second, activationExpr, now()) as isExpr from users where activationToken = '${token}';`);
+    },
+    getUserImageFromChat: (email1,email2)=>{
+        return db.query(`select email,avatarImg,fullname from users where users.email = "${email1}" or users.email = "${email2}";`);
     }
 }

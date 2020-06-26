@@ -3,21 +3,22 @@ var convertBlobB64 = require('../middleware/convertBlobB64');
 
 module.exports = {
 
-    getApplicantsByJobId: (id) => {
-        let sqlQueryApplicants = `SELECT A.*,U.fullname,U.email FROM APPLICANTS AS A, USERS AS U WHERE A.id_user = U.id_user and A.id_job= ${id}`;
+    getApplicantsByJobId: (id, id_status) => {
+        let sqlQueryApplicants = `select u.id_user, u.fullname, u.email, u.dial, a.proposed_price, a.attachment, a.introduction_string from users as u, applicants as a, jobs as j
+        where j.id_job = a.id_job and a.id_user = u.id_user and j.id_job = ${id} and a.id_status=${id_status} order by a.proposed_price asc;`
         return db.query(sqlQueryApplicants);
     },
     getApplicantsByUserId: (id) => {
-        let sqlQueryApplicants = `SELECT A.*,U.fullname,U.email FROM APPLICANTS AS A, USERS AS U WHERE A.id_user = U.id_user and A.id_user= ${id}`;
+        let sqlQueryApplicants = `SELECT A.*,U.fullname,U.email FROM applicants AS A, users AS U WHERE A.id_user = U.id_user and A.id_user= ${id}`;
         return db.query(sqlQueryApplicants);
     },
     getApplicantsByUserIdJobId: (id_user, id_job) => {
-        let sqlQueryApplicants = `SELECT * FROM APPLICANTS WHERE id_user = ${id_user} and id_job = ${id_job}`;
+        let sqlQueryApplicants = `SELECT * FROM applicants WHERE id_user = ${id_user} and id_job = ${id_job}`;
         return db.query(sqlQueryApplicants);
     },
     addApplicant: (applicants) => {
         // if (applicants.attachment !== null && applicants.attachment !== '') {
-            applicants.attachment = convertBlobB64.convertB64ToBlob(applicants.attachment).toString('hex');
+        applicants.attachment = convertBlobB64.convertB64ToBlob(applicants.attachment).toString('hex');
         // }
         let columsJob = `(id_user,id_job,proposed_price,attachment, introduction_string)`
         let valueJob = `('${applicants.id_user}',
@@ -41,7 +42,7 @@ module.exports = {
         return db.query(sqlQueryApplicants)
     },
     deleteApplicant: (id) => {
-        return db.query(`delete from APPLICANTS where id_applicant = ${id}`)
+        return db.query(`delete from applicants where id_applicant = ${id}`)
     }
     // sign_up: (account, company) => {
     //     let columnsUsers = `(email, password, fullname, dob, dial, address, isBusinessUser, gender, account_status)`;
