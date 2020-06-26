@@ -52,9 +52,13 @@ module.exports = {
         return db.query(userQuery + ' ' + companyQuery);
     },
     getUserInfoNotPrivate: (id) => {
-        var userQuery = `select id_user, fullname, dob, email, dial, address, identity, isBusinessUser, gender, avatarImg from users where id_user = ${id};`;
-        var companyQuery = `select * from companies where id_user = ${id};`;
-        return db.query(userQuery + ' ' + companyQuery);
+        console.log(id);
+        let userQuery = '', employerRatingQuery = '', employeeRatingQuery = '', companyQuery = '';
+        userQuery = `select id_user, fullname, dob, email, dial, address, identity, isBusinessUser, gender, avatarImg from users where id_user = ${id};`;        
+        employeeRatingQuery = `select COALESCE(AVG(ac.rating_fromEmployee),0) as employer_rating, count(*) as employee_job from accepted  as ac where ac.id_applicant = ${id};`;
+        employerRatingQuery = `select COALESCE(AVG(ac.rating_fromEmployer),0) as employee_rating, count(*) as employer_job from accepted as ac, jobs as j where ac.id_job = j.id_job and j.employer = ${id};`;
+        companyQuery = `select * from companies where id_user = ${id};`;        
+        return db.query(userQuery + ' ' + employerRatingQuery + ' ' + employeeRatingQuery + ' ' + companyQuery);
     },
     countUsers: () => {
         return db.query(`select count(*) as memberNum from users where account_status = 1 or account_status = 2`)
