@@ -12,6 +12,7 @@ var jobModel = require('../models/jobModel');
 var districtProvinceModel = require('../models/districtProvinceModel');
 var tagModel = require('../models/tagModel');
 
+var transactionModel = require('../models/transactionModel');
 
 var convertBlobB64 = require('../middleware/convertBlobB64');
 
@@ -470,7 +471,7 @@ router.post('/login', (req, res, next) => {
         if (err) {
           res.send(err);
         }
-        let payload = { id: user.loginUser.id_user,fullname:user.loginUser.fullname, isBusinessUser: user.loginUser.isBusinessUser, email: user.loginUser.email };
+        let payload = { id: user.loginUser.id_user, fullname: user.loginUser.fullname, isBusinessUser: user.loginUser.isBusinessUser, email: user.loginUser.email };
         const token = jwt.sign(payload, 'S_Team', { expiresIn: '24h' });
         if (req.user.loginUser.currentToken !== null)
           redis.setKey(req.user.loginUser.currentToken);
@@ -768,6 +769,16 @@ router.get('/getAllTags', function (req, res, next) {
 
 //Handle Notify on MOMO
 router.post('/handleIPNMoMo', function (req, res, next) {
-  console.log("body IPN MoMo: ",req.body);
+  console.log("body IPN MoMo: ", req.body);
+  if (req.body.errorCode == 0)
+  {
+    transactionModel.insertIntoTransaction(req.body).then(data=>{
+      response(res,DEFINED_CODE.INTERACT_DATA_SUCCESS,data)
+    });
+
+  }
+  else{
+    response(res,DEFINED_CODE.ERROR_ID);
+  }
 });
 module.exports = router;
