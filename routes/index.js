@@ -765,4 +765,9 @@ router.get('/getAllTags', function (req, res, next) {
     res.json(err);
   })
 });
+
+//Handle Notify on MOMO
+router.post('/handleIPNMoMo', function (req, res, next) {
+  console.log("body IPN MoMo: ",req.body);
+});
 module.exports = router;
