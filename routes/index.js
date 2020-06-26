@@ -770,15 +770,18 @@ router.get('/getAllTags', function (req, res, next) {
 //Handle Notify on MOMO
 router.post('/handleIPNMoMo', function (req, res, next) {
   console.log("body IPN MoMo: ", req.body);
-  if (req.body.errorCode == 0)
-  {
-    transactionModel.insertIntoTransaction(req.body).then(data=>{
-      response(res,DEFINED_CODE.INTERACT_DATA_SUCCESS,data)
+  let result = req.body;
+  let id_applicant = req.body.orderId.split('-')[0];
+  result.id_applicant = id_applicant;
+  console.log('id_applicant:', id_applicant)
+  if (req.body.errorCode == 0) {
+    transactionModel.insertIntoTransaction(result).then(data => {
+      response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data)
     });
 
   }
-  else{
-    response(res,DEFINED_CODE.ERROR_ID);
+  else {
+    response(res, DEFINED_CODE.ERROR_ID);
   }
 });
 module.exports = router;
