@@ -136,11 +136,7 @@ router.post('/getJobsList', function (req, res, next) {
       }
     }
   };
-
-  console.log('queryArr:', queryArr)
-  console.log('multiTags:', multiTags)
   jobModel.getJobsList(queryArr, multiTags).then(data => {
-    console.log('data:', data.length)
     const jobs = _.groupBy(data, "id_job");
     var finalData = [];
     let tags_temp = [];
