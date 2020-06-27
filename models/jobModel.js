@@ -25,7 +25,7 @@ module.exports = {
 
         console.log("Job type   " + job.job_type);
         let querySubJob = ``;
-        if (job.job_type === 0) {
+        if (job.job_type == 0) {
             querySubJob = `insert into jobs_temporal values((select max(id_job) from jobs), null,'${job.start_date}', '${job.end_date}');`
         } else {
             querySubJob = `insert into jobs_production values((select max(id_job) from jobs), '${job.end_date}');`
@@ -256,7 +256,7 @@ module.exports = {
         return db.query(`
         insert into accepted (id_applicant,id_job) SELECT * FROM (SELECT id_applicant,${id_job} from applicants where id_job=${id_job} and id_user=${id_user}) as tmp;
         update applicants set id_status = 2 where id_job =${id_job} and id_user=${id_user};
-        `);
+
     },
     rejectApplicant:(id_job,id_user)=>{
         return db.query(`delete from applicants where id_job =${id_job} and id_user=${id_user} `);

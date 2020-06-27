@@ -23,6 +23,7 @@ var _ = require('lodash')
 
 var { response, DEFINED_CODE } = require('../config/response');
 var { mailer } = require('../utils/nodemailer');
+const acceptedModel = require('../models/acceptedModel');
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
@@ -138,11 +139,7 @@ router.post('/getJobsList', function (req, res, next) {
       }
     }
   };
-
-  console.log('queryArr:', queryArr)
-  console.log('multiTags:', multiTags)
   jobModel.getJobsList(queryArr, multiTags).then(data => {
-    console.log('data:', data.length)
     const jobs = _.groupBy(data, "id_job");
     var finalData = [];
     let tags_temp = [];
@@ -685,8 +682,10 @@ router.get('/getUserInfoNotPrivate/:id', function (req, res, next) {
   let employer = req.params.id;
   userModel.getUserInfoNotPrivate(employer).then(data => {
     let personalInfo = data[0];
-    let companyInfo = data[1];
-
+    let employee = data[1];
+    let employer = data[2];
+    let companyInfo = data[3];
+    
     if (personalInfo[0].avatarImg !== null) {
       let avatar = personalInfo[0].avatarImg;
       let buffer = new Buffer(avatar);
@@ -694,7 +693,7 @@ router.get('/getUserInfoNotPrivate/:id', function (req, res, next) {
       personalInfo[0].avatarImg = bufferB64;
     }
 
-    response(res, DEFINED_CODE.GET_DATA_SUCCESS, { personal: personalInfo[0], company: companyInfo[0] });
+    response(res, DEFINED_CODE.GET_DATA_SUCCESS, { personal: personalInfo[0],employer: employer[0], employee: employee[0], company: companyInfo[0] });
   }).catch(err => {
     response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
   })
@@ -768,6 +767,7 @@ router.get('/getAllTags', function (req, res, next) {
     res.json(err);
   })
 });
+
 
 //Pay Momo
 router.post('/transferMoneyMomoToF2L', async function (req, res1, next) {
@@ -852,5 +852,42 @@ router.post('/getResultTransactions', function (req, res, next) {
     response(res, DEFINED_CODE.ERROR_ID);
   }
 });
+
+// get review list by job id
+router.post('/getReviewListByJobId', (req, res, next) => {
+  let {id_job, take, page} = req.body;  
+  acceptedModel.getReviewListByJobId(id_job)
+  .then(data => {
+      let finalData = data.slice(take * (page - 1), take * page);
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, {list: finalData, total: data.length, page: page});
+  }).catch(err => {
+      response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+  })
+})
+
+// get review list by employer id
+router.post('/getReviewListByEmployerId', (req, res, next) => {
+  let {employer, take, page} = req.body;  
+  acceptedModel.getReviewListByEmployerId(employer)
+  .then(data => {
+      let finalData = data.slice(take * (page - 1), take * page);
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, {list: finalData, total: data.length, page: page});
+  }).catch(err => {
+      response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+  })
+})
+
+// get review list by employee id
+router.post('/getReviewListByEmployeeId', (req, res, next) => {
+  let {employee, take, page} = req.body;  
+  acceptedModel.getReviewListByEmployeeId(employee)
+  .then(data => {
+      let finalData = data.slice(take * (page - 1), take * page);
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, {list: finalData, total: data.length, page: page});
+  }).catch(err => {
+      response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+  })
+})
+
 
 module.exports = router;

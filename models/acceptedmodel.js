@@ -14,6 +14,17 @@ module.exports = {
         where id_applicant = ${review.id_applicant} and id_job=${review.id_job} `);
     },
    
+    getReviewListByJobId: (id_job) => {
+        return db.query(`select ac.* from accepted as ac where ac.id_job = ${id_job}`);
+    },
+
+    getReviewListByEmployerId: (employer) => {
+        return db.query(`select ac.* from accepted as ac, jobs as j where ac.id_job = j.id_job and j.employer = ${employer}`);
+    },
+
+    getReviewListByEmployeeId: (employee) => {
+        return db.query(`select ac.* from accepted as ac where ac.id_applicant = ${employee}`);
+    },
     // sign_up: (account, company) => {
     //     let columnsUsers = `(email, password, fullname, dob, dial, address, isBusinessUser, gender, account_status)`;
     //     let valuesUsers = `('${account.email}', '${account.password}', '${account.fullname}', '${account.dob}', '${account.dial}', '${account.address}' 

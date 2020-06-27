@@ -9,6 +9,7 @@ var { response, DEFINED_CODE } = require('../config/response');
 var passport = require('../passport');
 
 var userModel = require('../models/userModel');
+const reportModel = require('../models/reportModel');
 
 const saltRounds = 15;
 
@@ -163,4 +164,29 @@ router.put('/editCompanyInfo', (req, res, next) => {
       response(res, DEFINED_CODE.EDIT_COMPANY_FAIL, err);
     })
 })
+
+router.post('/addReport', (req, res, next) => {
+
+  var token = req.headers.authorization.slice(7);
+  var decodedPayload = jwt.decode(token, {
+    secret: 'S_Team',
+  });
+
+  let id_user1 = decodedPayload.id;
+  let {content} = req.body;
+  let role1 = Number.parseInt(req.body.yourRole);
+  let role2 = 0;
+  if(role1 === 0) {
+    role2 = 1;
+  }
+
+  let id_user2 = Number.parseInt(req.body.reporterId);
+  reportModel.addReport(id_user1, role1, id_user2, role2, content)
+    .then(data => {
+      response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, { insertId: data.insertId });
+    }).catch(err => {
+      response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
+    })
+})
+
 module.exports = router;
