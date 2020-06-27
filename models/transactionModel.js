@@ -9,10 +9,12 @@ module.exports = {
     },
    
     getTransactions: (trans)=>{
-        return db.query(`select t.* from transaction as t, applicants as a,jobs as j`)
+        return db.query(`select t.* from transactions as t, applicants as a,jobs as j`)
+    },
+    getTransactionsByIdApplicant: (id_applicant)=>{
+        return db.query(`select distinct t.* from transactions as t, applicants as a where t.id_applicant = ${id_applicant}`);
     }
   
-   
     // sign_up: (account, company) => {
     //     let columnsUsers = `(email, password, fullname, dob, dial, address, isBusinessUser, gender, account_status)`;
     //     let valuesUsers = `('${account.email}', '${account.password}', '${account.fullname}', '${account.dob}', '${account.dial}', '${account.address}' 

@@ -7,7 +7,7 @@ var { response, DEFINED_CODE } = require('../config/response');
 
 var passport = require('../passport');
 var _ = require('lodash');
-var acceptedModel = require('../models/acceptedModel');
+var acceptedModel = require('../models/acceptedmodel');
 
 //Get Applicants by JobId
 // router.post('/getByJobId', function  (req, res, next) {

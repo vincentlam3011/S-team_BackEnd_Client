@@ -5,6 +5,7 @@ var bcrypt = require('bcrypt');
 var crypto = require('crypto');
 const saltRounds = 15;
 var redis = require('../utils/redis');
+const https = require('https');
 
 var userModel = require('../models/userModel');
 var jobTopicModel = require('../models/jobTopicModel');
@@ -15,6 +16,7 @@ var tagModel = require('../models/tagModel');
 var transactionModel = require('../models/transactionModel');
 
 var convertBlobB64 = require('../middleware/convertBlobB64');
+var momoService = require('../middleware/momoService');
 
 var router = express.Router();
 var _ = require('lodash')
@@ -767,6 +769,46 @@ router.get('/getAllTags', function (req, res, next) {
   })
 });
 
+//Pay Momo
+router.post('/transferMoneyMomoToF2L', async function (req, res1, next) {
+
+  if (req.body) {
+    let options = (await momoService.transferMoneyMomoToF2L(req.body)).options;
+    let body = (await momoService.transferMoneyMomoToF2L(req.body)).body;
+    console.log('options:', options)
+    var req = await https.request(options, (res) => {
+      console.log(`Status: ${res.statusCode}`);
+      console.log(`Headers: ${JSON.stringify(res.headers)}`);
+      res.setEncoding('utf8');
+      res.on('data', (body) => {
+        console.log('Body');
+        console.log(body);
+        console.log('payURL');
+        console.log(JSON.parse(body).payUrl);
+        response(res1, DEFINED_CODE.GET_DATA_SUCCESS, JSON.parse(body).payUrl);
+
+      });
+      res.on('end', () => {
+        console.log('No more data in response.');
+      });
+    });
+
+    req.on('error', (e) => {
+      console.log(`problem with request: ${e.message}`);
+    });
+
+    // write data to request body
+    req.write(body);
+    req.end();
+
+
+
+
+  }
+  else {
+    response(res1, DEFINED_CODE.ERROR_ID);
+  }
+});
 //Handle Notify on MOMO
 router.post('/handleIPNMoMo', function (req, res, next) {
   console.log("body IPN MoMo: ", req.body);
@@ -784,4 +826,31 @@ router.post('/handleIPNMoMo', function (req, res, next) {
     response(res, DEFINED_CODE.ERROR_ID);
   }
 });
+//Handle Notify on MOMO
+router.post('/getResultTransactions', function (req, res, next) {
+  let id_applicant = req.body.id_applicant;
+  console.log('id_applicant:', id_applicant)
+  if (id_applicant) {
+    transactionModel.getTransactionsByIdApplicant(id_applicant).then(data => {
+      if(data.length>0)
+      {
+        response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data)
+
+      }
+      else
+      {
+      response(res, DEFINED_CODE.ERROR_ID);
+
+      }
+    }).catch(err => {
+      response(res, DEFINED_CODE.ERROR_ID);
+
+    });
+
+  }
+  else {
+    response(res, DEFINED_CODE.ERROR_ID);
+  }
+});
+
 module.exports = router;
