@@ -20,6 +20,7 @@ var _ = require('lodash')
 
 var { response, DEFINED_CODE } = require('../config/response');
 var { mailer } = require('../utils/nodemailer');
+const acceptedModel = require('../models/acceptedModel');
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
@@ -767,4 +768,41 @@ router.get('/getAllTags', function (req, res, next) {
     res.json(err);
   })
 });
+
+// get review list by job id
+router.post('/getReviewListByJobId', (req, res, next) => {
+  let {id_job, take, page} = req.body;  
+  acceptedModel.getReviewListByJobId(id_job)
+  .then(data => {
+      let finalData = data.slice(take * (page - 1), take * page);
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, {list: finalData, total: data.length, page: page});
+  }).catch(err => {
+      response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+  })
+})
+
+// get review list by employer id
+router.post('/getReviewListByEmployerId', (req, res, next) => {
+  let {employer, take, page} = req.body;  
+  acceptedModel.getReviewListByEmployerId(employer)
+  .then(data => {
+      let finalData = data.slice(take * (page - 1), take * page);
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, {list: finalData, total: data.length, page: page});
+  }).catch(err => {
+      response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+  })
+})
+
+// get review list by employee id
+router.post('/getReviewListByEmployeeId', (req, res, next) => {
+  let {employee, take, page} = req.body;  
+  acceptedModel.getReviewListByEmployeeId(employee)
+  .then(data => {
+      let finalData = data.slice(take * (page - 1), take * page);
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, {list: finalData, total: data.length, page: page});
+  }).catch(err => {
+      response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+  })
+})
+
 module.exports = router;
