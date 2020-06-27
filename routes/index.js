@@ -23,7 +23,7 @@ var _ = require('lodash')
 
 var { response, DEFINED_CODE } = require('../config/response');
 var { mailer } = require('../utils/nodemailer');
-const acceptedModel = require('../models/acceptedModel');
+const acceptedModel = require('../models/acceptedmodel');
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
