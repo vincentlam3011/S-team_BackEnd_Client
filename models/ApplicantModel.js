@@ -16,6 +16,10 @@ module.exports = {
         let sqlQueryApplicants = `SELECT * FROM applicants WHERE id_user = ${id_user} and id_job = ${id_job}`;
         return db.query(sqlQueryApplicants);
     },
+    getApplicantsByApplicantId: (id_applicant) => {
+        let sqlQueryApplicants = `SELECT * FROM applicants WHERE id_applicant=${id_applicant}`;
+        return db.query(sqlQueryApplicants);
+    },
     addApplicant: (applicants) => {
         // if (applicants.attachment !== null && applicants.attachment !== '') {
         applicants.attachment = convertBlobB64.convertB64ToBlob(applicants.attachment).toString('hex');
