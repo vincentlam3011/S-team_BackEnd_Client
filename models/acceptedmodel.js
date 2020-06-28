@@ -19,11 +19,11 @@ module.exports = {
     },
 
     getReviewListByEmployerId: (employer) => {
-        return db.query(`select ac.*, j.title, u.fullname, u.email from accepted as ac, jobs as j, users as u, applicants as ap where u.id_user = ap.id_user and ap.id_applicant = ac.id_applicant and ac.id_job = j.id_job and j.employer = ${employer}`);
+        return db.query(`select ac.*, j.title, u.avatarImg, u.fullname, u.email from accepted as ac, jobs as j, users as u, applicants as ap where u.id_user = ap.id_user and ap.id_applicant = ac.id_applicant and ac.id_job = j.id_job and j.employer = ${employer} order by ac.id_applicant desc`);
     },
 
     getReviewListByEmployeeId: (employee) => {
-        return db.query(`select ac.*, j.title, u.fullname, u.email from accepted as ac, applicants as ap, users as u, jobs as j where ac.id_applicant = ap.id_applicant and ap.id_user = ${employee} and ac.id_job = j.id_job and u.id_user = j.employer`);
+        return db.query(`select ac.*, j.title, u.avatarImg, u.fullname, u.email from accepted as ac, applicants as ap, users as u, jobs as j where ac.id_applicant = ap.id_applicant and ap.id_user = ${employee} and ac.id_job = j.id_job and u.id_user = j.employer order by ac.id_applicant desc`);
     },
     // sign_up: (account, company) => {
     //     let columnsUsers = `(email, password, fullname, dob, dial, address, isBusinessUser, gender, account_status)`;
