@@ -4,7 +4,7 @@ var convertBlobB64 = require('../middleware/convertBlobB64');
 module.exports = {
 
     insertIntoTransaction: (trans)=>{
-        return db.query(`amount, requestId, orderId, orderInfo, orderType, transId, errorCode, message, localMessage, responseTime, signature,  extraData, payType, id_applicant) 
+        return db.query(`insert into tracsactions(amount, requestId, orderId, orderInfo, orderType, transId, errorCode, message, localMessage, responseTime, signature,  extraData, payType, id_applicant) 
         VALUES ('${trans.amount}','${trans.requestId}','${trans.orderId}','${trans.orderInfo}','${trans.orderType}','${trans.transId}','${trans.errorCode}','${trans.message}','${trans.localMessage}','${trans.responseTime}','${trans.signature}','${trans.extraData}','${trans.payType}','${trans.id_applicant}');`);
     },
    
