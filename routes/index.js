@@ -843,7 +843,7 @@ router.post('/getResultTransactions', function (req, res, next) {
 
       }
       else {
-        response(res, DEFINED_CODE.ERROR_ID);
+        response(res, DEFINED_CODE.GET_RESULT_MOMO_FAIL);
 
       }
     }).catch(err => {
