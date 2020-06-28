@@ -193,7 +193,7 @@ module.exports = {
             return db.query(`
             select j.*, u.fullname, u.email, u.dial, u.avatarImg, p.name as province, d.name as district, jp.deadline as deadline, jt.start_date as start_date, jt.end_date as end_date, jt.salary_type
             from ((jobs as j left join jobs_production as jp on j.id_job = jp.id_job) left join jobs_temporal as jt on j.id_job = jt.id_job), users as u, provinces as p, districts as d, accepted as a
-            where j.id_job = a.id_job and a.id_applicant = ${id_user} and j.employer = u.id_user and j.area_province = p.id_province and j.area_district = d.id_district and j.id_status = ${status}
+            where j.id_job = a.id_job and a.id_user = ${id_user} and j.employer = u.id_user and j.area_province = p.id_province and j.area_district = d.id_district and j.id_status = ${status}
             group by j.id_job`);
         }
     },

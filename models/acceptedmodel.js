@@ -23,7 +23,7 @@ module.exports = {
     },
 
     getReviewListByEmployeeId: (employee) => {
-        return db.query(`select ac.* from accepted as ac where ac.id_applicant = ${employee}`);
+        return db.query(`select ac.* from accepted as ac, applicants as ap where ac.id_applicant = ap.id_applicant and ap.id_user = ${employee}`);
     },
     // sign_up: (account, company) => {
     //     let columnsUsers = `(email, password, fullname, dob, dial, address, isBusinessUser, gender, account_status)`;
