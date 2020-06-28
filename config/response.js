@@ -40,6 +40,8 @@ const ResponsedCode = {
     CREATE_DATA_FAIL: '-204',
     // Missing body field or params
     MISSING_FIELD_OR_PARAMS: '-205',
+    //Get data transaction MOMO Fail
+    GET_RESULT_MOMO_FAIL: '-206',
 
 
 
@@ -80,6 +82,10 @@ const mapCodeToMsg = {
     '-204': 'Cannot create data, please check your field in body!',
     '-205': 'Please check your body field or params. We cannot find it or cannot accept your field',
 
+
+
+    '-206': "Can't find data on MoMo Transaction",
+
     /* Nodemailer error messages */
     '-301': 'Sending email failed',
 
@@ -90,6 +96,7 @@ const mapCodeToMsg = {
     '200': "Get Data successs",
     '201': "Create Data successs",
     '202': "Interact Data successs",
+
 
     '104': "Activation success, you can now login to your account",
     '105': "Password changed! Please relogin with your new password!",
@@ -121,6 +128,7 @@ const mapCodeToHTTPStatus = {
     '-203': HTTPStatus.BAD_REQUEST,
     '-204': HTTPStatus.BAD_REQUEST,
     '-205': HTTPStatus.BAD_REQUEST,
+    '-206': HTTPStatus.OK,
 
 
     '-301': HTTPStatus.BAD_REQUEST,
@@ -135,7 +143,6 @@ const mapCodeToHTTPStatus = {
     '200': HTTPStatus.OK,
     '201': HTTPStatus.OK,
     '202': HTTPStatus.OK,
-
 
 }
 

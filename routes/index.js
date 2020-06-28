@@ -23,7 +23,8 @@ var _ = require('lodash')
 
 var { response, DEFINED_CODE } = require('../config/response');
 var { mailer } = require('../utils/nodemailer');
-const acceptedModel = require('../models/acceptedModel');
+const acceptedModel = require('../models/acceptedmodel');
+const ApplicantModel = require('../models/ApplicantModel');
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
@@ -685,7 +686,7 @@ router.get('/getUserInfoNotPrivate/:id', function (req, res, next) {
     let employee = data[1];
     let employer = data[2];
     let companyInfo = data[3];
-    
+
     if (personalInfo[0].avatarImg !== null) {
       let avatar = personalInfo[0].avatarImg;
       let buffer = new Buffer(avatar);
@@ -693,7 +694,7 @@ router.get('/getUserInfoNotPrivate/:id', function (req, res, next) {
       personalInfo[0].avatarImg = bufferB64;
     }
 
-    response(res, DEFINED_CODE.GET_DATA_SUCCESS, { personal: personalInfo[0],employer: employer[0], employee: employee[0], company: companyInfo[0] });
+    response(res, DEFINED_CODE.GET_DATA_SUCCESS, { personal: personalInfo[0], employer: employer[0], employee: employee[0], company: companyInfo[0] });
   }).catch(err => {
     response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
   })
@@ -773,35 +774,40 @@ router.get('/getAllTags', function (req, res, next) {
 router.post('/transferMoneyMomoToF2L', async function (req, res1, next) {
 
   if (req.body) {
-    let options = (await momoService.transferMoneyMomoToF2L(req.body)).options;
-    let body = (await momoService.transferMoneyMomoToF2L(req.body)).body;
-    console.log('options:', options)
-    var req = await https.request(options, (res) => {
-      console.log(`Status: ${res.statusCode}`);
-      console.log(`Headers: ${JSON.stringify(res.headers)}`);
-      res.setEncoding('utf8');
-      res.on('data', (body) => {
-        console.log('Body');
-        console.log(body);
-        console.log('payURL');
-        console.log(JSON.parse(body).payUrl);
-        response(res1, DEFINED_CODE.GET_DATA_SUCCESS, JSON.parse(body).payUrl);
+    let data= req.body;
+    ApplicantModel.getApplicantsByApplicantId(data.id_applicant).then( async (rs)  => {
+      data.amount = rs[0].proposed_price.toString();
+      let options = (await momoService.transferMoneyMomoToF2L(data)).options;
+      let body = (await momoService.transferMoneyMomoToF2L(data)).body;
+      console.log('options:', options)
+      var req = await https.request(options, (res) => {
+        console.log(`Status: ${res.statusCode}`);
+        console.log(`Headers: ${JSON.stringify(res.headers)}`);
+        res.setEncoding('utf8');
+        res.on('data', (body) => {
+          console.log('Body');
+          console.log(body);
+          console.log('payURL');
+          console.log(JSON.parse(body).payUrl);
+          response(res1, DEFINED_CODE.GET_DATA_SUCCESS, JSON.parse(body).payUrl);
 
+        });
+        res.on('end', () => {
+          console.log('No more data in response.');
+        });
       });
-      res.on('end', () => {
-        console.log('No more data in response.');
+
+      req.on('error', (e) => {
+        console.log(`problem with request: ${e.message}`);
       });
-    });
 
-    req.on('error', (e) => {
-      console.log(`problem with request: ${e.message}`);
-    });
-
-    // write data to request body
-    req.write(body);
-    req.end();
+      // write data to request body
+      req.write(body);
+      req.end();
 
 
+
+    })
 
 
   }
@@ -832,18 +838,16 @@ router.post('/getResultTransactions', function (req, res, next) {
   console.log('id_applicant:', id_applicant)
   if (id_applicant) {
     transactionModel.getTransactionsByIdApplicant(id_applicant).then(data => {
-      if(data.length>0)
-      {
+      if (data.length > 0) {
         response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data)
 
       }
-      else
-      {
-      response(res, DEFINED_CODE.ERROR_ID);
+      else {
+        response(res, DEFINED_CODE.GET_RESULT_MOMO_FAIL);
 
       }
     }).catch(err => {
-      response(res, DEFINED_CODE.ERROR_ID);
+      response(res, DEFINED_CODE.INTERACT_DATA_FAIL);
 
     });
 
@@ -859,12 +863,12 @@ router.post('/getReviewListByJobId', (req, res, next) => {
   let take = Number.parseInt(req.body.take) || 8;
   let page = Number.parseInt(req.body.page) || 1;
   acceptedModel.getReviewListByJobId(id_job)
-  .then(data => {
+    .then(data => {
       let finalData = data.slice(take * (page - 1), take * page);
-      response(res, DEFINED_CODE.GET_DATA_SUCCESS, {list: finalData, total: data.length, page: page});
-  }).catch(err => {
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, { list: finalData, total: data.length, page: page });
+    }).catch(err => {
       response(res, DEFINED_CODE.GET_DATA_FAIL, err);
-  })
+    })
 })
 
 // get review list by employer id
@@ -873,12 +877,12 @@ router.post('/getReviewListByEmployerId', (req, res, next) => {
   let take = Number.parseInt(req.body.take) || 8;
   let page = Number.parseInt(req.body.page) || 1;
   acceptedModel.getReviewListByEmployerId(employer)
-  .then(data => {
+    .then(data => {
       let finalData = data.slice(take * (page - 1), take * page);
-      response(res, DEFINED_CODE.GET_DATA_SUCCESS, {list: finalData, total: data.length, page: page});
-  }).catch(err => {
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, { list: finalData, total: data.length, page: page });
+    }).catch(err => {
       response(res, DEFINED_CODE.GET_DATA_FAIL, err);
-  })
+    })
 })
 
 // get review list by employee id
@@ -887,12 +891,12 @@ router.post('/getReviewListByEmployeeId', (req, res, next) => {
   let take = Number.parseInt(req.body.take) || 8;
   let page = Number.parseInt(req.body.page) || 1;
   acceptedModel.getReviewListByEmployeeId(employee)
-  .then(data => {
+    .then(data => {
       let finalData = data.slice(take * (page - 1), take * page);
-      response(res, DEFINED_CODE.GET_DATA_SUCCESS, {list: finalData, total: data.length, page: page});
-  }).catch(err => {
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, { list: finalData, total: data.length, page: page });
+    }).catch(err => {
       response(res, DEFINED_CODE.GET_DATA_FAIL, err);
-  })
+    })
 })
 
 

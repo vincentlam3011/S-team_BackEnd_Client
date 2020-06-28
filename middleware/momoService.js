@@ -54,7 +54,7 @@ module.exports = {
             "partnerCode=" + partnerCode +
             "&accessKey=" + accessKey +
             "&requestId=" + data.requestId +
-            "&amount=" + data.amount +
+            "&amount=" + data.amount.toString() +
             "&orderId=" + data.orderId +
             "&orderInfo=" + data.orderInfo +
             "&returnUrl=" + returnUrl +
@@ -83,7 +83,7 @@ module.exports = {
             partnerCode: partnerCode,
             accessKey: accessKey,
             requestId: data.requestId,
-            amount: data.amount,
+            amount: data.amount.toString(),
             orderId: data.orderId,
             orderInfo: data.orderInfo,
             returnUrl: returnUrl,
