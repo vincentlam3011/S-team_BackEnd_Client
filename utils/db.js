@@ -6,13 +6,13 @@ var createConnection = () => {
         port: '3306',
         user: 'admin',
         password: 'rootsteam',
-        database: 'f2l_test_deploy',
+        database: 'f2l_test_deploy_momo_heroku',
 
         // host: 'localhost',
         // port: '3306',
         // user: 'root',
         // password: 'root',
-        // database: 'f2l_test_deploy_02',
+        // database: 'f2l_test_deploy_03',
 
         dateStrings: true,
         timezone: 'Z',
