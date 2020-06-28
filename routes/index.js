@@ -847,7 +847,7 @@ router.post('/getResultTransactions', function (req, res, next) {
 
       }
     }).catch(err => {
-      response(res, DEFINED_CODE.ERROR_ID);
+      response(res, DEFINED_CODE.INTERACT_DATA_FAIL);
 
     });
 
