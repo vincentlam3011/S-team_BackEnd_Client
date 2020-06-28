@@ -855,7 +855,9 @@ router.post('/getResultTransactions', function (req, res, next) {
 
 // get review list by job id
 router.post('/getReviewListByJobId', (req, res, next) => {
-  let {id_job, take, page} = req.body;  
+  let id_job = Number.parseInt(req.body.id_job) || 1;
+  let take = Number.parseInt(req.body.take) || 8;
+  let page = Number.parseInt(req.body.page) || 1;
   acceptedModel.getReviewListByJobId(id_job)
   .then(data => {
       let finalData = data.slice(take * (page - 1), take * page);
@@ -867,7 +869,9 @@ router.post('/getReviewListByJobId', (req, res, next) => {
 
 // get review list by employer id
 router.post('/getReviewListByEmployerId', (req, res, next) => {
-  let {employer, take, page} = req.body;  
+  let employer = Number.parseInt(req.body.employer) || 1;
+  let take = Number.parseInt(req.body.take) || 8;
+  let page = Number.parseInt(req.body.page) || 1;
   acceptedModel.getReviewListByEmployerId(employer)
   .then(data => {
       let finalData = data.slice(take * (page - 1), take * page);
@@ -878,8 +882,10 @@ router.post('/getReviewListByEmployerId', (req, res, next) => {
 })
 
 // get review list by employee id
-router.post('/getReviewListByEmployeeId', (req, res, next) => {
-  let {employee, take, page} = req.body;  
+router.post('/getReviewListByEmployeeId', (req, res, next) => { 
+  let employee = Number.parseInt(req.body.employer) || 1;
+  let take = Number.parseInt(req.body.take) || 8;
+  let page = Number.parseInt(req.body.page) || 1;
   acceptedModel.getReviewListByEmployeeId(employee)
   .then(data => {
       let finalData = data.slice(take * (page - 1), take * page);
