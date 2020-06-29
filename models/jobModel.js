@@ -146,7 +146,7 @@ module.exports = {
             }
             if (isFulltext && e.field === 'title') {
                 query += `${e.text}`;
-                query += ` and round(${e.text}) >= ${wordsCount / 2}`
+                query += ` and round(${e.text}) > ${wordsCount / 2}`
             }
             else {
                 query += ` j.${e.field} ${e.text}`;
