@@ -7,7 +7,7 @@ var { response, DEFINED_CODE } = require('../config/response');
 
 var passport = require('../passport');
 var _ = require('lodash');
-var acceptedModel = require('../models/acceptedModel');
+var acceptedModel = require('../models/acceptedmodel');
 
 //Get Applicants by JobId
 // router.post('/getByJobId', function  (req, res, next) {
@@ -36,7 +36,7 @@ router.post('/reviewFromEmployer', (req, res, next) => {
 router.post('/reviewFromEmployee', (req, res, next) => {
     const { id_applicant, id_job, feedback_fromEmployee, rating_fromEmployee } = req.body;
     
-    acceptedModel.reviewFromEmployee(req.body)
+    acceptedModel.reviewReviewFromEmployee(req.body)
         .then(data => {
 
             response(res, DEFINED_CODE.GET_DATA_SUCCESS, data)

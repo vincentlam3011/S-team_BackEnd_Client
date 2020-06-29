@@ -5,6 +5,7 @@ var bcrypt = require('bcrypt');
 var crypto = require('crypto');
 const saltRounds = 15;
 var redis = require('../utils/redis');
+const https = require('https');
 
 var userModel = require('../models/userModel');
 var jobTopicModel = require('../models/jobTopicModel');
@@ -12,14 +13,18 @@ var jobModel = require('../models/jobModel');
 var districtProvinceModel = require('../models/districtProvinceModel');
 var tagModel = require('../models/tagModel');
 
+var transactionModel = require('../models/transactionModel');
 
 var convertBlobB64 = require('../middleware/convertBlobB64');
+var momoService = require('../middleware/momoService');
 
 var router = express.Router();
 var _ = require('lodash')
 
 var { response, DEFINED_CODE } = require('../config/response');
 var { mailer } = require('../utils/nodemailer');
+const acceptedModel = require('../models/acceptedmodel');
+const ApplicantModel = require('../models/ApplicantModel');
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
@@ -135,11 +140,7 @@ router.post('/getJobsList', function (req, res, next) {
       }
     }
   };
-
-  console.log('queryArr:', queryArr)
-  console.log('multiTags:', multiTags)
   jobModel.getJobsList(queryArr, multiTags).then(data => {
-    console.log('data:', data.length)
     const jobs = _.groupBy(data, "id_job");
     var finalData = [];
     let tags_temp = [];
@@ -470,7 +471,7 @@ router.post('/login', (req, res, next) => {
         if (err) {
           res.send(err);
         }
-        let payload = { id: user.loginUser.id_user,fullname:user.loginUser.fullname, isBusinessUser: user.loginUser.isBusinessUser, email: user.loginUser.email };
+        let payload = { id: user.loginUser.id_user, fullname: user.loginUser.fullname, isBusinessUser: user.loginUser.isBusinessUser, email: user.loginUser.email };
         const token = jwt.sign(payload, 'S_Team', { expiresIn: '24h' });
         if (req.user.loginUser.currentToken !== null)
           redis.setKey(req.user.loginUser.currentToken);
@@ -682,7 +683,9 @@ router.get('/getUserInfoNotPrivate/:id', function (req, res, next) {
   let employer = req.params.id;
   userModel.getUserInfoNotPrivate(employer).then(data => {
     let personalInfo = data[0];
-    let companyInfo = data[1];
+    let employee = data[1];
+    let employer = data[2];
+    let companyInfo = data[3];
 
     if (personalInfo[0].avatarImg !== null) {
       let avatar = personalInfo[0].avatarImg;
@@ -691,7 +694,7 @@ router.get('/getUserInfoNotPrivate/:id', function (req, res, next) {
       personalInfo[0].avatarImg = bufferB64;
     }
 
-    response(res, DEFINED_CODE.GET_DATA_SUCCESS, { personal: personalInfo[0], company: companyInfo[0] });
+    response(res, DEFINED_CODE.GET_DATA_SUCCESS, { personal: personalInfo[0], employer: employer[0], employee: employee[0], company: companyInfo[0] });
   }).catch(err => {
     response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
   })
@@ -765,4 +768,136 @@ router.get('/getAllTags', function (req, res, next) {
     res.json(err);
   })
 });
+
+
+//Pay Momo
+router.post('/transferMoneyMomoToF2L', async function (req, res1, next) {
+
+  if (req.body) {
+    let data= req.body;
+    ApplicantModel.getApplicantsByApplicantId(data.id_applicant).then( async (rs)  => {
+      data.amount = rs[0].proposed_price.toString();
+      let options = (await momoService.transferMoneyMomoToF2L(data)).options;
+      let body = (await momoService.transferMoneyMomoToF2L(data)).body;
+      console.log('options:', options)
+      var req = await https.request(options, (res) => {
+        console.log(`Status: ${res.statusCode}`);
+        console.log(`Headers: ${JSON.stringify(res.headers)}`);
+        res.setEncoding('utf8');
+        res.on('data', (body) => {
+          console.log('Body');
+          console.log(body);
+          console.log('payURL');
+          console.log(JSON.parse(body).payUrl);
+          response(res1, DEFINED_CODE.GET_DATA_SUCCESS, JSON.parse(body).payUrl);
+
+        });
+        res.on('end', () => {
+          console.log('No more data in response.');
+        });
+      });
+
+      req.on('error', (e) => {
+        console.log(`problem with request: ${e.message}`);
+      });
+
+      // write data to request body
+      req.write(body);
+      req.end();
+
+
+
+    })
+
+
+  }
+  else {
+    response(res1, DEFINED_CODE.ERROR_ID);
+  }
+});
+//Handle Notify on MOMO
+router.post('/handleIPNMoMo', function (req, res, next) {
+  console.log("body IPN MoMo: ", req.body);
+  let result = req.body;
+  let id_applicant = req.body.orderId.split('-')[0];
+  result.id_applicant = id_applicant;
+  console.log('id_applicant:', id_applicant)
+  if (req.body.errorCode == 0) {
+    transactionModel.insertIntoTransaction(result).then(data => {
+      response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data)
+    });
+
+  }
+  else {
+    response(res, DEFINED_CODE.ERROR_ID);
+  }
+});
+//Handle Notify on MOMO
+router.post('/getResultTransactions', function (req, res, next) {
+  let id_applicant = req.body.id_applicant;
+  console.log('id_applicant:', id_applicant)
+  if (id_applicant) {
+    transactionModel.getTransactionsByIdApplicant(id_applicant).then(data => {
+      if (data.length > 0) {
+        response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data)
+
+      }
+      else {
+        response(res, DEFINED_CODE.GET_RESULT_MOMO_FAIL);
+
+      }
+    }).catch(err => {
+      response(res, DEFINED_CODE.INTERACT_DATA_FAIL);
+
+    });
+
+  }
+  else {
+    response(res, DEFINED_CODE.ERROR_ID);
+  }
+});
+
+// get review list by job id
+router.post('/getReviewListByJobId', (req, res, next) => {
+  let id_job = Number.parseInt(req.body.id_job) || 1;
+  let take = Number.parseInt(req.body.take) || 8;
+  let page = Number.parseInt(req.body.page) || 1;
+  acceptedModel.getReviewListByJobId(id_job)
+    .then(data => {
+      let finalData = data.slice(take * (page - 1), take * page);
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, { list: finalData, total: data.length, page: page });
+    }).catch(err => {
+      response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+    })
+})
+
+// get review list by employer id
+router.post('/getReviewListByEmployerId', (req, res, next) => {
+  let employer = Number.parseInt(req.body.employer) || 1;
+  let take = Number.parseInt(req.body.take) || 8;
+  let page = Number.parseInt(req.body.page) || 1;
+  acceptedModel.getReviewListByEmployerId(employer)
+    .then(data => {
+      let finalData = data.slice(take * (page - 1), take * page);
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, { list: finalData, total: data.length, page: page });
+    }).catch(err => {
+      response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+    })
+})
+
+// get review list by employee id
+router.post('/getReviewListByEmployeeId', (req, res, next) => { 
+  let employee = Number.parseInt(req.body.employer) || 1;
+  let take = Number.parseInt(req.body.take) || 8;
+  let page = Number.parseInt(req.body.page) || 1;
+  acceptedModel.getReviewListByEmployeeId(employee)
+    .then(data => {
+      let finalData = data.slice(take * (page - 1), take * page);
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, { list: finalData, total: data.length, page: page });
+    }).catch(err => {
+      response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+    })
+})
+
+
 module.exports = router;
