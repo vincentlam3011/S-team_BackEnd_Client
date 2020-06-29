@@ -112,10 +112,26 @@ router.post('/getJobsList', function (req, res, next) {
   let queryArr = [];
   let multiTags = [];
   let query = req.body.query;
+  let isFulltext = false;
+  let count = 0;
   for (let i in query) {
     if (query[i]) {
       if (i === 'title') {
-        queryArr.push({ field: i, text: `LIKE '%${query[i]}%'` });
+        let searchTerm = query[i];
+        searchTerm = searchTerm.replace(/[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-.\/:;<=>?@\[\]^_`{|}~]/g, ' ').replace(/\s+/g, ' ');
+        if (searchTerm.length >= 3) {
+          let words = searchTerm.split(" ");
+          count = words.length;
+          let matchValue = '';
+          isFulltext = true;
+          for (let w of words) {
+            matchValue += w + " ";
+          }
+          queryArr.push({ field: i, text: `match(title) against('${matchValue}')` });
+        } else {
+          queryArr.push({ field: i, text: `LIKE '%${query[i]}%'` });
+        }
+        // queryArr.push({ field: i, text: `LIKE '%${query[i]}%'` });
       }
       else if (i === 'expire_date') {
         queryArr.push({ field: i, text: `= '${query[i]}'` });
@@ -140,7 +156,7 @@ router.post('/getJobsList', function (req, res, next) {
       }
     }
   };
-  jobModel.getJobsList(queryArr, multiTags).then(data => {
+  jobModel.getJobsList(queryArr, multiTags, isFulltext, count).then(data => {
     const jobs = _.groupBy(data, "id_job");
     var finalData = [];
     let tags_temp = [];
@@ -774,8 +790,8 @@ router.get('/getAllTags', function (req, res, next) {
 router.post('/transferMoneyMomoToF2L', async function (req, res1, next) {
 
   if (req.body) {
-    let data= req.body;
-    ApplicantModel.getApplicantsByApplicantId(data.id_applicant).then( async (rs)  => {
+    let data = req.body;
+    ApplicantModel.getApplicantsByApplicantId(data.id_applicant).then(async (rs) => {
       data.amount = rs[0].proposed_price.toString();
       let options = (await momoService.transferMoneyMomoToF2L(data)).options;
       let body = (await momoService.transferMoneyMomoToF2L(data)).body;
@@ -886,7 +902,7 @@ router.post('/getReviewListByEmployerId', (req, res, next) => {
 })
 
 // get review list by employee id
-router.post('/getReviewListByEmployeeId', (req, res, next) => { 
+router.post('/getReviewListByEmployeeId', (req, res, next) => {
   let employee = Number.parseInt(req.body.employer) || 1;
   let take = Number.parseInt(req.body.take) || 8;
   let page = Number.parseInt(req.body.page) || 1;
