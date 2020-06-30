@@ -144,6 +144,7 @@ module.exports = {
             if (count !== 0) {
                 query += ' and';
             }
+            query += e;
             query += ` j.${e.field} ${e.text}`;
             count++;
         }

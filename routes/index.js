@@ -115,28 +115,28 @@ router.post('/getJobsList', function (req, res, next) {
   for (let i in query) {
     if (query[i]) {
       if (i === 'title') {
-        queryArr.push({ field: i, text: `LIKE '%${query[i]}%'` });
+        queryArr.push(` match(j.${i}) against('${query[i]}') `);
       }
       else if (i === 'expire_date') {
-        queryArr.push({ field: i, text: `= '${query[i]}'` });
+        queryArr.push(` j.${i} = = '${query[i]}' `);
       }
       else if (i === 'salary') {
-        queryArr.push({ field: i, text: `>= '${query[i].bot}'` });
+        queryArr.push(` j.${i} >= '${query[i].bot}' `);
         if (query[i].top != 0) {
-          queryArr.push({ field: i, text: `< '${query[i].top}'` });
+          queryArr.push(` j.${i} < '${query[i].top}' `);
         }
       }
       else if (i === 'vacancy') {
-        queryArr.push({ field: i, text: `>= '${query[i]}'` });
+        queryArr.push(` j.${i} >= '${query[i]}' `); 
       }
       else if (i === 'employer') {
-        queryArr.push({ field: i, text: `= u.id_user and u.fullname = '${query[i]}'` });
+        queryArr.push(` j.${i} = u.id_user and u.fullname = '${query[i]}' `);  
       }
       else if (i === 'tags') {
         multiTags = query[i];
       }
       else {
-        queryArr.push({ field: i, text: `= ${query[i]}` });
+        queryArr.push(` j.${i} = ${query[i]} `);        
       }
     }
   };
