@@ -111,14 +111,19 @@ router.post('/getJobsList', function (req, res, next) {
   // Lấy danh sách các query cần thiết
   let queryArr = [];
   let multiTags = [];
+
+  let queryTitle = '';
+  let queryEmployer = '';
+
   let query = req.body.query;
   for (let i in query) {
     if (query[i]) {
       if (i === 'title') {
-        queryArr.push(` match(j.${i}) against('${query[i]}') `);
+        //queryArr.push(` match(j.${i}) against('${query[i]}') `);
+        queryTitle = query[i];
       }
       else if (i === 'expire_date') {
-        queryArr.push(` j.${i} = = '${query[i]}' `);
+        queryArr.push(` j.${i} = '${query[i]}' `);
       }
       else if (i === 'salary') {
         queryArr.push(` j.${i} >= '${query[i].bot}' `);
@@ -130,7 +135,9 @@ router.post('/getJobsList', function (req, res, next) {
         queryArr.push(` j.${i} >= '${query[i]}' `); 
       }
       else if (i === 'employer') {
-        queryArr.push(` j.${i} = u.id_user and u.fullname = '${query[i]}' `);  
+        // queryArr.push(` j.${i} = u.id_user and u.fullname = '${query[i]}' `);
+        //queryArr.push(` j.${i} = u.id_user and match(u.fullname) against('${query[i]}') `);
+        queryEmployer = query[i];
       }
       else if (i === 'tags') {
         multiTags = query[i];
@@ -140,10 +147,15 @@ router.post('/getJobsList', function (req, res, next) {
       }
     }
   };
-  jobModel.getJobsList(queryArr, multiTags).then(data => {
+
+  jobModel.getJobsList(queryArr, multiTags, queryEmployer, queryTitle).then(data => {
     const jobs = _.groupBy(data, "id_job");
     var finalData = [];
     let tags_temp = [];
+
+    let queryEmployerCount = queryEmployer.trim().split(/\s+/).length || 0;
+    let queryTitleCount = queryTitle.trim().split(/\s+/).length || 0;
+
     _.forEach(jobs, (value, key) => {
       const tags = _.map(value, item => {
         const { id_tag, tag_name, tag_status } = item;
@@ -157,7 +169,9 @@ router.post('/getJobsList', function (req, res, next) {
       })
       const temp = {
         id_job: value[0].id_job,
-        // employer: value[0].employer,
+        employer: value[0].employer,
+        employerRanking: value[0].employerRanking || 0,
+        titleRanking: value[0].titleRanking || 0,
         relevance: value[0].relevance,
         title: value[0].title,
         salary: value[0].salary,
@@ -179,13 +193,27 @@ router.post('/getJobsList', function (req, res, next) {
         id_status: value[0].id_status,
         img: value[0].img,
         tags: tags_temp[0] === null ? [] : tags_temp,
-      }
+      }      
       finalData.push(temp);
     })
+
+    if(queryEmployer.length > 0) {
+      finalData = _.filter(finalData, (e)=> {
+        return Math.round(e.employerRanking) / queryEmployerCount > 0.5;
+      })
+    }
+
+    if(queryTitle.length > 0) {
+      finalData = _.filter(finalData, (e)=> {
+        return Math.round(e.titleRanking) / queryTitleCount > 0.5;
+      })
+    }
+
     // Đảo ngược chuỗi vì id_job thêm sau cũng là mới nhất
     if (isASC !== 1) {
       finalData = finalData.reverse();
     }
+
     if (multiTags.length > 0) {
       finalData = _.orderBy(finalData, 'relevance', 'desc');
     }
