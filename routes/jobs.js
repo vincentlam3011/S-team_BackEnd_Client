@@ -146,7 +146,7 @@ router.post('/getJobsByEmployerIdForWeb', function (req, res, next) {
     let page = Number.parseInt(req.body.page) || 1;
     let take = Number.parseInt(req.body.take) || 6;
     let isASC = Number.parseInt(req.body.isASC) || 1;
-    let status = Number.parseInt(req.body.status);
+    let status = Number.parseInt(req.body.status) || 1;
 
     var token = req.headers.authorization.slice(7);
     var decodedPayload = jwt.decode(token, {
@@ -464,19 +464,25 @@ router.post("/acceptApplicant", function (req, res, next) {
     });
     emailEmployer = decoded.email;
     let = nameEmployer = decoded.fullname;
-    const { id_job, id_user, email, job_title } = req.body;
+    // const { id_job, id_user, email, job_title } = req.body;
+    let {id_job, id_user} = req.body;
 
-    if (id_job && id_user && email && emailEmployer) {
+    if (id_job && id_user /* && email && emailEmployer */) {
         jobModel.acceptApplicant(id_job, id_user).then(data => {
             response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data);
-            firebase.createConversation(emailEmployer, email);
-            let content = {
-                fullname: nameEmployer,
-                job: job_title,
-                type: 1,
-                date: Date.now()
+            if(data[2].participants === data[3].vacancy) {
+                jobModel.updateJobStatus(id_job, 1).then(data2 => {
+                    console.log('update status success');
+                })
             }
-            firebase.pushNotificationsFirebase(email, content)
+            // firebase.createConversation(emailEmployer, email);
+            // let content = {
+            //     fullname: nameEmployer,
+            //     job: job_title,
+            //     type: 1,
+            //     date: Date.now()
+            // }
+            // firebase.pushNotificationsFirebase(email, content)
         }).catch(err => {
             response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
 

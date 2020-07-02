@@ -306,7 +306,9 @@ module.exports = {
    
         return db.query(`
         insert into accepted (id_applicant,id_job) SELECT * FROM (SELECT id_applicant,${id_job} from applicants where id_job=${id_job} and id_user=${id_user}) as tmp;
-        update applicants set id_status = 1 where id_job =${id_job} and id_user=${id_user}`);
+        update applicants set id_status = 1 where id_job =${id_job} and id_user=${id_user};
+        select count(id_applicant) as participant from applicants where id_status = 1 and id_job = ${id_job};
+        select vacancy from jobs where id_job = ${id_job}`);
 
     },
     rejectApplicant:(id_job,id_user)=>{
@@ -314,5 +316,8 @@ module.exports = {
     },
     finishJob: (id_job)=>{
         return db.query(`update jobs set id_status=3 where id_job=${id_job}`)
-    }
+    },
+    updateJobStatus: (id_job, id_status) => {
+        return db.query(`update jobs set id_status=${id_status} where id_job=${id_job}`)
+    },
 }
