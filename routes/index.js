@@ -123,7 +123,7 @@ router.post('/getJobsList', function (req, res, next) {
         queryTitle = query[i];
       }
       else if (i === 'expire_date') {
-        queryArr.push(` j.${i} = '${query[i]}' `);
+        queryArr.push(` j.${i} >= '${query[i]}' `);
       }
       else if (i === 'salary') {
         queryArr.push(` j.${i} >= '${query[i].bot}' `);
@@ -150,13 +150,10 @@ router.post('/getJobsList', function (req, res, next) {
 
   jobModel.getJobsList(queryArr, multiTags, queryEmployer, queryTitle).then(data => {
     const jobs = _.groupBy(data, "id_job");
-    var finalData = [];
-    let tags_temp = [];
-
-    let queryEmployerCount = queryEmployer.trim().split(/\s+/).length || 0;
-    let queryTitleCount = queryTitle.trim().split(/\s+/).length || 0;
+    var finalData = [];    
 
     _.forEach(jobs, (value, key) => {
+      let tags_temp = [];
       const tags = _.map(value, item => {
         const { id_tag, tag_name, tag_status } = item;
         if (id_tag === null || tag_name === null || tag_status === 0) {
@@ -196,19 +193,7 @@ router.post('/getJobsList', function (req, res, next) {
       }      
       finalData.push(temp);
     })
-
-    if(queryEmployer.length > 0) {
-      finalData = _.filter(finalData, (e)=> {
-        return Math.round(e.employerRanking) / queryEmployerCount > 0.5;
-      })
-    }
-
-    if(queryTitle.length > 0) {
-      finalData = _.filter(finalData, (e)=> {
-        return Math.round(e.titleRanking) / queryTitleCount > 0.5;
-      })
-    }
-
+    
     // Đảo ngược chuỗi vì id_job thêm sau cũng là mới nhất
     if (isASC !== 1) {
       finalData = finalData.reverse();

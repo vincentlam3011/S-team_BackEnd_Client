@@ -196,7 +196,7 @@ module.exports = {
         from (((jobs as j left join job_related_images as jri on j.id_job = jri.id_job) left join jobs_tags as jt on j.id_job = jt.id_job) left join tags as t on t.id_tag = jt.id_tag), users as u, provinces as p, districts as d
         ${multipleTags.length > 0 ? ',(SELECT j2.id_job as id,count(j2.id_job) as relevance FROM jobs as j2, jobs_tags as jt2 WHERE j2.id_job = jt2.id_job AND jt2.id_tag IN (' + tags + ') GROUP BY j2.id_job) AS matches' : ''}
         ${count > 0 ? ('where ' + query + ' and j.area_province = p.id_province and j.area_district = d.id_district') : 'where j.area_province = p.id_province and j.area_district = d.id_district'} ${multipleTags.length > 0 ? ' and matches.id = j.id_job' : ''}
-        group by j.id_job, jt.id_tag order by j.post_date desc`
+        group by j.id_job, jt.id_tag`
 
         //and j.expire_date > "' + todayStr + '" 
 
@@ -235,8 +235,7 @@ module.exports = {
         }
     },
     getJobsByEmployerId: (id_user, status) => {
-        if (status === 1) {
-           
+        if (status === 1) {           
             return db.query(`
             select j.*, count(a.id_job) as candidates, jp.deadline as deadline, jt.start_date as start_date, jt.end_date as end_date, jt.salary_type, p.name as province, d.name as district
             from (((jobs as j left JOIN applicants as a on j.id_job = a.id_job and a.id_status=0) left join jobs_production as jp on j.id_job = jp.id_job) left join jobs_temporal as jt on j.id_job = jt.id_job), provinces as p, districts as d
@@ -250,7 +249,22 @@ module.exports = {
             where j.employer = ${id_user} and j.id_status = ${status} and j.area_province = p.id_province and j.area_district = d.id_district
             group by j.id_job`);
         }
-
+    },
+    getJobsByEmployerIdForWeb: (id_user, status) => {
+        if (status === 1) {           
+            return db.query(`
+            select j.*, a.id_applicant, a.id_status as applicant_status, jp.deadline as deadline, jt.start_date as start_date, jt.end_date as end_date, jt.salary_type, p.name as province, d.name as district
+            from (((jobs as j left JOIN applicants as a on j.id_job = a.id_job) left join jobs_production as jp on j.id_job = jp.id_job) left join jobs_temporal as jt on j.id_job = jt.id_job), provinces as p, districts as d
+            where j.employer = ${id_user} and j.id_status = ${status} and j.area_province = p.id_province and j.area_district = d.id_district
+            group by j.id_job, a.id_applicant`);
+        }
+        else {
+            return db.query(`
+            select j.*, count(a.id_job) as candidates,jp.deadline as deadline, jt.start_date as start_date, jt.end_date as end_date, jt.salary_type, p.name as province, d.name as district
+            from (((jobs as j left JOIN accepted as a on j.id_job = a.id_job) left join jobs_production as jp on j.id_job = jp.id_job) left join jobs_temporal as jt on j.id_job = jt.id_job), provinces as p, districts as d
+            where j.employer = ${id_user} and j.id_status = ${status} and j.area_province = p.id_province and j.area_district = d.id_district
+            group by j.id_job`);
+        }
     },
     // getJobsByEmployerId: (id_user, status) => {
     //     return db.query(`

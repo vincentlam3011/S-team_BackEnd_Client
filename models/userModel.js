@@ -38,7 +38,7 @@ module.exports = {
         return db.query(`select currentToken from users where id_user = ${id}`);
     },
     getTopUsers: () => {
-        return db.query(`select u.fullname,u.address,u.dial,u.email,u.avatarImg,j.*,AVG(ac.rating_fromEmployer) as rating from accepted as ac,users as u, applicants as ap, jobs as j
+        return db.query(`select u.id_user, u.fullname,u.address,u.dial,u.email,u.avatarImg,j.*,AVG(ac.rating_fromEmployer) as rating from accepted as ac,users as u, applicants as ap, jobs as j
         where ac.id_applicant = ap.id_applicant and ap.id_user = u.id_user and ap.id_job= j.id_job
         GROUP BY u.id_user
         ORDER BY AVG(ac.rating_fromEmployer) DESC

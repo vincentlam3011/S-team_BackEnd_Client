@@ -141,8 +141,8 @@ router.post('/getJobsByApplicantId', function (req, res, next) {
     })
 });
 
-// Get jobs by employer id
-router.post('/getJobsByEmployer', function (req, res, next) {
+// Get jobs by employer id bản web
+router.post('/getJobsByEmployerIdForWeb', function (req, res, next) {
     let page = Number.parseInt(req.body.page) || 1;
     let take = Number.parseInt(req.body.take) || 6;
     let isASC = Number.parseInt(req.body.isASC) || 1;
@@ -154,30 +154,30 @@ router.post('/getJobsByEmployer', function (req, res, next) {
     });
     let employer = decodedPayload.id;
 
-    jobModel.getJobsByEmployerId(employer, status).then(data => {
+    jobModel.getJobsByEmployerIdForWeb(employer, status).then(data => {
         const jobs = _.groupBy(data, "id_job");
         var finalData = [];
 
         _.forEach(jobs, (value, key) => {
+            let candidates = 0, participants = 0;
             const tags = _.map(value, item => {
-                const { id_tag, tag_name } = item;
-                if (id_tag === null || tag_name === null) {
-                    return null;
+                const { id_applicant, applicant_status } = item;
+                if (applicant_status === 0) {
+                    candidates++;
                 }
                 else {
-                    return { id_tag, tag_name };
+                    participants++;
                 }
             })
 
             const temp = {
                 id_job: value[0].id_job,
-                // employer: value[0].employer,
-                relevance: value[0].relevance,
+                employer: value[0].employer,
                 title: value[0].title,
                 salary: value[0].salary,
                 job_topic: value[0].job_topic,
-                province: value[0].province,
-                district: value[0].district,
+                area_province: value[0].area_province,
+                area_district: value[0].area_district,
                 address: value[0].address,
                 lat: value[0].lat,
                 lng: value[0].lng,
@@ -189,31 +189,26 @@ router.post('/getJobsByEmployer', function (req, res, next) {
                 isOnline: value[0].isOnline,
                 isCompany: value[0].isCompany,
                 vacancy: value[0].vacancy,
-                // requirement: value[0].requirement,
+                requirement: value[0].requirement,
                 id_status: value[0].id_status,
-                img: value[0].img,
-                tags: tags[0] === null ? [] : tags,
+                candidates: candidates,
+                participants: participants,
+                deadline: value[0].deadline,
+                start_date: value[0].start_date,
+                end_date: value[0].end_date,
+                salary_type: value[0].salary_type,
+                province: value[0].province,
+                district: value[0].district,
             }
             finalData.push(temp);
         })
         // Đảo ngược chuỗi vì id_job thêm sau cũng là mới nhất
         if (isASC !== 1) {
-            finalData = finalData.reverse();
+            finalData = _.groupBy(data, 'post_date', 'desc');
         }
 
         let realData = finalData.slice((page - 1) * take, (page - 1) * take + take);
-        if (realData.length > 0) {
-
-            realData.forEach(element => {
-                if (element.img) {
-                    let buffer = new Buffer(element.img);
-                    let bufferBase64 = buffer.toString('base64');
-                    element.img = bufferBase64;
-                }
-            });
-
-        }
-        // console.log(realData);
+        
         response(res, DEFINED_CODE.GET_DATA_SUCCESS, { jobList: realData, total: finalData.length, page: page });
 
     }).catch((err) => {
