@@ -464,10 +464,9 @@ router.post("/acceptApplicant", function (req, res, next) {
     });
     emailEmployer = decoded.email;
     let = nameEmployer = decoded.fullname;
-    // const { id_job, id_user, email, job_title } = req.body;
-    let {id_job, id_user} = req.body;
+    const { id_job, id_user, email, job_title } = req.body;
 
-    if (id_job && id_user /* && email && emailEmployer */) {
+    if (id_job && id_user && email && emailEmployer ) {
         jobModel.acceptApplicant(id_job, id_user).then(data => {
             response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data);
             if(data[2].participants === data[3].vacancy) {
@@ -475,14 +474,14 @@ router.post("/acceptApplicant", function (req, res, next) {
                     console.log('update status success');
                 })
             }
-            // firebase.createConversation(emailEmployer, email);
-            // let content = {
-            //     fullname: nameEmployer,
-            //     job: job_title,
-            //     type: 1,
-            //     date: Date.now()
-            // }
-            // firebase.pushNotificationsFirebase(email, content)
+            firebase.createConversation(emailEmployer, email);
+            let content = {
+                fullname: nameEmployer,
+                job: job_title,
+                type: 1,
+                date: Date.now()
+            }
+            firebase.pushNotificationsFirebase(email, content)
         }).catch(err => {
             response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
 
