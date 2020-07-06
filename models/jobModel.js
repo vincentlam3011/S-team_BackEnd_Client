@@ -125,7 +125,7 @@ module.exports = {
             on  j.id_job= app.id_job
             join users as u on u.id_user = app.id_user
             where j.id_job=${id};`
-        
+
         return db.query(query1 + ` ` + query2 + ` ` + query3)
     },
     getJobByIdJobTopic: (id, page, number) => {
@@ -147,7 +147,7 @@ module.exports = {
             query += e;
             count++;
         }
-       
+
         if (queryName.length > 0) {
             if (count !== 0) {
                 query += ' and';
@@ -221,7 +221,7 @@ module.exports = {
     getJobsByApplicantId: (id_user, status) => {
         if (status === 1) {
             return db.query(`
-            select j.*, a.id_applicant, a.status, u.fullname, u.email, u.dial, u.avatarImg, p.name as province, d.name as district, jp.deadline as deadline, jt.start_date as start_date, jt.end_date as end_date, jt.salary_type
+            select j.*, a.id_applicant, a.id_status as applicant_status, u.fullname, u.email, u.dial, u.avatarImg, p.name as province, d.name as district, jp.deadline as deadline, jt.start_date as start_date, jt.end_date as end_date, jt.salary_type
             from ((jobs as j left join jobs_production as jp on j.id_job = jp.id_job) left join jobs_temporal as jt on j.id_job = jt.id_job), users as u, provinces as p, districts as d, applicants as a
             where j.id_job = a.id_job and a.id_user = ${id_user} and j.employer = u.id_user and j.area_province = p.id_province and j.area_district = d.id_district and j.id_status = ${status}
             group by j.id_job`);
@@ -235,7 +235,7 @@ module.exports = {
         }
     },
     getJobsByEmployerId: (id_user, status) => {
-        if (status === 1) {           
+        if (status === 1) {
             return db.query(`
             select j.*, count(a.id_job) as candidates, jp.deadline as deadline, jt.start_date as start_date, jt.end_date as end_date, jt.salary_type, p.name as province, d.name as district
             from (((jobs as j left JOIN applicants as a on j.id_job = a.id_job and a.id_status=0) left join jobs_production as jp on j.id_job = jp.id_job) left join jobs_temporal as jt on j.id_job = jt.id_job), provinces as p, districts as d
@@ -251,7 +251,7 @@ module.exports = {
         }
     },
     getJobsByEmployerIdForWeb: (id_user, status) => {
-        if (status === 1) {           
+        if (status === 1) {
             return db.query(`
             select j.*, a.id_applicant, a.id_status as applicant_status, jp.deadline as deadline, jt.start_date as start_date, jt.end_date as end_date, jt.salary_type, p.name as province, d.name as district
             from (((jobs as j left JOIN applicants as a on j.id_job = a.id_job) left join jobs_production as jp on j.id_job = jp.id_job) left join jobs_temporal as jt on j.id_job = jt.id_job), provinces as p, districts as d
@@ -299,11 +299,11 @@ module.exports = {
 		GROUP BY j.id_job
         order by j.post_date DESC limit ${page * number},${number}`);
     },
-    setCancelRecruit: (id_job)=>{
+    setCancelRecruit: (id_job) => {
         return db.query(`update jobs set id_status = 2 where id_job= ${id_job}`);
     },
-    acceptApplicant:(id_job,id_user)=>{
-   
+    acceptApplicant: (id_job, id_user) => {
+
         return db.query(`
         insert into accepted (id_applicant,id_job) SELECT * FROM (SELECT id_applicant,${id_job} from applicants where id_job=${id_job} and id_user=${id_user}) as tmp;
         update applicants set id_status = 1 where id_job =${id_job} and id_user=${id_user};
@@ -311,10 +311,10 @@ module.exports = {
         select vacancy from jobs where id_job = ${id_job}`);
 
     },
-    rejectApplicant:(id_job,id_user)=>{
+    rejectApplicant: (id_job, id_user) => {
         return db.query(`delete from applicants where id_job =${id_job} and id_user=${id_user} `);
     },
-    finishJob: (id_job)=>{
+    finishJob: (id_job) => {
         return db.query(`update jobs set id_status=3 where id_job=${id_job}`)
     },
     updateJobStatus: (id_job, id_status) => {
