@@ -115,7 +115,7 @@ router.put('/editPersonalInfo', (req, res, next) => {
     secret: 'S_Team',
   });
   var id_user = decodedPayload.id;
-  console.log("id user: ",id_user);
+  console.log("id user: ", id_user);
   var updates = [];
   var body = req.body;
   for (var i in body) {
@@ -130,7 +130,7 @@ router.put('/editPersonalInfo', (req, res, next) => {
   };
   userModel.updateUserInfo(id_user, updates)
     .then(data => {
-      response(res, DEFINED_CODE.EDIT_PERSONAL_SUCCESS, {RowChanged: data.changedRows,});
+      response(res, DEFINED_CODE.EDIT_PERSONAL_SUCCESS, { RowChanged: data.changedRows, });
     }).catch(err => {
       response(res, DEFINED_CODE.EDIT_PERSONAL_FAIL, err);
     })
@@ -173,15 +173,15 @@ router.post('/addReport', (req, res, next) => {
   });
 
   let id_user1 = decodedPayload.id;
-  let {content} = req.body;
+  let { content, type, applicantId } = req.body;
   let role1 = Number.parseInt(req.body.yourRole);
   let role2 = 0;
-  if(role1 === 0) {
+  if (role1 === 0) {
     role2 = 1;
   }
 
   let id_user2 = Number.parseInt(req.body.reporterId);
-  reportModel.addReport(id_user1, role1, id_user2, role2, content)
+  reportModel.addReport(id_user1, role1, id_user2, role2, content, type, applicantId)
     .then(data => {
       response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, { insertId: data.insertId });
     }).catch(err => {
