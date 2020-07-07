@@ -4,8 +4,13 @@ var convertBlobB64 = require('../middleware/convertBlobB64');
 module.exports = {
 
     getApplicantsByJobId: (id, id_status) => {
-        let sqlQueryApplicants = `select u.id_user, u.fullname, u.email, u.dial, a.id_applicant, a.proposed_price, a.attachment, a.introduction_string from users as u, applicants as a, jobs as j
-        where j.id_job = a.id_job and a.id_user = u.id_user and j.id_job = ${id} and a.id_status=${id_status} order by a.proposed_price asc;`
+        let sqlQueryApplicants = `
+        select COALESCE(AVG(ac.rating_fromEmployee),0) as employer_rating, count(*) as employee_job, u.id_user, u.fullname, u.email, u.dial, a.id_applicant, a.proposed_price, a.attachment, a.introduction_string 
+        from ((users as u left join applicants as ap on u.id_user = ap.id_user) left join accepted as ac on ac.id_applicant = ap.id_applicant), applicants as a, jobs as j
+        where j.id_job = a.id_job and a.id_user = u.id_user and j.id_job = ${id} and a.id_status=${id_status} 
+        group by u.id_user
+        order by a.proposed_price asc;        
+        `
         return db.query(sqlQueryApplicants);
     },
     getApplicantsByUserId: (id) => {
