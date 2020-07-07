@@ -10,6 +10,8 @@ var passport = require('../passport');
 
 var userModel = require('../models/userModel');
 const reportModel = require('../models/reportModel');
+const transactionModel = require('../models/transactionModel');
+const { transaction } = require('../utils/db');
 
 const saltRounds = 15;
 
@@ -188,5 +190,37 @@ router.post('/addReport', (req, res, next) => {
       response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
     })
 })
+
+
+/* Get user info */
+router.post('/getTransactionsByIdUser', (req, res, next) => {
+  let take = Number.parseInt(req.body.take) || 8;
+  let page = Number.parseInt(req.body.page) || 1;
+  var token = req.headers.authorization.slice(7);
+  var decodedPayload = jwt.decode(token, {
+    secret: 'S_Team',
+  });
+  var id_user = decodedPayload.id;
+  transactionModel.getTransactionsByIdUser(id_user)
+    .then(data => {
+      var transactionList = data[0];
+      transactionList.forEach((e) => {
+        if (e.avatarImg !== null) {
+          let avatar = e.avatarImg;
+          let buffer = new Buffer(avatar);
+          let bufferB64 = buffer.toString('base64');
+          e.avatarImg = bufferB64;
+        }
+      })
+      
+      let final = transactionList.slice(take*(page - 1), take * page);
+      var sum = data[1][0];
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, { list: final, page: page, total: transactionList.length, sum: sum.totalAmount });
+      
+    }).catch(err => {
+      response(res, DEFINED_CODE.GET_DATA_FAIL)
+    })
+})
+
 
 module.exports = router;

@@ -408,20 +408,19 @@ router.delete("/deleteJob", function (req, res, next) {
     }
 
 }),
-    router.post("/createNewChatConversation", async function (req, res, next) {
+router.post("/createNewChatConversation", async function (req, res, next) {
 
-        const { email1, email2 } = req.body;
-        if (email1 && email2) {
-            firebase.createConversation(email1, email2);
+    const { email1, email2 } = req.body;
+    if (email1 && email2) {
+        firebase.createConversation(email1, email2);
 
-        }
-        else
-            response(res, DEFINED_CODE.ERROR_ID);
+    }
+    else
+        response(res, DEFINED_CODE.ERROR_ID);
 
 
 
-    })
-
+})
 router.post("/sendMessage", async function (req, res, next) {
 
     const { email1, email2 } = req.body;

@@ -13,6 +13,12 @@ module.exports = {
     },
     getTransactionsByIdApplicant: (id_applicant)=>{
         return db.query(`select distinct t.* from transactions as t, applicants as a where t.id_applicant = ${id_applicant}`);
+    },
+    getTransactionsByIdUser: (id_user)=>{
+        return db.query(`
+        select t.*, a.id_job, j.title, u.fullname, u.email, u.dial, u.avatarImg from transactions as t, applicants as a, jobs as j, users as u where t.id_applicant = a.id_applicant and a.id_user = ${id_user} and a.id_job = j.id_job and j.employer = u.id_user order by a.id_applicant desc;
+        select coalesce(sum(t.amount*(100-t.refund)/100), 0) as totalAmount from transactions as t, applicants as a where t.id_applicant = a.id_applicant and a.id_user = ${id_user};
+        `);
     }
   
     // sign_up: (account, company) => {

@@ -890,7 +890,7 @@ router.post('/getReviewListByEmployerId', (req, res, next) => {
   let take = Number.parseInt(req.body.take) || 8;
   let page = Number.parseInt(req.body.page) || 1;
   acceptedModel.getReviewListByEmployerId(employer)
-    .then(data => {
+    .then(data => {      
       let finalData = data.slice(take * (page - 1), take * page);
       response(res, DEFINED_CODE.GET_DATA_SUCCESS, { list: finalData, total: data.length, page: page });
     }).catch(err => {
