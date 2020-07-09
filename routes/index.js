@@ -6,6 +6,7 @@ var crypto = require('crypto');
 const saltRounds = 15;
 var redis = require('../utils/redis');
 const https = require('https');
+const NodeRSA = require('node-rsa');
 
 var userModel = require('../models/userModel');
 var jobTopicModel = require('../models/jobTopicModel');
@@ -774,8 +775,8 @@ router.get('/getAllTags', function (req, res, next) {
 router.post('/transferMoneyMomoToF2L', async function (req, res1, next) {
 
   if (req.body) {
-    let data= req.body;
-    ApplicantModel.getApplicantsByApplicantId(data.id_applicant).then( async (rs)  => {
+    let data = req.body;
+    ApplicantModel.getApplicantsByApplicantId(data.id_applicant).then(async (rs) => {
       data.amount = rs[0].proposed_price.toString();
       let options = (await momoService.transferMoneyMomoToF2L(data)).options;
       let body = (await momoService.transferMoneyMomoToF2L(data)).body;
@@ -893,5 +894,16 @@ router.post('/getReviewListByEmployeeId', (req, res, next) => {
     })
 })
 
+// get Hash
+router.post('/getHashMoMoInMobile', (req, res, next) => {
+  let data = req.body;
+  if (data.amount && data.partnerRefId) {
+    response(res, DEFINED_CODE.GET_DATA_SUCCESS, momoService.createHashMoMoMobile(data));
+    
+  }
+  else {
+    response(res, DEFINED_CODE.ERROR_ID, err);
+  }
 
+})
 module.exports = router;
