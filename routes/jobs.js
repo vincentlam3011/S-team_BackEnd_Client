@@ -387,6 +387,15 @@ router.delete("/deleteJob", function (req, res, next) {
             if (result.id_job) {
                 jobModel.deleteJobById(id_job).then(data => {
                     response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS);
+                    let content = {
+                        fullname: data[1][0].fullname,
+                        job: data[1][0].title,
+                        type: 10,
+                        date: Date.now()
+                    }
+                    data[2].forEach((e) => {
+                        firebase.pushNotificationsFirebase(e.email, content);
+                    })
 
                 }).catch((err) => {
                     console.log('err:', err)
@@ -439,7 +448,15 @@ router.post("/cancelRecruit", function (req, res, next) {
     if (id_job) {
         jobModel.setCancelRecruit(id_job).then(data => {
             response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data);
-
+            let content = {
+                fullname: data[1][0].fullname,
+                job: data[1][0].title,
+                type: 5,
+                date: Date.now()
+            }
+            data[2].forEach((e) => {
+                firebase.pushNotificationsFirebase(e.email, content);
+            })
         }).catch(err => {
             response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
 
@@ -502,17 +519,17 @@ router.post("/rejectApplicant", function (req, res, next) {
         secret: 'S_Team',
     });
     let nameEmployer = decoded.fullname;
-    const { id_job, id_user, email, job_title } = req.body;
+    const { id_job, id_user, isEmployer} = req.body;
     if (id_job && id_user) {
-        jobModel.rejectApplicant(id_job, id_user).then(data => {
-            response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data);
+        jobModel.rejectApplicant(id_job, id_user, isEmployer).then(data => {
+            response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data[0]);
             let content = {
                 fullname: nameEmployer,
-                job: job_title,
-                type: 0,
+                job: data[1][0].title,
+                type: isEmployer === 1 ? 0 : 17,
                 date: Date.now()
             }
-            firebase.pushNotificationsFirebase(email, content)
+            firebase.pushNotificationsFirebase(data[1][0].email, content);
         }).catch(err => {
             response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
 

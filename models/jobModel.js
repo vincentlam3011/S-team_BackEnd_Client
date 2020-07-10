@@ -244,7 +244,7 @@ module.exports = {
         }
         else {
             return db.query(`
-            select j.*, count(a.id_job) as candidates,jp.deadline as deadline, jt.start_date as start_date, jt.end_date as end_date, jt.salary_type, p.name as province, d.name as district
+            select j.*, count(a.id_applicant) as candidates,jp.deadline as deadline, jt.start_date as start_date, jt.end_date as end_date, jt.salary_type, p.name as province, d.name as district
             from (((jobs as j left JOIN accepted as a on j.id_job = a.id_job) left join jobs_production as jp on j.id_job = jp.id_job) left join jobs_temporal as jt on j.id_job = jt.id_job), provinces as p, districts as d
             where j.employer = ${id_user} and j.id_status = ${status} and j.area_province = p.id_province and j.area_district = d.id_district
             group by j.id_job`);
@@ -283,7 +283,11 @@ module.exports = {
         return db.query(`select count(*) as processingJobNum from jobs where id_status = 3`);
     },
     deleteJobById: (id) => {
-        return db.query(`delete from jobs where id_job = ${id}`)
+        return db.query(`
+        delete from jobs where id_job = ${id};
+        select u.fullname, j.title from jobs as j, users as u where j.id_job = ${id} and j.employer = u.id_user;
+        select u.email from applicants as a, users as u where a.id_user = u.id_user and a.id_job = ${id};
+        `)
     },
     getJobsTemporalRecent: (number, page) => {
         return db.query(`select j.*,jri.img
@@ -300,7 +304,14 @@ module.exports = {
         order by j.post_date DESC limit ${page * number},${number}`);
     },
     setCancelRecruit: (id_job) => {
-        return db.query(`update jobs set id_status = 2 where id_job= ${id_job}`);
+        let today = new Date();
+        let todayStr = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+        return db.query(`
+        update jobs set id_status = 2 where id_job= ${id_job};
+        select u.fullname, j.title from jobs as j, users as u where j.id_job = ${id_job} and j.employer = u.id_user;
+        select u.email from applicants as a, users as u where a.id_user = u.id_user and a.id_job = ${id_job};
+        update applicants set start = '${todayStr}' where id_job = ${id_job};
+        `);
     },
     acceptApplicant: (id_job, id_user) => {
 
@@ -311,11 +322,24 @@ module.exports = {
         select vacancy from jobs where id_job = ${id_job}`);
 
     },
-    rejectApplicant: (id_job, id_user) => {
-        return db.query(`delete from applicants where id_job =${id_job} and id_user=${id_user} `);
+    rejectApplicant: (id_job, id_user, isEmployer) => {
+        let query = `delete from applicants where id_job =${id_job} and id_user=${id_user};`;
+        if(isEmployer === 1) {
+            query += `select j.title, u.email from jobs as j, users as u where j.id_job = ${id_job} and u.id_user = ${id_user};`
+        }
+        else {
+            query += `select j.title, u.email from jobs as j, users as u where j.id_job = ${id_job} and j.employer = u.id_user;`
+        }
+
+        return db.query(query);
     },
     finishJob: (id_job) => {
-        return db.query(`update jobs set id_status=3 where id_job=${id_job}`)
+        let today = new Date();
+        let todayStr = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+        return db.query(`
+        update jobs set id_status=3 where id_job=${id_job};
+        update applicants set start = '${todayStr}' where id_job = ${id_job};
+        `)
     },
     updateJobStatus: (id_job, id_status) => {
         return db.query(`update jobs set id_status=${id_status} where id_job=${id_job}`)

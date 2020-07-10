@@ -4,8 +4,11 @@ var convertBlobB64 = require('../middleware/convertBlobB64');
 module.exports = {
 
     insertIntoTransaction: (trans)=>{
-        return db.query(`insert into transactions(amount, requestId, orderId, orderInfo, orderType, transId, errorCode, message, localMessage, responseTime, signature,  extraData, payType, id_applicant) 
-        VALUES ('${trans.amount}','${trans.requestId}','${trans.orderId}','${trans.orderInfo}','${trans.orderType}','${trans.transId}','${trans.errorCode}','${trans.message}','${trans.localMessage}','${trans.responseTime}','${trans.signature}','${trans.extraData}','${trans.payType}','${trans.id_applicant}');`);
+        return db.query(`
+        insert into transactions(amount, requestId, orderId, orderInfo, orderType, transId, errorCode, message, localMessage, responseTime, signature,  extraData, payType, id_applicant) 
+        VALUES ('${trans.amount}','${trans.requestId}','${trans.orderId}','${trans.orderInfo}','${trans.orderType}','${trans.transId}','${trans.errorCode}','${trans.message}','${trans.localMessage}','${trans.responseTime}','${trans.signature}','${trans.extraData}','${trans.payType}','${trans.id_applicant}');
+        select j.title, u1.fullname, u2.email from users as u1, users as u2, jobs as j, applicants as a where a.id_applicant = ${trans.id_applicant} and a.id_job = j.id_job and j.employer = u1.id_user and a.id_user = u2.id_user;
+        `);
     },
    
     getTransactions: (trans)=>{

@@ -90,7 +90,7 @@ module.exports = {
         return db.query(sqlQuery);
     },
     verifyActivation: (token) => {
-        return db.query(`select id_user, account_status, activationToken, timestampdiff(second, activationExpr, now()) as isExpr from users where activationToken = '${token}';`);
+        return db.query(`select id_user, email, account_status, activationToken, timestampdiff(second, activationExpr, now()) as isExpr from users where activationToken = '${token}';`);
     },
     getUserImageFromChat: (email1,email2)=>{
         return db.query(`select email,avatarImg,fullname from users where users.email = "${email1}" or users.email = "${email2}";`);

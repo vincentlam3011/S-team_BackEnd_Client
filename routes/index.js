@@ -123,7 +123,7 @@ router.post('/getJobsList', function (req, res, next) {
         queryTitle = query[i];
       }
       else if (i === 'expire_date') {
-        queryArr.push(` j.${i} >= '${query[i]}' `);
+        queryArr.push(` j.${i} <= '${query[i]}' `);
       }
       else if (i === 'salary') {
         queryArr.push(` j.${i} >= '${query[i].bot}' `);
@@ -507,15 +507,21 @@ router.put('/activation/:activationToken', (req, res, next) => {
   userModel.verifyActivation(activationToken)
     .then(data => {
       if (data.length > 0) {
-        if (data[0].account_status === 1) {
+        if (data[0].account_status === 1) {          
           response(res, DEFINED_CODE.ACTIVATE_FAIL, 'Already activated');
           // res.redirect();
           return;
         } else {
           if (data[0].isExpr <= 0) {
+            let email = data[0].email;
             userModel.updateUserInfo(data[0].id_user, [{ field: 'account_status', value: 1 }])
               .then(result => {
                 response(res, DEFINED_CODE.ACTIVATE_SUCCESS);
+                let content = {
+                  type: 12,
+                  date: Date.now()
+                }
+                firebase.pushNotificationsFirebase(email, content)
               }).catch(err => {
                 response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
               })
@@ -713,7 +719,6 @@ router.get('/getUserInfoNotPrivate/:id', function (req, res, next) {
   })
 });
 
-
 //Get Jobs Temporal Recent with params = length of data want to get
 router.get('/getJobsTemporalRecent/', function (req, res, next) {
   let page = req.query.page;
@@ -837,7 +842,14 @@ router.post('/handleIPNMoMo', function (req, res, next) {
   console.log('id_applicant:', id_applicant)
   if (req.body.errorCode == 0) {
     transactionModel.insertIntoTransaction(result).then(data => {
-      response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data)
+      response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data[0])
+      let content = {
+        fullname: data[1][0].fullname,
+        job: data[1][0].title,
+        type: 3,
+        date: Date.now()
+      }
+      firebase.pushNotificationsFirebase(data[1][0].email, content)
     });
 
   }
@@ -900,7 +912,7 @@ router.post('/getReviewListByEmployerId', (req, res, next) => {
 
 // get review list by employee id
 router.post('/getReviewListByEmployeeId', (req, res, next) => { 
-  let employee = Number.parseInt(req.body.employer) || 1;
+  let employee = Number.parseInt(req.body.employee) || 1;
   let take = Number.parseInt(req.body.take) || 8;
   let page = Number.parseInt(req.body.page) || 1;
   acceptedModel.getReviewListByEmployeeId(employee)
