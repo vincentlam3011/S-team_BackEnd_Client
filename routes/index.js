@@ -133,7 +133,7 @@ router.post('/getJobsList', function (req, res, next) {
         }
       }
       else if (i === 'vacancy') {
-        queryArr.push(` j.${i} >= '${query[i]}' `); 
+        queryArr.push(` j.${i} >= '${query[i]}' `);
       }
       else if (i === 'employer') {
         // queryArr.push(` j.${i} = u.id_user and u.fullname = '${query[i]}' `);
@@ -144,14 +144,14 @@ router.post('/getJobsList', function (req, res, next) {
         multiTags = query[i];
       }
       else {
-        queryArr.push(` j.${i} = ${query[i]} `);        
+        queryArr.push(` j.${i} = ${query[i]} `);
       }
     }
   };
 
   jobModel.getJobsList(queryArr, multiTags, queryEmployer, queryTitle).then(data => {
     const jobs = _.groupBy(data, "id_job");
-    var finalData = [];    
+    var finalData = [];
 
     _.forEach(jobs, (value, key) => {
       let tags_temp = [];
@@ -191,10 +191,10 @@ router.post('/getJobsList', function (req, res, next) {
         id_status: value[0].id_status,
         img: value[0].img,
         tags: tags_temp[0] === null ? [] : tags_temp,
-      }      
+      }
       finalData.push(temp);
     })
-    
+
     // Đảo ngược chuỗi vì id_job thêm sau cũng là mới nhất
     if (isASC !== 1) {
       finalData = finalData.reverse();
@@ -861,6 +861,7 @@ router.post('/handleIPNMoMoMobile', function (req, res, next) {
     result.orderType = result.transType;
     result.requestId = result.partnerTransId;
     result.transId = result.momoTransId;
+    result.status = 0;
     result.errorCode = result.status;
     result.localMessage = result.message;
     result.extraData = result.extra;
@@ -930,7 +931,7 @@ router.post('/getReviewListByEmployerId', (req, res, next) => {
 })
 
 // get review list by employee id
-router.post('/getReviewListByEmployeeId', (req, res, next) => { 
+router.post('/getReviewListByEmployeeId', (req, res, next) => {
   let employee = Number.parseInt(req.body.employer) || 1;
   let take = Number.parseInt(req.body.take) || 8;
   let page = Number.parseInt(req.body.page) || 1;
@@ -943,15 +944,28 @@ router.post('/getReviewListByEmployeeId', (req, res, next) => {
     })
 })
 
-// get Hash
+// get Hash RSA MoMo
 router.post('/getHashMoMoInMobile', (req, res, next) => {
   let data = req.body;
   if (data.amount && data.partnerRefId) {
     response(res, DEFINED_CODE.GET_DATA_SUCCESS, momoService.createHashMoMoMobile(data));
-    
+
   }
   else {
     response(res, DEFINED_CODE.ERROR_ID, err);
+  }
+
+})
+// get Signature in Confirm MoMo
+router.post('/getSignatureMoMoInMobile', (req, res, next) => {
+  let data = req.body;
+  if (data.partnerRefId && data.requestId && data.momoTransId) {
+    console.log('requestId:',data.requestId)
+    response(res, DEFINED_CODE.GET_DATA_SUCCESS, momoService.createSignatureMobileConFirm(data));
+
+  }
+  else {
+    response(res, DEFINED_CODE.ERROR_ID);
   }
 
 })

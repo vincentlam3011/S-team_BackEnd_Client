@@ -108,6 +108,22 @@ router.post('/editApplicant', function (req, res, next) {
     }
 
 });
+//Accept Applicants 
+router.post('/acceptApplicant', function (req, res, next) {
+    let applicants = JSON.parse(JSON.stringify(req.body));
+    if (applicants.id_applicant) {
+        applicantModel.acceptApplicant(applicants).then(data => {
+            response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data);
+        }).catch(err => {
+            response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
+        })
+    }
+    else {
+        // response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
+        response(res, DEFINED_CODE.INTERACT_DATA_FAIL, "No id_applicant found, lacking predential")
+    }
+
+});
 //Delete Applicants By Applicants Id 
 router.delete('/deleteApplicant', function (req, res, next) {
     let id_applicant = req.body.id_applicant;
@@ -123,4 +139,5 @@ router.delete('/deleteApplicant', function (req, res, next) {
     }
 
 });
+
 module.exports = router;
