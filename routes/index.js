@@ -846,6 +846,36 @@ router.post('/handleIPNMoMo', function (req, res, next) {
     response(res, DEFINED_CODE.ERROR_ID);
   }
 });
+
+//Handle Notify on MOMO Mobile
+router.post('/handleIPNMoMoMobile', function (req, res, next) {
+  console.log("body IPN MoMo: ", req.body);
+  let result = req.body;
+  let id_applicant = req.body.partnerRefId.split('-')[0];
+  result.id_applicant = id_applicant;
+  console.log('id_applicant:', id_applicant)
+  if (req.body.status == 0) {
+    result.requestId = result.partnerTransId;
+    result.orderId = result.partnerRefId;
+    result.orderInfo = '';
+    result.orderType = result.transType;
+    result.requestId = result.partnerTransId;
+    result.transId = result.momoTransId;
+    result.errorCode = result.status;
+    result.localMessage = result.message;
+    result.extraData = result.extra;
+    result.payType = 'mobile';
+
+
+    transactionModel.insertIntoTransaction(result).then(data => {
+      response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data)
+    });
+
+  }
+  else {
+    response(res, DEFINED_CODE.ERROR_ID);
+  }
+});
 //Handle Notify on MOMO
 router.post('/getResultTransactions', function (req, res, next) {
   let id_applicant = req.body.id_applicant;
