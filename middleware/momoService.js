@@ -25,7 +25,7 @@ var extraData = "merchantName=PaymentF2L";
 // var returnUrl = `https://test-payment.momo.vn/gw_payment/qr?&partnerCode=${partnerCode}&accessKey=${accessKey}
 // &requestId=${requestId}&amount=${amount}&orderId=${orderId}
 // &requestType=${requestType}&signature=${signature}`
-var returnUrl = "https://f2l-client.herokuapp.com/handleMoMoIPN";
+var returnUrl = "https://momo.vn/";
 //pass empty value if your merchant does not have stores else merchantName=[storeName]; merchantId=[storeId] to identify a transaction map with a physical store
 //before sign HMAC SHA256 with format
 //partnerCode=$partnerCode&accessKey=$accessKey&requestId=$requestId&amount=$amount&orderId=$oderId&orderInfo=$orderInfo&returnUrl=$returnUrl&notifyUrl=$notifyUrl&extraData=$extraData
