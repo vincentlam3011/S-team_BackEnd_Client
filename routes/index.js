@@ -944,7 +944,7 @@ router.post('/getReviewListByEmployeeId', (req, res, next) => {
     })
 })
 
-// get Hash
+// get Hash RSA MoMo
 router.post('/getHashMoMoInMobile', (req, res, next) => {
   let data = req.body;
   if (data.amount && data.partnerRefId) {
@@ -953,6 +953,19 @@ router.post('/getHashMoMoInMobile', (req, res, next) => {
   }
   else {
     response(res, DEFINED_CODE.ERROR_ID, err);
+  }
+
+})
+// get Signature in Confirm MoMo
+router.post('/getSignatureMoMoInMobile', (req, res, next) => {
+  let data = req.body;
+  if (data.partnerRefId && data.requestId && data.momoTransId) {
+    console.log('requestId:',data.requestId)
+    response(res, DEFINED_CODE.GET_DATA_SUCCESS, momoService.createSignatureMobileConFirm(data));
+
+  }
+  else {
+    response(res, DEFINED_CODE.ERROR_ID);
   }
 
 })

@@ -175,7 +175,23 @@ module.exports = {
             "amount": data.amount
         }
         return key.encrypt(JSON.stringify(jsonData), 'base64');
-    }
+    },
+    createSignatureMobileConFirm: (data) => {
+        var rawSignature =
+            "partnerCode=" + partnerCode +
+            "&partnerRefId=" + data.partnerRefId +
+            "&requestType=capture" +
+            "&requestId=" + data.requestId.toString() +
+            "&momoTransId=" + data.momoTransId.toString()
+        //puts raw signature
+        console.log("--------------------RAW SIGNATURE----------------")
+        console.log(rawSignature)
 
+        //signature
+        const crypto = require('crypto');
+        return crypto.createHmac('SHA256', serectkey)
+            .update(rawSignature)
+            .digest('hex');
+    },
 
 }
