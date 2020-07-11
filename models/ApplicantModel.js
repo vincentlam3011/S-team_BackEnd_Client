@@ -50,6 +50,11 @@ module.exports = {
         WHERE id_applicant = '${applicants.id_applicant}';`;
         return db.query(sqlQueryApplicants)
     },
+    acceptApplicant: (applicants) => {
+        let sqlQueryApplicants = `update applicants SET id_status=1
+        WHERE id_applicant = '${applicants.id_applicant}';`;
+        return db.query(sqlQueryApplicants)
+    },
     deleteApplicant: (id) => {
         return db.query(`delete from applicants where id_applicant = ${id}`)
     }
