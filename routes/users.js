@@ -14,6 +14,7 @@ const transactionModel = require('../models/transactionModel');
 const { transaction } = require('../utils/db');
 const { report } = require('./applicants');
 
+var firebase = require('../middleware/firebaseFunction')
 const saltRounds = 15;
 
 /* GET users listing. */
@@ -204,6 +205,24 @@ router.post('/addReport', (req, res, next) => {
       reportModel.addReport(id_user1, role1, id_user2, role2, content, type, applicantId, id_job)
       .then(data => {
         response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, { code: 1});
+        if(type === 1) { // yêu cầu sa thải
+          let content1 = {
+            fullname: data[1][0].fullname,
+            job: data[1][0].title,
+            type: 21,
+            date: Date.now()
+          }
+          firebase.pushNotificationsFirebase(data[1][0].email, content1);
+        }
+        else { // khiếu nại thông thường
+          let content2 = {
+            fullname: data[1][0].fullname,
+            job: data[1][0].title,
+            type: 20,
+            date: Date.now()
+          }
+          firebase.pushNotificationsFirebase(data[1][0].email, content2);
+        }
       }).catch(err => {
         response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
       })

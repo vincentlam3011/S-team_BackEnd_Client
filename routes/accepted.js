@@ -8,6 +8,7 @@ var { response, DEFINED_CODE } = require('../config/response');
 var passport = require('../passport');
 var _ = require('lodash');
 var acceptedModel = require('../models/acceptedmodel');
+var firebase = require('../middleware/firebaseFunction')
 
 //Get Applicants by JobId
 // router.post('/getByJobId', function  (req, res, next) {
@@ -27,8 +28,13 @@ router.post('/reviewFromEmployer', (req, res, next) => {
 
     acceptedModel.reviewFromEmployer(req.body)
         .then(data => {
-
-            response(res, DEFINED_CODE.GET_DATA_SUCCESS, data)
+            response(res, DEFINED_CODE.GET_DATA_SUCCESS, data[0]);
+            let content = {
+                fullname: data[1][0].fullname,
+                type: 22,
+                date: Date.now()
+            } 
+            firebase.pushNotificationsFirebase(data[1][0].email, content);
         }).catch(err => {
             response(res, DEFINED_CODE.GET_DATA_FAIL, err);
         })
@@ -38,8 +44,13 @@ router.post('/reviewFromEmployee', (req, res, next) => {
     
     acceptedModel.reviewReviewFromEmployee(req.body)
         .then(data => {
-
             response(res, DEFINED_CODE.GET_DATA_SUCCESS, data)
+            let content = {
+                fullname: data[1][0].fullname,
+                type: 23,
+                date: Date.now()
+            } 
+            firebase.pushNotificationsFirebase(data[1][0].email, content);
         }).catch(err => {
             response(res, DEFINED_CODE.GET_DATA_FAIL, err);
         })

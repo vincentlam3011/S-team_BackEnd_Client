@@ -4,14 +4,20 @@ var convertBlobB64 = require('../middleware/convertBlobB64');
 module.exports = {
 
     reviewFromEmployer: (review)=>{
-        return db.query(`update accepted set feedback_fromEmployer='${review.feedback_fromEmployer}', rating_fromEmployer=${review.rating_fromEmployer}
-        where id_applicant = ${review.id_applicant} and id_job=${review.id_job} `);
+        return db.query(`
+        update accepted set feedback_fromEmployer='${review.feedback_fromEmployer}', rating_fromEmployer=${review.rating_fromEmployer}
+        where id_applicant = ${review.id_applicant} and id_job=${review.id_job};
+        select u1.fullname, u2.email from users1 as u1, users as u2, reports as r where r.id_user1 = u1.id_user and r.id_user2 = u2.id_user and r.id_applicant = ${review.id_applicant};
+        `);
     },
    
 
     reviewReviewFromEmployee: (review)=>{
-        return db.query(`update accepted set feedback_fromEmployee='${review.feedback_fromEmployee}', rating_fromEmployee=${review.rating_fromEmployee}
-        where id_applicant = ${review.id_applicant} and id_job=${review.id_job} `);
+        return db.query(`
+        update accepted set feedback_fromEmployee='${review.feedback_fromEmployee}', rating_fromEmployee=${review.rating_fromEmployee}
+        where id_applicant = ${review.id_applicant} and id_job=${review.id_job};
+        select u1.fullname, u2.email from users1 as u1, users as u2, reports as r where r.id_user1 = u1.id_user and r.id_user2 = u2.id_user and r.id_applicant = ${review.id_applicant};
+        `);
     },
    
     getReviewListByJobId: (id_job) => {

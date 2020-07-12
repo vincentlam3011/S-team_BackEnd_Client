@@ -83,7 +83,6 @@ router.post('/addApplicant', function (req, res, next) {
                     type: 16,
                     date: Date.now()
                 }
-                console.log('Email nhận thông báo: ', updateData[1][0].email);
                 firebase.pushNotificationsFirebase(updateData[1][0].email, content);
                 response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, updateData);
 
@@ -102,7 +101,6 @@ router.post('/addApplicant', function (req, res, next) {
                     type: 15,
                     date: Date.now()
                 }
-                console.log('Email nhận thông báo: ', addData[1][0].email);
                 firebase.pushNotificationsFirebase(addData[1][0].email, content);
                 response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, addData);
 

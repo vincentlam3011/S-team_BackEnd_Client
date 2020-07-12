@@ -451,14 +451,24 @@ router.post("/cancelRecruit", function (req, res, next) {
     if (id_job) {
         jobModel.setCancelRecruit(id_job).then(data => {
             response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data);
-            let content = {
+            // gửi thông báo cho ng dc tuyển
+            let content1 = {
                 fullname: data[1][0].fullname,
                 job: data[1][0].title,
                 type: 5,
                 date: Date.now()
             }
             data[2].forEach((e) => {
-                firebase.pushNotificationsFirebase(e.email, content);
+                firebase.pushNotificationsFirebase(e.email, content1);
+            })
+            let content2 = {
+                fullname: data[1][0].fullname,
+                job: data[1][0].title,
+                type: 18,
+                date: Date.now()
+            }
+            data[3].forEach((e) => {
+                firebase.pushNotificationsFirebase(e.email, content2);
             })
         }).catch(err => {
             response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);

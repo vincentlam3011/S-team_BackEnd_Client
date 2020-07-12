@@ -309,7 +309,8 @@ module.exports = {
         return db.query(`
         update jobs set id_status = 2 where id_job= ${id_job};
         select u.fullname, j.title from jobs as j, users as u where j.id_job = ${id_job} and j.employer = u.id_user;
-        select u.email from applicants as a, users as u where a.id_user = u.id_user and a.id_status = 1 and a.id_job = ${id_job};
+        select u.email from applicants as a, users as u where a.id_user = u.id_user and a.id_status = 1 and a.id_job = ${id_job};                
+        select u.email from applicants as a, users as u where a.id_user = u.id_user and a.id_status = 0 and a.id_job = ${id_job};
         update applicants set start = '${todayStr}' where id_job = ${id_job};
         `);
     },
