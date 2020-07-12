@@ -119,7 +119,7 @@ module.exports = {
             on  j.id_job= jri.id_job
             where j.id_job=${id};`
 
-        let query3 = `select  distinct  j.id_job,app.proposed_price,u.fullname,u.id_user,u.dial,u.email
+        let query3 = `select  distinct  j.id_job,app.proposed_price,u.fullname,u.id_user,u.dial,u.email, app.id_status
             from jobs as j 
             left join applicants as app
             on  j.id_job= app.id_job
@@ -195,7 +195,7 @@ module.exports = {
         select j.*, jri.img, jt.id_tag, t.name as tag_name, t.status as tag_status, p.name as province, d.name as district${multipleTags.length > 0 ? ', matches.relevance as relevance' : ''}
         from (((jobs as j left join job_related_images as jri on j.id_job = jri.id_job) left join jobs_tags as jt on j.id_job = jt.id_job) left join tags as t on t.id_tag = jt.id_tag), users as u, provinces as p, districts as d
         ${multipleTags.length > 0 ? ',(SELECT j2.id_job as id,count(j2.id_job) as relevance FROM jobs as j2, jobs_tags as jt2 WHERE j2.id_job = jt2.id_job AND jt2.id_tag IN (' + tags + ') GROUP BY j2.id_job) AS matches' : ''}
-        ${count > 0 ? ('where ' + query + ' and j.area_province = p.id_province and j.area_district = d.id_district') : 'where j.area_province = p.id_province and j.area_district = d.id_district'} ${multipleTags.length > 0 ? ' and matches.id = j.id_job' : ''}
+        ${count > 0 ? ('where ' + query + ' and j.area_province = p.id_province and j.area_district = d.id_district and j.id_status = 1 ') : 'where j.area_province = p.id_province and j.area_district = d.id_district and j.id_status = 1 '} ${multipleTags.length > 0 ? ' and matches.id = j.id_job' : ''}
         group by j.id_job, jt.id_tag`
 
         //and j.expire_date > "' + todayStr + '" 
@@ -260,7 +260,7 @@ module.exports = {
         }
         else {
             return db.query(`
-            select j.*, count(a.id_job) as candidates,jp.deadline as deadline, jt.start_date as start_date, jt.end_date as end_date, jt.salary_type, p.name as province, d.name as district
+            select j.*, count(a.id_applicant) as candidates,jp.deadline as deadline, jt.start_date as start_date, jt.end_date as end_date, jt.salary_type, p.name as province, d.name as district
             from (((jobs as j left JOIN accepted as a on j.id_job = a.id_job) left join jobs_production as jp on j.id_job = jp.id_job) left join jobs_temporal as jt on j.id_job = jt.id_job), provinces as p, districts as d
             where j.employer = ${id_user} and j.id_status = ${status} and j.area_province = p.id_province and j.area_district = d.id_district
             group by j.id_job`);
@@ -309,7 +309,7 @@ module.exports = {
         return db.query(`
         update jobs set id_status = 2 where id_job= ${id_job};
         select u.fullname, j.title from jobs as j, users as u where j.id_job = ${id_job} and j.employer = u.id_user;
-        select u.email from applicants as a, users as u where a.id_user = u.id_user and a.id_job = ${id_job};
+        select u.email from applicants as a, users as u where a.id_user = u.id_user and a.id_status = 1 and a.id_job = ${id_job};
         update applicants set start = '${todayStr}' where id_job = ${id_job};
         `);
     },

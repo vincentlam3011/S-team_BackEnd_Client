@@ -27,16 +27,26 @@ module.exports = {
     },
     addApplicant: (applicants) => {
         // if (applicants.attachment !== null && applicants.attachment !== '') {
-        applicants.attachment = convertBlobB64.convertB64ToBlob(applicants.attachment).toString('hex');
+        let attachmentText = '';
+        if(applicants.attachment !== null && applicants.attachment !== '') {
+            attachmentText = `x'${convertBlobB64.convertB64ToBlob(applicants.attachment).toString('hex')}'`;
+        }
+        else {
+            attachmentText = `null`;
+        }
+        let temp = applicants.attachment.slice(0, 10);
+        console.log(temp);
+        
         // }
         let columsJob = `(id_user,id_job,proposed_price,attachment, introduction_string)`
         let valueJob = `('${applicants.id_user}',
         '${applicants.id_job}','${applicants.proposed_price}',
-        x'${applicants.attachment}', '${applicants.introduction_string}')`;
+        ${attachmentText}, '${applicants.introduction_string}')`;
         let sqlQueryApplicants = `
         insert into applicants` + columsJob + ` values` + valueJob + `;
         select u2.fullname, j.id_job, j.title, u1.email from users as u1, users as u2, jobs as j where j.id_job = ${applicants.id_job} and u2.id_user = ${applicants.id_user} and j.employer = u1.id_user;
         `;
+        console.log(sqlQueryApplicants);
         return db.query(sqlQueryApplicants)
     },
     updateNewPrice: (applicants) => {

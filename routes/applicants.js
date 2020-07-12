@@ -72,7 +72,7 @@ router.post('/addApplicant', function (req, res, next) {
     });
     var id_user = decodedPayload.id;
     applicants.id_user = id_user;
-    console.log(applicants.id_user);
+    console.log(applicants.attachment);
     applicantModel.getApplicantsByUserIdJobId(id_user, applicants.id_job).then(data => {
         if (data.length > 0) { // đã tồn tại
             applicantModel.updateNewPrice(applicants).then(updateData => {

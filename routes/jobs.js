@@ -162,12 +162,15 @@ router.post('/getJobsByEmployerIdForWeb', function (req, res, next) {
             let candidates = 0, participants = 0;
             const tags = _.map(value, item => {
                 const { id_applicant, applicant_status } = item;
-                if (applicant_status === 0) {
-                    candidates++;
-                }
-                else {
-                    participants++;
-                }
+                console.log(id_applicant);
+                if(id_applicant !== null) {
+                    if (applicant_status === 0) {
+                        candidates++;
+                    }
+                    else {
+                        participants++;
+                    }
+                }                
             })
 
             const temp = {
@@ -192,7 +195,7 @@ router.post('/getJobsByEmployerIdForWeb', function (req, res, next) {
                 requirement: value[0].requirement,
                 id_status: value[0].id_status,
                 candidates: candidates,
-                participants: participants,
+                participants: status === 2 || status === 3 ? value[0].candidates : participants,
                 deadline: value[0].deadline,
                 start_date: value[0].start_date,
                 end_date: value[0].end_date,
@@ -459,7 +462,6 @@ router.post("/cancelRecruit", function (req, res, next) {
             })
         }).catch(err => {
             response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
-
         })
 
     }

@@ -12,6 +12,7 @@ var userModel = require('../models/userModel');
 const reportModel = require('../models/reportModel');
 const transactionModel = require('../models/transactionModel');
 const { transaction } = require('../utils/db');
+const { report } = require('./applicants');
 
 const saltRounds = 15;
 
@@ -175,7 +176,7 @@ router.post('/addReport', (req, res, next) => {
   });
 
   let id_user1 = decodedPayload.id;
-  let { content, type, applicantId } = req.body;
+  let { content, type, applicantId, id_job } = req.body;
   let role1 = Number.parseInt(req.body.yourRole);
   let role2 = 0;
   if (role1 === 0) {
@@ -183,12 +184,31 @@ router.post('/addReport', (req, res, next) => {
   }
 
   let id_user2 = Number.parseInt(req.body.reporterId);
-  reportModel.addReport(id_user1, role1, id_user2, role2, content, type, applicantId)
-    .then(data => {
-      response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, { insertId: data.insertId });
-    }).catch(err => {
-      response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
-    })
+
+  reportModel.getReportByAppIdJobIdU1U2Type(id_user1, id_user2, type, applicantId, id_job)
+  .then(checkData => {
+    if(checkData.length > 0) { // đã tồn tại
+      if(checkData[0].status === 0) { // chưa giải quyết
+        reportModel.updateContentReport(id_user1, id_user2, content, type, applicantId, id_job)
+        .then(data => {
+          response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, { code: 1});
+        }).catch(err => {
+          response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
+        })
+      }
+      else { // đã giải quyết
+        response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, { code: 0});
+      }
+    }
+    else { // chưa tồn tại
+      reportModel.addReport(id_user1, role1, id_user2, role2, content, type, applicantId, id_job)
+      .then(data => {
+        response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, { code: 1});
+      }).catch(err => {
+        response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
+      })
+    }
+  })  
 })
 
 
