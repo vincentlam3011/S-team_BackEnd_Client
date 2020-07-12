@@ -851,16 +851,19 @@ router.post('/handleIPNMoMo', function (req, res, next) {
 router.post('/handleIPNMoMoMobile', function (req, res, next) {
   console.log("body IPN MoMo: ", req.body);
   let result = req.body;
-  let id_applicant = req.body.partnerRefId.split('-')[0];
+  let str = req.body.partnerRefId.split('-');
+  let id_applicant = str[0];
+  let requestId = str[1].replace('F2L','');
+  console.log('requestId:', requestId)
   result.id_applicant = id_applicant;
   console.log('id_applicant:', id_applicant)
   if (req.body.status == 0) {
-    result.requestId = result.partnerTransId;
+    
     result.orderId = result.partnerRefId;
     result.orderInfo = '';
     result.orderType = result.transType;
-    result.requestId = result.partnerTransId;
     result.transId = result.momoTransId;
+    result.requestId = requestId;
     result.status = 0;
     result.errorCode = result.status;
     result.localMessage = result.message;
