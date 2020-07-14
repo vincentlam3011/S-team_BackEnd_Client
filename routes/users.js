@@ -77,6 +77,80 @@ router.get('/me', (req, res, next) => {
     })
 })
 
+/* Check if there is any job that expired today */
+router.get('/checkExpiredJob', (req, res, next) => {
+  var token = req.headers.authorization.slice(7);
+  var decodedPayload = jwt.decode(token, {
+    secret: 'S_Team',
+  });
+  var id_user = decodedPayload.id;
+
+  userModel.getExpireJobList(id_user)
+    .then(data => {
+      let applyingJob = data[0]; // công việc đang tuyển
+      let proccessingJob = data[1]; // công việc đang thực hiện
+
+      if (applyingJob.length === 0 && proccessingJob === 0) {
+        response(res, DEFINED_CODE.GET_DATA_SUCCESS, { code: 0 }); // ko có công việc quá hạn
+      }
+      else {
+        let numOfApplying = applyingJob.length, numOfProccessing = proccessingJob.length;
+        let returnStt = 0; // không có cv hết hạn
+        if (applyingJob.length > 0) {
+          console.log('hello from applying');
+          userModel.setExpireApplyingJobToProccessing(id_user)
+            .then(applyingData => {
+              console.log('hello from applying 2');
+            })
+            .catch(err => {
+              response(res, DEFINED_CODE.GET_DATA_FAIL, err)
+            })
+        }
+
+        if (proccessingJob.length > 0) { // kết thúc các công việc đang làm mà hết hạn
+          console.log('hello from proccessing');
+          userModel.setFinishJob(id_user)
+            .then(processData => {
+
+              let content = {
+                fullname: processData[0][0].fullname,
+                job: '',
+                type: 2,
+                date: Date.now()
+              }
+              processData[1].forEach(e => {
+                content.job = e.title;
+                firebase.pushNotificationsFirebase(e.email, content);
+              });
+
+
+            })
+            .catch(err => {
+              response(res, DEFINED_CODE.GET_DATA_FAIL, err)
+            })
+        }
+
+        if(numOfApplying > 0 && numOfProccessing > 0) {
+          returnStt = 3;
+        }
+        else if(numOfApplying > 0 && numOfProccessing === 0) {
+          returnStt = 1;
+        }
+        else if(numOfApplying === 0 && numOfProccessing > 0) {
+          returnStt = 2;
+        }
+        else {
+          returnStt = 0;
+        }
+        console.log('hello final');
+        response(res, DEFINED_CODE.GET_DATA_SUCCESS, { code: returnStt });
+      }
+    }).catch(err => {
+      response(res, DEFINED_CODE.GET_DATA_FAIL, err)
+    })
+})
+
+
 /* Change password */
 router.put('/changePassword', (req, res, next) => {
   var token = req.headers.authorization.slice(7);
@@ -187,47 +261,47 @@ router.post('/addReport', (req, res, next) => {
   let id_user2 = Number.parseInt(req.body.reporterId);
 
   reportModel.getReportByAppIdJobIdU1U2Type(id_user1, id_user2, type, applicantId, id_job)
-  .then(checkData => {
-    if(checkData.length > 0) { // đã tồn tại
-      if(checkData[0].status === 0) { // chưa giải quyết
-        reportModel.updateContentReport(id_user1, id_user2, content, type, applicantId, id_job)
-        .then(data => {
-          response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, { code: 1});
-        }).catch(err => {
-          response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
-        })
-      }
-      else { // đã giải quyết
-        response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, { code: 0});
-      }
-    }
-    else { // chưa tồn tại
-      reportModel.addReport(id_user1, role1, id_user2, role2, content, type, applicantId, id_job)
-      .then(data => {
-        response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, { code: 1});
-        if(type === 1) { // yêu cầu sa thải
-          let content1 = {
-            fullname: data[1][0].fullname,
-            job: data[1][0].title,
-            type: 21,
-            date: Date.now()
-          }
-          firebase.pushNotificationsFirebase(data[1][0].email, content1);
+    .then(checkData => {
+      if (checkData.length > 0) { // đã tồn tại
+        if (checkData[0].status === 0) { // chưa giải quyết
+          reportModel.updateContentReport(id_user1, id_user2, content, type, applicantId, id_job)
+            .then(data => {
+              response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, { code: 1 });
+            }).catch(err => {
+              response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
+            })
         }
-        else { // khiếu nại thông thường
-          let content2 = {
-            fullname: data[1][0].fullname,
-            job: data[1][0].title,
-            type: 20,
-            date: Date.now()
-          }
-          firebase.pushNotificationsFirebase(data[1][0].email, content2);
+        else { // đã giải quyết
+          response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, { code: 0 });
         }
-      }).catch(err => {
-        response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
-      })
-    }
-  })  
+      }
+      else { // chưa tồn tại
+        reportModel.addReport(id_user1, role1, id_user2, role2, content, type, applicantId, id_job)
+          .then(data => {
+            response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, { code: 1 });
+            if (type === 1) { // yêu cầu sa thải
+              let content1 = {
+                fullname: data[1][0].fullname,
+                job: data[1][0].title,
+                type: 21,
+                date: Date.now()
+              }
+              firebase.pushNotificationsFirebase(data[1][0].email, content1);
+            }
+            else { // khiếu nại thông thường
+              let content2 = {
+                fullname: data[1][0].fullname,
+                job: data[1][0].title,
+                type: 20,
+                date: Date.now()
+              }
+              firebase.pushNotificationsFirebase(data[1][0].email, content2);
+            }
+          }).catch(err => {
+            response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
+          })
+      }
+    })
 })
 
 
@@ -251,11 +325,11 @@ router.post('/getTransactionsByIdUser', (req, res, next) => {
           e.avatarImg = bufferB64;
         }
       })
-      
-      let final = transactionList.slice(take*(page - 1), take * page);
+
+      let final = transactionList.slice(take * (page - 1), take * page);
       var sum = data[1][0];
       response(res, DEFINED_CODE.GET_DATA_SUCCESS, { list: final, page: page, total: transactionList.length, sum: sum.totalAmount });
-      
+
     }).catch(err => {
       response(res, DEFINED_CODE.GET_DATA_FAIL)
     })

@@ -10,14 +10,25 @@ module.exports = {
         select u1.fullname, u2.email from users1 as u1, users as u2, reports as r where r.id_user1 = u1.id_user and r.id_user2 = u2.id_user and r.id_applicant = ${review.id_applicant};
         `);
     },
+    checkIfDidEmployerReview: (id_applicant) => {
+        let sqlQuery = `
+        select * from accepted where rating_fromEmployer is not null id_applicant = ${id_applicant};
+        `;
+        return db.query(sqlQuery);
+    },
    
-
     reviewReviewFromEmployee: (review)=>{
         return db.query(`
         update accepted set feedback_fromEmployee='${review.feedback_fromEmployee}', rating_fromEmployee=${review.rating_fromEmployee}
         where id_applicant = ${review.id_applicant} and id_job=${review.id_job};
         select u1.fullname, u2.email from users1 as u1, users as u2, reports as r where r.id_user1 = u1.id_user and r.id_user2 = u2.id_user and r.id_applicant = ${review.id_applicant};
         `);
+    },
+    checkIfDidEmployeeReview: (id_applicant) => {
+        let sqlQuery = `
+        select * from accepted where rating_fromEmployee is not null id_applicant = ${id_applicant};
+        `;
+        return db.query(sqlQuery);
     },
    
     getReviewListByJobId: (id_job) => {

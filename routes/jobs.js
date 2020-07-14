@@ -382,18 +382,56 @@ router.post("/editJob", function (req, res, next) {
     }
 
 })
-router.delete("/deleteJob", function (req, res, next) {
+// router.delete("/deleteJob", function (req, res, next) {
+//     let id_job = JSON.parse(JSON.stringify(req.body.id_job));;
+//     if (id_job) {
+//         jobModel.getJobById(id_job).then(result => {
+//             //Existed
+//             if (result.id_job) {
+//                 jobModel.deleteJobById(id_job).then(data => {
+//                     response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS);
+//                     let content = {
+//                         fullname: data[1][0].fullname,
+//                         job: data[1][0].title,
+//                         type: 10,
+//                         date: Date.now()
+//                     }
+//                     data[2].forEach((e) => {
+//                         firebase.pushNotificationsFirebase(e.email, content);
+//                     })
+
+//                 }).catch((err) => {
+//                     console.log('err:', err)
+//                     response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
+//                 })
+//             }
+//             else {
+//                 response(res, DEFINED_CODE.ERROR_ID);
+
+//             }
+//         }).catch(err => {
+//             response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
+//         })
+
+//     }
+//     else {
+//         response(res, DEFINED_CODE.ERROR_ID);
+
+//     }
+
+// }),
+router.post("/removeJob", function (req, res, next) {
     let id_job = JSON.parse(JSON.stringify(req.body.id_job));;
     if (id_job) {
-        jobModel.getJobById(id_job).then(result => {
+        jobModel.checkIfExistJob(id_job).then(result => {
             //Existed
-            if (result.id_job) {
-                jobModel.deleteJobById(id_job).then(data => {
+            if (result.length > 0) {
+                jobModel.removeJobById(id_job).then(data => {
                     response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS);
                     let content = {
                         fullname: data[1][0].fullname,
                         job: data[1][0].title,
-                        type: 10,
+                        type: 4,
                         date: Date.now()
                     }
                     data[2].forEach((e) => {

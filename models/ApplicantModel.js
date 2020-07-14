@@ -53,7 +53,7 @@ module.exports = {
         applicants.attachment = convertBlobB64.convertB64ToBlob(applicants.attachment).toString('hex');
 
         let sqlQueryApplicants = `
-        update applicants SET proposed_price =${applicants.proposed_price}, attachment=x'${applicants.attachment}'
+        update applicants SET proposed_price =${applicants.proposed_price}, attachment=x'${applicants.attachment}', introduction_string = '${applicants.introduction_string}'
         WHERE id_user = ${applicants.id_user} and id_job = ${applicants.id_job};
         select u2.fullname, j.id_job, j.title, u1.email from users as u1, users as u2, jobs as j where j.id_job = ${applicants.id_job} and u2.id_user = ${applicants.id_user} and j.employer = u1.id_user
         `;

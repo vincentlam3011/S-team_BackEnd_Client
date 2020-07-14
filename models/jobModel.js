@@ -128,6 +128,12 @@ module.exports = {
 
         return db.query(query1 + ` ` + query2 + ` ` + query3)
     },
+    checkIfExistJob: (id) => {
+        sqlQuery = `
+        select * from jobs where id_job = ${id};
+        `;
+        return db.query(sqlQuery);
+    },
     getJobByIdJobTopic: (id, page, number) => {
         return db.query(`select j.*,jri.img from jobs as j 
         left join job_related_images as jri
@@ -235,12 +241,14 @@ module.exports = {
         }
     },
     getJobsByEmployerId: (id_user, status) => {
-        if (status === 1) {
+        if (status === 1) { // công việc đang tuyển
             return db.query(`
             select j.*, count(a.id_job) as candidates, jp.deadline as deadline, jt.start_date as start_date, jt.end_date as end_date, jt.salary_type, p.name as province, d.name as district
             from (((jobs as j left JOIN applicants as a on j.id_job = a.id_job and a.id_status=0) left join jobs_production as jp on j.id_job = jp.id_job) left join jobs_temporal as jt on j.id_job = jt.id_job), provinces as p, districts as d
-            where j.employer = ${id_user} and j.id_status = ${status} and j.area_province = p.id_province and j.area_district = d.id_district
-            group by j.id_job`);
+            where j.employer = ${id_user} and (j.id_status = 1 or j.id_status = 4) and j.area_province = p.id_province and j.area_district = d.id_district            
+            group by j.id_job
+            order by j.id_status desc
+            `);
         }
         else {
             return db.query(`
@@ -255,7 +263,7 @@ module.exports = {
             return db.query(`
             select j.*, a.id_applicant, a.id_status as applicant_status, jp.deadline as deadline, jt.start_date as start_date, jt.end_date as end_date, jt.salary_type, p.name as province, d.name as district
             from (((jobs as j left JOIN applicants as a on j.id_job = a.id_job) left join jobs_production as jp on j.id_job = jp.id_job) left join jobs_temporal as jt on j.id_job = jt.id_job), provinces as p, districts as d
-            where j.employer = ${id_user} and j.id_status = ${status} and j.area_province = p.id_province and j.area_district = d.id_district
+            where j.employer = ${id_user} and (j.id_status = 1 or j.id_status = 4) and j.area_province = p.id_province and j.area_district = d.id_district
             group by j.id_job, a.id_applicant`);
         }
         else {
@@ -285,6 +293,13 @@ module.exports = {
     deleteJobById: (id) => {
         return db.query(`
         delete from jobs where id_job = ${id};
+        select u.fullname, j.title from jobs as j, users as u where j.id_job = ${id} and j.employer = u.id_user;
+        select u.email from applicants as a, users as u where a.id_user = u.id_user and a.id_job = ${id};
+        `)
+    },
+    removeJobById: (id) => {
+        return db.query(`
+        update jobs set id_status = -1 where id_job = ${id};
         select u.fullname, j.title from jobs as j, users as u where j.id_job = ${id} and j.employer = u.id_user;
         select u.email from applicants as a, users as u where a.id_user = u.id_user and a.id_job = ${id};
         `)

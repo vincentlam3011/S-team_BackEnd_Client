@@ -1,7 +1,7 @@
 var db = require('../utils/db');
 var convertBlobB64 = require('../middleware/convertBlobB64');
 
-module.exports = {
+module.exports = {    
     getByEmail: (email, accStatus = 0) => {
         if (accStatus === 0)
             return db.query(`select id_user, fullname, dob, email, password, dial, address, isBusinessUser, gender, account_status, currentToken, activationToken, activationExpr from users where email = '${email}';`);
@@ -94,5 +94,53 @@ module.exports = {
     },
     getUserImageFromChat: (email1,email2)=>{
         return db.query(`select email,avatarImg,fullname from users where users.email = "${email1}" or users.email = "${email2}";`);
+    },
+    getExpireJobList: (id_user) => {
+        let today = new Date();
+        let todayStr = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+        let sqlQuery = `
+        select * from jobs where expire_date <= '${todayStr}' and employer = ${id_user} and id_status = 1;
+        select * from ((jobs as j left join jobs_temporal as jt on j.id_job = jt.id_job) left join jobs_production as jp on j.id_job = jp.id_job) where (jp.deadline <= '${todayStr}' or jt.end_date <= '${todayStr}') and j.employer = ${id_user} and j.id_status = 2;
+        `;
+        return db.query(sqlQuery);
+    },
+    setExpireApplyingJobToProccessing: (id_user) => { // các công việc đang tuyển qua hạn nhưng có người ứng tuyển
+        let today = new Date();
+        let todayStr = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+        let sqlQuery = `
+        update jobs 
+        set id_status = -1 
+        where id_job in (
+            select j.id_job
+            from jobs as j left join (select id_job, count(id_job) as count from applicants group by id_job) as t on j.id_job = t.id_job
+                where t.count is null and j.expire_date <= '${todayStr}' and j.employer = ${id_user} and j.id_status = 1
+                group by j.id_job
+            );
+            
+        update jobs 
+        set id_status = 4
+        where id_job in (
+            select j.id_job
+            from jobs as j left join (select id_job, count(id_job) as count from applicants group by id_job) as t on j.id_job = t.id_job
+                where t.count is not null and j.expire_date <= '${todayStr}' and j.employer = ${id_user} and j.id_status = 1
+                group by j.id_job
+            );
+        `;
+        return db.query(sqlQuery);
+    },
+    setFinishJob: (id_user) => {
+        let today = new Date();
+        let todayStr = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+        let sqlQuery = `
+        select email, fullname from users where id_user = ${id_user};
+        select u.email, j.title from users as u, applicants as app, ((jobs as j left join jobs_temporal as jt on j.id_job = jt.id_job) left join jobs_production as jp on j.id_job = jp.id_job) where j.employer = ${id_user} and j.id_job = app.id_job and app.id_user = u.id_user and (jp.deadline <= '${todayStr}' or jt.end_date <= '${todayStr}') and j.id_status = 2 ;
+        update jobs 
+        set id_status = 3 
+        where set id_job = (select j.id_job
+            from jobs as j, jobs_temporal as jt, jobs_production as jp 
+            where j.id_job = jt.id_job and j.id_job = jp.id_job and (jp.deadline <= '${todayStr}' or jt.end_date <= '${todayStr}') and j.employer = ${id_user} and j.id_status = 2
+            ));        
+        `;
+        return db.query(sqlQuery);
     }
 }
