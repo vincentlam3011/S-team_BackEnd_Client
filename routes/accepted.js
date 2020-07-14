@@ -26,57 +26,47 @@ var firebase = require('../middleware/firebaseFunction')
 router.post('/reviewFromEmployer', (req, res, next) => {
     const { id_applicant, id_job, feedback_fromEmployer, rating_fromEmployer } = req.body;
 
-    acceptedModel.checkIfDidEmployerReview(id_applicant)
-    .then(res => {
-        if(res.length > 0) { // đã tồn tại
-            acceptedModel.reviewFromEmployer(req.body)
-            .then(data => {
-                response(res, DEFINED_CODE.GET_DATA_SUCCESS, {code: 1});
-                let content = {
-                    fullname: data[1][0].fullname,
-                    type: 22,
-                    date: Date.now()
-                } 
-                firebase.pushNotificationsFirebase(data[1][0].email, content);
-            }).catch(err => {
-                response(res, DEFINED_CODE.GET_DATA_FAIL, err);
-            })
-        }
-        else {
-            response(res, DEFINED_CODE.GET_DATA_SUCCESS, {code: 0});
-        }
-    })
-    .catch(err => {
-        response(res, DEFINED_CODE.GET_DATA_FAIL, err);
-    })
+    acceptedModel.reviewFromEmployer(req.body)
+        .then(data => {
+            response(res, DEFINED_CODE.GET_DATA_SUCCESS, {code: 1});
+            let content = {
+                fullname: data[1][0].fullname,
+                type: 22,
+                date: Date.now()
+            } 
+            firebase.pushNotificationsFirebase(data[1][0].email, content);
+        }).catch(err => {
+            response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+        })
 })
 
 router.post('/reviewFromEmployee', (req, res, next) => {
     const { id_applicant, id_job, feedback_fromEmployee, rating_fromEmployee } = req.body;
     
-    acceptedModel.checkIfDidEmployeeReview(id_applicant)
-    .then(res => {
-        if(res.length > 0) {
-            acceptedModel.reviewReviewFromEmployee(req.body)
-                .then(data => {
-                    response(res, DEFINED_CODE.GET_DATA_SUCCESS, {code: 1})
-                    let content = {
-                        fullname: data[1][0].fullname,
-                        type: 23,
-                        date: Date.now()
-                    } 
-                    firebase.pushNotificationsFirebase(data[1][0].email, content);
-                }).catch(err => {
-                    response(res, DEFINED_CODE.GET_DATA_FAIL, err);
-                })
-        }
-        else {
-            response(res, DEFINED_CODE.GET_DATA_SUCCESS, {code: 0})
-        }
-    })
-    .catch(err => {
-        response(res, DEFINED_CODE.GET_DATA_FAIL, err);
-    })
+    acceptedModel.reviewReviewFromEmployee(req.body)
+        .then(data => {
+            response(res, DEFINED_CODE.GET_DATA_SUCCESS, {code: 1})
+            let content = {
+                fullname: data[1][0].fullname,
+                type: 23,
+                date: Date.now()
+            } 
+            firebase.pushNotificationsFirebase(data[1][0].email, content);
+        }).catch(err => {
+            response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+        })
 })
+
+router.post('/getDetailReview', (req, res, next) => {
+    let id_applicant = Number.parseInt(req.body.id_applicant);
+    
+    acceptedModel.detailReview(id_applicant)
+        .then(data => {
+            response(res, DEFINED_CODE.GET_DATA_SUCCESS, data[0])
+        }).catch(err => {
+            response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+        })
+})
+
 
 module.exports = router;
