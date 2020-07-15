@@ -100,7 +100,11 @@ module.exports = {
         let todayStr = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
         let sqlQuery = `
         select * from jobs where expire_date <= '${todayStr}' and employer = ${id_user} and id_status = 1;
-        select * from ((jobs as j left join jobs_temporal as jt on j.id_job = jt.id_job) left join jobs_production as jp on j.id_job = jp.id_job) where (jp.deadline <= '${todayStr}' or jt.end_date <= '${todayStr}') and j.employer = ${id_user} and j.id_status = 2;
+        select * from (
+            jobs as j left join (select id_job, count(id_job) as count from accepted group by id_job) as t on j.id_job = t.id_job
+        )
+        where t.count is null and j.employer = ${id_user} and j.id_status = 2
+        group by j.id_job;
         `;
         return db.query(sqlQuery);
     },
@@ -111,35 +115,41 @@ module.exports = {
         update jobs 
         set id_status = -1 
         where id_job in (
-            select j.id_job
-            from jobs as j left join (select id_job, count(id_job) as count from applicants group by id_job) as t on j.id_job = t.id_job
-                where t.count is null and j.expire_date <= '${todayStr}' and j.employer = ${id_user} and j.id_status = 1
-                group by j.id_job
-            );
+            select jid from (
+                select distinct j.id_job as jid
+                from jobs as j left join (select id_job, count(id_job) as count from applicants group by id_job) as t on j.id_job = t.id_job
+                    where t.count is null and j.expire_date <= '${todayStr}' and j.employer = ${id_user} and j.id_status = 1
+                    group by j.id_job
+                ) as temp
+        );
             
         update jobs 
         set id_status = 4
         where id_job in (
-            select j.id_job
-            from jobs as j left join (select id_job, count(id_job) as count from applicants group by id_job) as t on j.id_job = t.id_job
-                where t.count is not null and j.expire_date <= '${todayStr}' and j.employer = ${id_user} and j.id_status = 1
-                group by j.id_job
-            );
+            select jid from (
+                select distinct j.id_job as jid
+                from (jobs as j left join (select id_job, count(id_job) as count from applicants group by id_job) as t on j.id_job = t.id_job)
+                    where t.count is not null and j.expire_date <= '${todayStr}' and j.employer = ${id_user} and j.id_status = 1
+                    group by j.id_job
+                ) as temp
+        );
         `;
         return db.query(sqlQuery);
     },
     setFinishJob: (id_user) => {
-        let today = new Date();
-        let todayStr = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
         let sqlQuery = `
-        select email, fullname from users where id_user = ${id_user};
-        select u.email, j.title from users as u, applicants as app, ((jobs as j left join jobs_temporal as jt on j.id_job = jt.id_job) left join jobs_production as jp on j.id_job = jp.id_job) where j.employer = ${id_user} and j.id_job = app.id_job and app.id_user = u.id_user and (jp.deadline <= '${todayStr}' or jt.end_date <= '${todayStr}') and j.id_status = 2 ;
         update jobs 
-        set id_status = 3 
-        where set id_job = (select j.id_job
-            from jobs as j, jobs_temporal as jt, jobs_production as jp 
-            where j.id_job = jt.id_job and j.id_job = jp.id_job and (jp.deadline <= '${todayStr}' or jt.end_date <= '${todayStr}') and j.employer = ${id_user} and j.id_status = 2
-            ));        
+        set id_status = -1
+        where id_job in (
+            select jid from (
+                select distinct j.id_job as jid
+                from (
+                        jobs as j left join (select id_job, count(id_job) as count from accepted group by id_job) as t on j.id_job = t.id_job
+                    )
+                    where t.count is null and j.employer = ${id_user} and j.id_status = 2
+                    group by j.id_job
+                ) as temp
+        );       
         `;
         return db.query(sqlQuery);
     }

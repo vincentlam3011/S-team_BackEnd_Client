@@ -103,6 +103,8 @@ router.get('/checkExpiredJob', (req, res, next) => {
               console.log('hello from applying 2');
             })
             .catch(err => {
+              console.log("Lỗi:");
+              console.log(err);
               response(res, DEFINED_CODE.GET_DATA_FAIL, err)
             })
         }
@@ -111,19 +113,7 @@ router.get('/checkExpiredJob', (req, res, next) => {
           console.log('hello from proccessing');
           userModel.setFinishJob(id_user)
             .then(processData => {
-
-              let content = {
-                fullname: processData[0][0].fullname,
-                job: '',
-                type: 2,
-                date: Date.now()
-              }
-              processData[1].forEach(e => {
-                content.job = e.title;
-                firebase.pushNotificationsFirebase(e.email, content);
-              });
-
-
+              console.log('hello from proccessing 2');
             })
             .catch(err => {
               response(res, DEFINED_CODE.GET_DATA_FAIL, err)

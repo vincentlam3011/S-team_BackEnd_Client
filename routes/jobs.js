@@ -501,6 +501,7 @@ router.post("/cancelRecruit", function (req, res, next) {
             })
             let content2 = {
                 fullname: data[1][0].fullname,
+                id_job: id_job,
                 job: data[1][0].title,
                 type: 18,
                 date: Date.now()
@@ -543,6 +544,7 @@ router.post("/acceptApplicant", function (req, res, next) {
             firebase.createConversation(emailEmployer, email);
             let content = {
                 fullname: nameEmployer,
+                id_job: id_job,
                 job: job_title,
                 type: 1,
                 date: Date.now()
@@ -575,6 +577,7 @@ router.post("/rejectApplicant", function (req, res, next) {
             response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data[0]);
             let content = {
                 fullname: nameEmployer,
+                id_job: id_job,
                 job: data[1][0].title,
                 type: isEmployer === 1 ? 0 : 17,
                 date: Date.now()

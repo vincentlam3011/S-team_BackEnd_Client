@@ -9,7 +9,7 @@ module.exports = {
     addReport: (id_user1, role1, id_user2, role2, content, type, applicantId, jobId) => {
         let addReportQuery = `
         insert into reports (id_user1, role1, id_user2, role2, content, type, id_applicant, id_job) values (${id_user1},${role1}, ${id_user2}, ${role2}, N'${content}', ${type}, ${applicantId}, ${jobId});
-        select j.title, j.id_job, u1.fullname, u2.email from users as u1, users as u2, jobs as j where j.id_job = ${jobId} and u2.id_user = ${id_user2};
+        select j.title, j.id_job, u1.fullname, u2.email from users as u1, users as u2, jobs as j where j.id_job = ${jobId} and u2.id_user = ${id_user2} and u1.id_user = ${id_user1};
         `;
         
         if(type === 1) { // yêu cầu sa thải thì phải update ngày sa thải lại
