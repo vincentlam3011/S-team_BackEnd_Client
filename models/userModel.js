@@ -49,6 +49,25 @@ module.exports = {
         var companyQuery = `select * from companies where id_user = ${id};`;
         return db.query(userQuery + ' ' + companyQuery);
     },
+    getUserShedule: (id) => {
+        var employerSheduleQuery = `
+            select j.id_job, j.title, coalesce(jp.deadline, jt.end_date) as end
+            from (
+                    (jobs as j left join jobs_temporal as jt on j.id_job = jt.id_job) 
+                    left join jobs_production as jp on j.id_job = jp.id_job
+                )
+            where j.employer = ${id} and j.id_status = 2;
+        `;
+        var employeeSheduleQuery = `
+            select j.id_job, j.title, coalesce(jp.deadline, jt.end_date) as end
+            from (
+                    (jobs as j left join jobs_temporal as jt on j.id_job = jt.id_job) 
+                    left join jobs_production as jp on j.id_job = jp.id_job
+                ), applicants as a
+            where a.id_job = j.id_job and a.id_user = ${id} and j.id_status = 2;
+        `;
+        return db.query(employerSheduleQuery + ' ' + employeeSheduleQuery);
+    },
     getUserInfoNotPrivate: (id) => {
         let userQuery = '', employerRatingQuery = '', employeeRatingQuery = '', companyQuery = '';
         userQuery = `select id_user, fullname, dob, email, dial, address, identity, isBusinessUser, gender, avatarImg, account_status from users where id_user = ${id};`;        

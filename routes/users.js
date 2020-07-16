@@ -141,6 +141,23 @@ router.get('/checkExpiredJob', (req, res, next) => {
 })
 
 
+/* Get user shedule */
+router.get('/getShedule', (req, res, next) => {
+  var token = req.headers.authorization.slice(7);
+  var decodedPayload = jwt.decode(token, {
+    secret: 'S_Team',
+  });
+  var id_user = decodedPayload.id;
+  userModel.getUserShedule(id_user)
+    .then(data => {
+      // var employerShedule = data[0];
+      // var employeeShedule = data[1];
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, {employerShedule: data[0], employeeShedule: data[1] });
+    }).catch(err => {
+      response(res, DEFINED_CODE.GET_DATA_FAIL)
+    })
+})
+
 /* Change password */
 router.put('/changePassword', (req, res, next) => {
   var token = req.headers.authorization.slice(7);
