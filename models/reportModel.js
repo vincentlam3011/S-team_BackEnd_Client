@@ -3,7 +3,6 @@ var db = require('../utils/db');
 module.exports = {
     getReportByAppIdJobIdU1U2Type: (id_user1, id_user2, type, applicantId, jobId) => {
         let sqlQuery = `select * from reports where id_user1 = ${id_user1} and id_user2 = ${id_user2} and type = ${type} and id_applicant = ${applicantId} and id_job = ${jobId}`;
-        console.log(sqlQuery);
         return db.query(sqlQuery);
     },
     addReport: (id_user1, role1, id_user2, role2, content, type, applicantId, jobId) => {

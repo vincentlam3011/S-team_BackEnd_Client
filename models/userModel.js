@@ -68,6 +68,14 @@ module.exports = {
         `;
         return db.query(employerSheduleQuery + ' ' + employeeSheduleQuery);
     },
+    getUserStatistic: (id) => {
+        let sqlQuery = `
+        select count(*) as count from jobs where employer = ${id} and id_status = 2;
+        select count(*) as count from jobs as j, applicants as app where j.id_status = 2 and j.id_job = app.id_job and app.id_user = ${id};
+        select count(*) as count from transactions as tr, applicants as app where app.id_user = ${id} and app.id_applicant = tr.id_applicant and tr.status = 0;
+        `;
+        return db.query(sqlQuery);
+    },
     getUserInfoNotPrivate: (id) => {
         let userQuery = '', employerRatingQuery = '', employeeRatingQuery = '', companyQuery = '';
         userQuery = `select id_user, fullname, dob, email, dial, address, identity, isBusinessUser, gender, avatarImg, account_status from users where id_user = ${id};`;        

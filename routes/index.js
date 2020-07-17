@@ -981,4 +981,21 @@ router.post('/getSignatureMoMoInMobile', (req, res, next) => {
   }
 
 })
+
+router.post('/getDetailReview', (req, res, next) => {
+  let id_applicant = Number.parseInt(req.body.id_applicant);
+  
+  acceptedModel.detailReview(id_applicant)
+      .then(data => {
+        if(data.length > 0) { // có tồn tại rồi
+          response(res, DEFINED_CODE.GET_DATA_SUCCESS, {code: 1, review: data[0]});
+        }
+        else {
+            response(res, DEFINED_CODE.GET_DATA_SUCCESS, {code: 0, review: null});
+        }
+      }).catch(err => {
+        response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+      })
+})
+
 module.exports = router;

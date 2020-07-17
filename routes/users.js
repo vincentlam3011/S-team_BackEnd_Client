@@ -158,6 +158,27 @@ router.get('/getShedule', (req, res, next) => {
     })
 })
 
+/* Get Statistic */
+router.get('/getUserStatistic', (req, res, next) => {
+  var token = req.headers.authorization.slice(7);
+  var decodedPayload = jwt.decode(token, {
+    secret: 'S_Team',
+  });
+  var id_user = decodedPayload.id;
+  userModel.getUserStatistic(id_user)
+    .then(data => {
+      // var numOfJob = data[0][0].count;
+      // var numOfTask = data[1][0].count;
+      // var numOfTransaction = data[2][0].count;      
+      
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, { numOfJob: data[0][0].count, numOfTask: data[1][0].count, numOfTransaction: data[2][0].count});
+
+    }).catch(err => {
+      response(res, DEFINED_CODE.GET_DATA_FAIL)
+    })
+})
+
+
 /* Change password */
 router.put('/changePassword', (req, res, next) => {
   var token = req.headers.authorization.slice(7);

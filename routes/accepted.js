@@ -8,6 +8,7 @@ var { response, DEFINED_CODE } = require('../config/response');
 var passport = require('../passport');
 var _ = require('lodash');
 var acceptedModel = require('../models/acceptedmodel');
+var reportModel = require('../models/reportModel');
 var firebase = require('../middleware/firebaseFunction')
 
 //Get Applicants by JobId
@@ -57,16 +58,24 @@ router.post('/reviewFromEmployee', (req, res, next) => {
         })
 })
 
-router.post('/getDetailReview', (req, res, next) => {
-    let id_applicant = Number.parseInt(req.body.id_applicant);
+router.post('/getDetailReport', (req, res, next) => {
+    let id_user1 = Number.parseInt(req.body.id_user1);
+    let id_user2 = Number.parseInt(req.body.id_user2);
+    let type = Number.parseInt(req.body.type);
+    let applicantId = Number.parseInt(req.body.applicantId);
+    let jobId = Number.parseInt(req.body.jobId);
     
-    acceptedModel.detailReview(id_applicant)
+    reportModel.getReportByAppIdJobIdU1U2Type(id_user1, id_user2, type, applicantId, jobId)
         .then(data => {
-            response(res, DEFINED_CODE.GET_DATA_SUCCESS, data[0])
+            if(data.length > 0) { // có tồn tại rồi
+                response(res, DEFINED_CODE.GET_DATA_SUCCESS, {code: 1, report: data[0]});
+            }
+            else {
+                response(res, DEFINED_CODE.GET_DATA_SUCCESS, {code: 0, report: null});
+            }
         }).catch(err => {
             response(res, DEFINED_CODE.GET_DATA_FAIL, err);
         })
 })
-
 
 module.exports = router;
