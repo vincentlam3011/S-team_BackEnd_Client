@@ -241,7 +241,14 @@ module.exports = {
         }
     },
     getJobsByEmployerId: (id_user, status) => {
-        if (status === 1) { // công việc đang tuyển
+        if(status === 0) {
+            return db.query(`
+            select j.*, count(a.id_applicant) as candidates,jp.deadline as deadline, jt.start_date as start_date, jt.end_date as end_date, jt.salary_type, p.name as province, d.name as district
+            from (((jobs as j left JOIN accepted as a on j.id_job = a.id_job) left join jobs_production as jp on j.id_job = jp.id_job) left join jobs_temporal as jt on j.id_job = jt.id_job), provinces as p, districts as d
+            where j.employer = ${id_user} and j.area_province = p.id_province and j.area_district = d.id_district
+            group by j.id_job`);
+        }
+        else if (status === 1) { // công việc đang tuyển
             return db.query(`
             select j.*, count(a.id_job) as candidates, jp.deadline as deadline, jt.start_date as start_date, jt.end_date as end_date, jt.salary_type, p.name as province, d.name as district
             from (((jobs as j left JOIN applicants as a on j.id_job = a.id_job and a.id_status=0) left join jobs_production as jp on j.id_job = jp.id_job) left join jobs_temporal as jt on j.id_job = jt.id_job), provinces as p, districts as d
