@@ -74,9 +74,9 @@ router.post('/getJobsByApplicant', function (req, res, next) {
             finalData.push(temp);
         })
         // Đảo ngược chuỗi vì id_job thêm sau cũng là mới nhất
-        if (isASC !== 1) {
-            finalData = finalData.reverse();
-        }
+        // if (isASC !== 1) {
+        //     finalData = finalData.reverse();
+        // }
 
         let realData = finalData.slice((page - 1) * take, (page - 1) * take + take);
         if (realData.length > 0) {
@@ -91,7 +91,7 @@ router.post('/getJobsByApplicant', function (req, res, next) {
 
         }
 
-        console.log('flag 2');
+        // console.log('flag 2');
         // console.log(realData);
         response(res, DEFINED_CODE.GET_DATA_SUCCESS, { jobList: realData, total: finalData.length, page: page });
 
@@ -118,9 +118,9 @@ router.post('/getJobsByApplicantId', function (req, res, next) {
         let finalData = data;
 
         // Đảo ngược chuỗi vì id_job thêm sau cũng là mới nhất
-        if (isASC !== 1) {
-            finalData = _.groupBy(finalData, 'post_date', 'desc');
-        }
+        // if (isASC !== 1) {
+        //     finalData = _.groupBy(finalData, 'post_date', 'desc');
+        // }
 
         let realData = finalData.slice((page - 1) * take, (page - 1) * take + take);
         if (realData.length > 0) {
@@ -205,16 +205,19 @@ router.post('/getJobsByEmployerIdForWeb', function (req, res, next) {
             }
             finalData.push(temp);
         })
+
+        finalData = _.orderBy(finalData, 'post_date', 'desc');        
         // Đảo ngược chuỗi vì id_job thêm sau cũng là mới nhất
-        if (isASC !== 1) {
-            finalData = _.groupBy(data, 'post_date', 'desc');
-        }
+        // if (isASC !== 1) {
+        //     finalData = _.groupBy(data, 'post_date', 'desc');
+        // }
 
         let realData = finalData.slice((page - 1) * take, (page - 1) * take + take);
         
         response(res, DEFINED_CODE.GET_DATA_SUCCESS, { jobList: realData, total: finalData.length, page: page });
 
     }).catch((err) => {
+        console.log(err);
         response(res, DEFINED_CODE.GET_DATA_FAIL, err);
     })
 });
@@ -235,9 +238,9 @@ router.post('/getJobsByEmployerId', function (req, res, next) {
         console.log("Status: " + status);
         let finalData = data;
         console.log('data:', data)
-        if (isASC !== 1) {
-            finalData = _.groupBy(data, 'post_date', 'desc');
-        }
+        // if (isASC !== 1) {
+        //     finalData = _.groupBy(data, 'post_date', 'desc');
+        // }
         let realData = finalData.slice((page - 1) * take, (page - 1) * take + take);
         response(res, DEFINED_CODE.GET_DATA_SUCCESS, { jobList: realData, total: finalData.length, page: page });
 
