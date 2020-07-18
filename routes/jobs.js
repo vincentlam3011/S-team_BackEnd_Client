@@ -49,6 +49,7 @@ router.post('/getJobsByApplicant', function (req, res, next) {
             const temp = {
                 id_job: value[0].id_job,
                 // employer: value[0].employer,
+                id_applicant: value[0].id_applicant,
                 relevance: value[0].relevance,
                 title: value[0].title,
                 salary: value[0].salary,
@@ -228,7 +229,8 @@ router.post('/getJobsByEmployerId', function (req, res, next) {
     let take = Number.parseInt(req.body.take) || 6;
     let isASC = Number.parseInt(req.body.isASC) || 1;
     let status = Number.parseInt(req.body.status) || 1;
-
+    console.log(status);
+    console.log(req.body.status);
     var token = req.headers.authorization.slice(7);
     var decodedPayload = jwt.decode(token, {
         secret: 'S_Team',
@@ -237,7 +239,8 @@ router.post('/getJobsByEmployerId', function (req, res, next) {
     jobModel.getJobsByEmployerId(employer, status).then(data => {
         console.log("Status: " + status);
         let finalData = data;
-        console.log('data:', data)
+        // console.log('data:', data)
+        finalData = _.orderBy(finalData, 'post_date', 'desc');
         // if (isASC !== 1) {
         //     finalData = _.groupBy(data, 'post_date', 'desc');
         // }
