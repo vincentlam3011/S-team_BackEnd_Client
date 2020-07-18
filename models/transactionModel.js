@@ -4,8 +4,11 @@ var convertBlobB64 = require('../middleware/convertBlobB64');
 module.exports = {
 
     insertIntoTransaction: (trans)=>{
-        return db.query(`insert into transactions(amount, requestId, orderId, orderInfo, orderType, transId, errorCode, message, localMessage, responseTime, signature,  extraData, payType, id_applicant) 
-        VALUES ('${trans.amount}','${trans.requestId}','${trans.orderId}','${trans.orderInfo}','${trans.orderType}','${trans.transId}','${trans.errorCode}','${trans.message}','${trans.localMessage}','${trans.responseTime}','${trans.signature}','${trans.extraData}','${trans.payType}','${trans.id_applicant}');`);
+        return db.query(`
+        insert into transactions(amount, requestId, orderId, orderInfo, orderType, transId, errorCode, message, localMessage, responseTime, signature,  extraData, payType, id_applicant) 
+        VALUES ('${trans.amount}','${trans.requestId}','${trans.orderId}','${trans.orderInfo}','${trans.orderType}','${trans.transId}','${trans.errorCode}','${trans.message}','${trans.localMessage}','${trans.responseTime}','${trans.signature}','${trans.extraData}','${trans.payType}','${trans.id_applicant}');
+        select j.title, u1.fullname, u2.email from users as u1, users as u2, jobs as j, applicants as a where a.id_applicant = ${trans.id_applicant} and a.id_job = j.id_job and j.employer = u1.id_user and a.id_user = u2.id_user;
+        `);
     },
    
     getTransactions: (trans)=>{
@@ -13,6 +16,12 @@ module.exports = {
     },
     getTransactionsByIdApplicant: (id_applicant)=>{
         return db.query(`select distinct t.* from transactions as t, applicants as a where t.id_applicant = ${id_applicant}`);
+    },
+    getTransactionsByIdUser: (id_user)=>{
+        return db.query(`
+        select t.*, a.id_job, j.title, u.fullname, u.email, u.dial, u.avatarImg from transactions as t, applicants as a, jobs as j, users as u where t.id_applicant = a.id_applicant and a.id_user = ${id_user} and a.id_job = j.id_job and j.employer = u.id_user order by a.id_applicant desc;
+        select coalesce(sum(t.amount*(100-t.refund)/100), 0) as totalAmount from transactions as t, applicants as a where t.id_applicant = a.id_applicant and a.id_user = ${id_user};
+        `);
     }
   
     // sign_up: (account, company) => {

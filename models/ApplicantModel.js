@@ -27,20 +27,36 @@ module.exports = {
     },
     addApplicant: (applicants) => {
         // if (applicants.attachment !== null && applicants.attachment !== '') {
-        applicants.attachment = convertBlobB64.convertB64ToBlob(applicants.attachment).toString('hex');
+        let attachmentText = '';
+        if(applicants.attachment !== null && applicants.attachment !== '') {
+            attachmentText = `x'${convertBlobB64.convertB64ToBlob(applicants.attachment).toString('hex')}'`;
+        }
+        else {
+            attachmentText = `null`;
+        }
+        let temp = applicants.attachment.slice(0, 10);
+        console.log(temp);
+        
         // }
         let columsJob = `(id_user,id_job,proposed_price,attachment, introduction_string)`
         let valueJob = `('${applicants.id_user}',
         '${applicants.id_job}','${applicants.proposed_price}',
-        x'${applicants.attachment}', '${applicants.introduction_string}')`;
-        let sqlQueryApplicants = `insert into applicants` + columsJob + ` values` + valueJob + `;`;
+        ${attachmentText}, '${applicants.introduction_string}')`;
+        let sqlQueryApplicants = `
+        insert into applicants` + columsJob + ` values` + valueJob + `;
+        select u2.fullname, j.id_job, j.title, u1.email from users as u1, users as u2, jobs as j where j.id_job = ${applicants.id_job} and u2.id_user = ${applicants.id_user} and j.employer = u1.id_user;
+        `;
+        console.log(sqlQueryApplicants);
         return db.query(sqlQueryApplicants)
     },
     updateNewPrice: (applicants) => {
         applicants.attachment = convertBlobB64.convertB64ToBlob(applicants.attachment).toString('hex');
 
-        let sqlQueryApplicants = `update applicants SET proposed_price =${applicants.proposed_price}, attachment=x'${applicants.attachment}'
-        WHERE id_user = ${applicants.id_user} and id_job = ${applicants.id_job};`;
+        let sqlQueryApplicants = `
+        update applicants SET proposed_price =${applicants.proposed_price}, attachment=x'${applicants.attachment}', introduction_string = '${applicants.introduction_string}'
+        WHERE id_user = ${applicants.id_user} and id_job = ${applicants.id_job};
+        select u2.fullname, j.id_job, j.title, u1.email from users as u1, users as u2, jobs as j where j.id_job = ${applicants.id_job} and u2.id_user = ${applicants.id_user} and j.employer = u1.id_user
+        `;
         return db.query(sqlQueryApplicants)
     },
     editApplicant: (applicants) => {
@@ -56,8 +72,11 @@ module.exports = {
         return db.query(sqlQueryApplicants)
     },
     deleteApplicant: (id) => {
-        return db.query(`delete from applicants where id_applicant = ${id}`)
-    }
+        return db.query(`
+        delete from applicants where id_applicant = ${id};
+        select u2.fullname, j.id_job, j.title, u1.email from applicants as a, users as u1, users as u2, jobs as j where a.id_applicant = ${id} and a.id_job = j.id_job and a.id_user = u2.id_user and j.employer = u1.id_user;
+        `)
+    },
     // sign_up: (account, company) => {
     //     let columnsUsers = `(email, password, fullname, dob, dial, address, isBusinessUser, gender, account_status)`;
     //     let valuesUsers = `('${account.email}', '${account.password}', '${account.fullname}', '${account.dob}', '${account.dial}', '${account.address}' 
@@ -74,4 +93,8 @@ module.exports = {
     //     // var sqlQueryCompanies = `insert into COMPANIEs` + columnsCompanies + ` values` + valuesCompanies + `;`;
     //     return db.transaction(sqlQueryUsers, columnsCompanies, valuesCompanies, `COMPANIEs`);
     // },
+    getAppIdByJobIdUserId: (id_job, id_user) => {
+        let query = `select id_applicant from applicants where id_job = ${id_job} and id_user = ${id_user}`;
+        return db.query(query);
+    }
 }

@@ -10,7 +10,11 @@ var passport = require('../passport');
 
 var userModel = require('../models/userModel');
 const reportModel = require('../models/reportModel');
+const transactionModel = require('../models/transactionModel');
+const { transaction } = require('../utils/db');
+const { report } = require('./applicants');
 
+var firebase = require('../middleware/firebaseFunction')
 const saltRounds = 15;
 
 /* GET users listing. */
@@ -72,6 +76,108 @@ router.get('/me', (req, res, next) => {
       response(res, DEFINED_CODE.GET_DATA_FAIL)
     })
 })
+
+/* Check if there is any job that expired today */
+router.get('/checkExpiredJob', (req, res, next) => {
+  var token = req.headers.authorization.slice(7);
+  var decodedPayload = jwt.decode(token, {
+    secret: 'S_Team',
+  });
+  var id_user = decodedPayload.id;
+
+  userModel.getExpireJobList(id_user)
+    .then(data => {
+      let applyingJob = data[0]; // công việc đang tuyển
+      let proccessingJob = data[1]; // công việc đang thực hiện
+
+      if (applyingJob.length === 0 && proccessingJob === 0) {
+        response(res, DEFINED_CODE.GET_DATA_SUCCESS, { code: 0 }); // ko có công việc quá hạn
+      }
+      else {
+        let numOfApplying = applyingJob.length, numOfProccessing = proccessingJob.length;
+        let returnStt = 0; // không có cv hết hạn
+        if (applyingJob.length > 0) {
+          console.log('hello from applying');
+          userModel.setExpireApplyingJobToProccessing(id_user)
+            .then(applyingData => {
+              console.log('hello from applying 2');
+            })
+            .catch(err => {
+              console.log("Lỗi:");
+              console.log(err);
+              response(res, DEFINED_CODE.GET_DATA_FAIL, err)
+            })
+        }
+
+        if (proccessingJob.length > 0) { // kết thúc các công việc đang làm mà hết hạn
+          console.log('hello from proccessing');
+          userModel.setFinishJob(id_user)
+            .then(processData => {
+              console.log('hello from proccessing 2');
+            })
+            .catch(err => {
+              response(res, DEFINED_CODE.GET_DATA_FAIL, err)
+            })
+        }
+
+        if(numOfApplying > 0 && numOfProccessing > 0) {
+          returnStt = 3;
+        }
+        else if(numOfApplying > 0 && numOfProccessing === 0) {
+          returnStt = 1;
+        }
+        else if(numOfApplying === 0 && numOfProccessing > 0) {
+          returnStt = 2;
+        }
+        else {
+          returnStt = 0;
+        }
+        console.log('hello final');
+        response(res, DEFINED_CODE.GET_DATA_SUCCESS, { code: returnStt });
+      }
+    }).catch(err => {
+      response(res, DEFINED_CODE.GET_DATA_FAIL, err)
+    })
+})
+
+
+/* Get user shedule */
+router.get('/getShedule', (req, res, next) => {
+  var token = req.headers.authorization.slice(7);
+  var decodedPayload = jwt.decode(token, {
+    secret: 'S_Team',
+  });
+  var id_user = decodedPayload.id;
+  userModel.getUserShedule(id_user)
+    .then(data => {
+      // var employerShedule = data[0];
+      // var employeeShedule = data[1];
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, {employerShedule: data[0], employeeShedule: data[1] });
+    }).catch(err => {
+      response(res, DEFINED_CODE.GET_DATA_FAIL)
+    })
+})
+
+/* Get Statistic */
+router.get('/getUserStatistic', (req, res, next) => {
+  var token = req.headers.authorization.slice(7);
+  var decodedPayload = jwt.decode(token, {
+    secret: 'S_Team',
+  });
+  var id_user = decodedPayload.id;
+  userModel.getUserStatistic(id_user)
+    .then(data => {
+      // var numOfJob = data[0][0].count;
+      // var numOfTask = data[1][0].count;
+      // var numOfTransaction = data[2][0].count;      
+      
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, { numOfJob: data[0][0].count, numOfTask: data[1][0].count, numOfTransaction: data[2][0].count});
+
+    }).catch(err => {
+      response(res, DEFINED_CODE.GET_DATA_FAIL)
+    })
+})
+
 
 /* Change password */
 router.put('/changePassword', (req, res, next) => {
@@ -173,7 +279,7 @@ router.post('/addReport', (req, res, next) => {
   });
 
   let id_user1 = decodedPayload.id;
-  let { content, type, applicantId } = req.body;
+  let { content, type, applicantId, id_job } = req.body;
   let role1 = Number.parseInt(req.body.yourRole);
   let role2 = 0;
   if (role1 === 0) {
@@ -181,12 +287,81 @@ router.post('/addReport', (req, res, next) => {
   }
 
   let id_user2 = Number.parseInt(req.body.reporterId);
-  reportModel.addReport(id_user1, role1, id_user2, role2, content, type, applicantId)
-    .then(data => {
-      response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, { insertId: data.insertId });
-    }).catch(err => {
-      response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
+
+  reportModel.getReportByAppIdJobIdU1U2Type(id_user1, id_user2, type, applicantId, id_job)
+    .then(checkData => {
+      if (checkData.length > 0) { // đã tồn tại
+        if (checkData[0].status === 0) { // chưa giải quyết
+          reportModel.updateContentReport(id_user1, id_user2, content, type, applicantId, id_job)
+            .then(data => {
+              response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, { code: 1 });
+            }).catch(err => {
+              response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
+            })
+        }
+        else { // đã giải quyết
+          response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, { code: 0 });
+        }
+      }
+      else { // chưa tồn tại
+        reportModel.addReport(id_user1, role1, id_user2, role2, content, type, applicantId, id_job)
+          .then(data => {
+            response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, { code: 1 });
+            if (type === 1) { // yêu cầu sa thải
+              let content1 = {
+                fullname: data[1][0].fullname,
+                job: data[1][0].title,
+                type: 21,
+                date: Date.now()
+              }
+              firebase.pushNotificationsFirebase(data[1][0].email, content1);
+            }
+            else { // khiếu nại thông thường
+              let content2 = {
+                fullname: data[1][0].fullname,
+                job: data[1][0].title,
+                type: 20,
+                date: Date.now()
+              }
+              firebase.pushNotificationsFirebase(data[1][0].email, content2);
+            }
+          }).catch(err => {
+            response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
+          })
+      }
     })
 })
+
+
+/* Get user info */
+router.post('/getTransactionsByIdUser', (req, res, next) => {
+  let take = Number.parseInt(req.body.take) || 8;
+  let page = Number.parseInt(req.body.page) || 1;
+  var token = req.headers.authorization.slice(7);
+  var decodedPayload = jwt.decode(token, {
+    secret: 'S_Team',
+  });
+  var id_user = decodedPayload.id;
+  transactionModel.getTransactionsByIdUser(id_user)
+    .then(data => {
+      var transactionList = data[0];
+      transactionList.forEach((e) => {
+        if (e.avatarImg !== null) {
+          let avatar = e.avatarImg;
+          let buffer = new Buffer(avatar);
+          let bufferB64 = buffer.toString('base64');
+          e.avatarImg = bufferB64;
+        }
+      })
+
+      let final = transactionList.slice(take * (page - 1), take * page);
+      var sum = data[1][0];
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, { list: final, page: page, total: transactionList.length, sum: sum.totalAmount });
+
+    }).catch(err => {
+      response(res, DEFINED_CODE.GET_DATA_FAIL)
+    })
+})
+
 
 module.exports = router;

@@ -74,9 +74,9 @@ router.post('/getJobsByApplicant', function (req, res, next) {
             finalData.push(temp);
         })
         // Đảo ngược chuỗi vì id_job thêm sau cũng là mới nhất
-        if (isASC !== 1) {
-            finalData = finalData.reverse();
-        }
+        // if (isASC !== 1) {
+        //     finalData = finalData.reverse();
+        // }
 
         let realData = finalData.slice((page - 1) * take, (page - 1) * take + take);
         if (realData.length > 0) {
@@ -91,7 +91,7 @@ router.post('/getJobsByApplicant', function (req, res, next) {
 
         }
 
-        console.log('flag 2');
+        // console.log('flag 2');
         // console.log(realData);
         response(res, DEFINED_CODE.GET_DATA_SUCCESS, { jobList: realData, total: finalData.length, page: page });
 
@@ -118,9 +118,9 @@ router.post('/getJobsByApplicantId', function (req, res, next) {
         let finalData = data;
 
         // Đảo ngược chuỗi vì id_job thêm sau cũng là mới nhất
-        if (isASC !== 1) {
-            finalData = _.groupBy(finalData, 'post_date', 'desc');
-        }
+        // if (isASC !== 1) {
+        //     finalData = _.groupBy(finalData, 'post_date', 'desc');
+        // }
 
         let realData = finalData.slice((page - 1) * take, (page - 1) * take + take);
         if (realData.length > 0) {
@@ -162,12 +162,15 @@ router.post('/getJobsByEmployerIdForWeb', function (req, res, next) {
             let candidates = 0, participants = 0;
             const tags = _.map(value, item => {
                 const { id_applicant, applicant_status } = item;
-                if (applicant_status === 0) {
-                    candidates++;
-                }
-                else {
-                    participants++;
-                }
+                console.log(id_applicant);
+                if(id_applicant !== null) {
+                    if (applicant_status === 0) {
+                        candidates++;
+                    }
+                    else {
+                        participants++;
+                    }
+                }                
             })
 
             const temp = {
@@ -192,7 +195,7 @@ router.post('/getJobsByEmployerIdForWeb', function (req, res, next) {
                 requirement: value[0].requirement,
                 id_status: value[0].id_status,
                 candidates: candidates,
-                participants: participants,
+                participants: status === 2 || status === 3 ? value[0].candidates : participants,
                 deadline: value[0].deadline,
                 start_date: value[0].start_date,
                 end_date: value[0].end_date,
@@ -202,16 +205,19 @@ router.post('/getJobsByEmployerIdForWeb', function (req, res, next) {
             }
             finalData.push(temp);
         })
+
+        finalData = _.orderBy(finalData, 'post_date', 'desc');        
         // Đảo ngược chuỗi vì id_job thêm sau cũng là mới nhất
-        if (isASC !== 1) {
-            finalData = _.groupBy(data, 'post_date', 'desc');
-        }
+        // if (isASC !== 1) {
+        //     finalData = _.groupBy(data, 'post_date', 'desc');
+        // }
 
         let realData = finalData.slice((page - 1) * take, (page - 1) * take + take);
         
         response(res, DEFINED_CODE.GET_DATA_SUCCESS, { jobList: realData, total: finalData.length, page: page });
 
     }).catch((err) => {
+        console.log(err);
         response(res, DEFINED_CODE.GET_DATA_FAIL, err);
     })
 });
@@ -232,9 +238,9 @@ router.post('/getJobsByEmployerId', function (req, res, next) {
         console.log("Status: " + status);
         let finalData = data;
         console.log('data:', data)
-        if (isASC !== 1) {
-            finalData = _.groupBy(data, 'post_date', 'desc');
-        }
+        // if (isASC !== 1) {
+        //     finalData = _.groupBy(data, 'post_date', 'desc');
+        // }
         let realData = finalData.slice((page - 1) * take, (page - 1) * take + take);
         response(res, DEFINED_CODE.GET_DATA_SUCCESS, { jobList: realData, total: finalData.length, page: page });
 
@@ -379,14 +385,61 @@ router.post("/editJob", function (req, res, next) {
     }
 
 })
-router.delete("/deleteJob", function (req, res, next) {
+// router.delete("/deleteJob", function (req, res, next) {
+//     let id_job = JSON.parse(JSON.stringify(req.body.id_job));;
+//     if (id_job) {
+//         jobModel.getJobById(id_job).then(result => {
+//             //Existed
+//             if (result.id_job) {
+//                 jobModel.deleteJobById(id_job).then(data => {
+//                     response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS);
+//                     let content = {
+//                         fullname: data[1][0].fullname,
+//                         job: data[1][0].title,
+//                         type: 10,
+//                         date: Date.now()
+//                     }
+//                     data[2].forEach((e) => {
+//                         firebase.pushNotificationsFirebase(e.email, content);
+//                     })
+
+//                 }).catch((err) => {
+//                     console.log('err:', err)
+//                     response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
+//                 })
+//             }
+//             else {
+//                 response(res, DEFINED_CODE.ERROR_ID);
+
+//             }
+//         }).catch(err => {
+//             response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
+//         })
+
+//     }
+//     else {
+//         response(res, DEFINED_CODE.ERROR_ID);
+
+//     }
+
+// }),
+router.post("/removeJob", function (req, res, next) {
     let id_job = JSON.parse(JSON.stringify(req.body.id_job));;
     if (id_job) {
-        jobModel.getJobById(id_job).then(result => {
+        jobModel.checkIfExistJob(id_job).then(result => {
             //Existed
-            if (result.id_job) {
-                jobModel.deleteJobById(id_job).then(data => {
+            if (result.length > 0) {
+                jobModel.removeJobById(id_job).then(data => {
                     response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS);
+                    let content = {
+                        fullname: data[1][0].fullname,
+                        job: data[1][0].title,
+                        type: 4,
+                        date: Date.now()
+                    }
+                    data[2].forEach((e) => {
+                        firebase.pushNotificationsFirebase(e.email, content);
+                    })
 
                 }).catch((err) => {
                     console.log('err:', err)
@@ -408,20 +461,19 @@ router.delete("/deleteJob", function (req, res, next) {
     }
 
 }),
-    router.post("/createNewChatConversation", async function (req, res, next) {
+router.post("/createNewChatConversation", async function (req, res, next) {
 
-        const { email1, email2 } = req.body;
-        if (email1 && email2) {
-            firebase.createConversation(email1, email2);
+    const { email1, email2 } = req.body;
+    if (email1 && email2) {
+        firebase.createConversation(email1, email2);
 
-        }
-        else
-            response(res, DEFINED_CODE.ERROR_ID);
+    }
+    else
+        response(res, DEFINED_CODE.ERROR_ID);
 
 
 
-    })
-
+})
 router.post("/sendMessage", async function (req, res, next) {
 
     const { email1, email2 } = req.body;
@@ -440,10 +492,28 @@ router.post("/cancelRecruit", function (req, res, next) {
     if (id_job) {
         jobModel.setCancelRecruit(id_job).then(data => {
             response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data);
-
+            // gửi thông báo cho ng dc tuyển
+            let content1 = {
+                fullname: data[1][0].fullname,
+                job: data[1][0].title,
+                type: 5,
+                date: Date.now()
+            }
+            data[2].forEach((e) => {
+                firebase.pushNotificationsFirebase(e.email, content1);
+            })
+            let content2 = {
+                fullname: data[1][0].fullname,
+                id_job: id_job,
+                job: data[1][0].title,
+                type: 18,
+                date: Date.now()
+            }
+            data[3].forEach((e) => {
+                firebase.pushNotificationsFirebase(e.email, content2);
+            })
         }).catch(err => {
             response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
-
         })
 
     }
@@ -477,6 +547,7 @@ router.post("/acceptApplicant", function (req, res, next) {
             firebase.createConversation(emailEmployer, email);
             let content = {
                 fullname: nameEmployer,
+                id_job: id_job,
                 job: job_title,
                 type: 1,
                 date: Date.now()
@@ -503,17 +574,18 @@ router.post("/rejectApplicant", function (req, res, next) {
         secret: 'S_Team',
     });
     let nameEmployer = decoded.fullname;
-    const { id_job, id_user, email, job_title } = req.body;
+    const { id_job, id_user, isEmployer} = req.body;
     if (id_job && id_user) {
-        jobModel.rejectApplicant(id_job, id_user).then(data => {
-            response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data);
+        jobModel.rejectApplicant(id_job, id_user, isEmployer).then(data => {
+            response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data[0]);
             let content = {
                 fullname: nameEmployer,
-                job: job_title,
-                type: 0,
+                id_job: id_job,
+                job: data[1][0].title,
+                type: isEmployer === 1 ? 0 : 17,
                 date: Date.now()
             }
-            firebase.pushNotificationsFirebase(email, content)
+            firebase.pushNotificationsFirebase(data[1][0].email, content);
         }).catch(err => {
             response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
 

@@ -8,6 +8,7 @@ var { response, DEFINED_CODE } = require('../config/response');
 var passport = require('../passport');
 var _ = require('lodash');
 var applicantModel = require('../models/ApplicantModel');
+var firebase = require('../middleware/firebaseFunction')
 
 //Get Applicants by JobId
 // router.post('/getByJobId', function  (req, res, next) {
@@ -71,20 +72,41 @@ router.post('/addApplicant', function (req, res, next) {
     });
     var id_user = decodedPayload.id;
     applicants.id_user = id_user;
-    console.log(applicants.id_user);
+    console.log(applicants.attachment);
     applicantModel.getApplicantsByUserIdJobId(id_user, applicants.id_job).then(data => {
         if (data.length > 0) { // đã tồn tại
             applicantModel.updateNewPrice(applicants).then(updateData => {
+                let content = {
+                    fullname: updateData[1][0].fullname,
+                    job: updateData[1][0].title,
+                    id_job: updateData[1][0].id_job,
+                    type: 16,
+                    date: Date.now()
+                }
+                firebase.pushNotificationsFirebase(updateData[1][0].email, content);
                 response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, updateData);
+
             }).catch(err => {
                 response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
+                // res.json(err);
             })
         }
         else {
             applicantModel.addApplicant(applicants).then(addData => {
+                
+                let content = {
+                    fullname: addData[1][0].fullname,
+                    job: addData[1][0].title,
+                    id_job: addData[1][0].id_job,
+                    type: 15,
+                    date: Date.now()
+                }
+                firebase.pushNotificationsFirebase(addData[1][0].email, content);
                 response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, addData);
+
             }).catch(err => {
                 response(res, DEFINED_CODE.INTERACT_DATA_FAIL, err);
+                // res.json(err);
             })
         }
     }).catch(err => {
@@ -130,6 +152,14 @@ router.delete('/deleteApplicant', function (req, res, next) {
     if (id_applicant) {
         applicantModel.deleteApplicant(id_applicant).then(data => {
             response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data);
+            let content = {
+                fullname: data[1][0].fullname,
+                job: data[1][0].title,
+                id_job: data[1][0].id_job,
+                type: 17,
+                date: Date.now()
+            }
+            firebase.pushNotificationsFirebase(data[1][0].email, content)
         }).catch(err => {
             response(res, DEFINED_CODE.INTERACT_DATA_FAIL);
         })

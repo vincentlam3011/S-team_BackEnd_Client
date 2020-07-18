@@ -26,7 +26,7 @@ var { validateTokenInBlacklist, passportStrategy } = require('./middleware/auth'
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
-app.disable('etag');
+// app.disable('etag');
 // CORS fixed
 app.use(cors());
 app.use(function (req, res, next) {
