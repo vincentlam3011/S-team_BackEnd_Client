@@ -20,7 +20,10 @@ module.exports = {
     },
    
     getReviewListByJobId: (id_job) => {
-        return db.query(`select ac.*, u1.id_user as id_user1, u1.fullname as employer_name, u1.email as employer_email, u2.id_user as id_user2, u2.fullname as employee_name, u2.email as employee_email from accepted as ac, applicants as ap, users as u1, users as u2 where ac.id_applicant = ap.id_applicant and ap.id_user = u2.id_user and ac.id_job = j.id_job and j.employer = u1.id_user and ac.id_job = ${id_job} and (ac.rating_fromEmployee is not null or ac.rating_fromEmployer is not null)`);
+        return db.query(`
+        select ac.*, u1.id_user as id_user1, u1.fullname as employer_name, u1.email as employer_email, u2.id_user as id_user2, u2.fullname as employee_name, u2.email as employee_email 
+        from accepted as ac, applicants as ap, users as u1, users as u2, jobs as j
+        where ac.id_applicant = ap.id_applicant and ap.id_user = u2.id_user and ac.id_job = j.id_job and j.employer = u1.id_user and ac.id_job = ${id_job} and (ac.rating_fromEmployee is not null or ac.rating_fromEmployer is not null)`);
     },
 
     getReviewListByEmployerId: (employer) => {
