@@ -638,7 +638,7 @@ router.get('/getJobById/:id', function (req, res, next) {
         if (id_tag === null || tag_name === null || tag_status === 0) {
 
         } else {
-          tags_temp.push(tag_name);
+          tags_temp.push({id_tag, tag_name});
         }
       });
     })
