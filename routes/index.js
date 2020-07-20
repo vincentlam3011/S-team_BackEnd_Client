@@ -452,7 +452,7 @@ router.post('/signup', (req, res) => {
                     `Dear customer. \n\n`
                     + 'You are receiving this because you (or someone else) have signed up to our website.\n\n'
                     + 'Please click on the following link, or paste this into your browser to complete the process:\n\n'
-                    + `http://localhost:3000/activation/${activateToken}\n\n`
+                    + `https://free2lance.netlify.app/activation/${activateToken}\n\n`
                     + 'If you did not request this, please ignore this email and your account will not be activate.\n'
                     + 'F2L Support team',
                 }
@@ -566,7 +566,7 @@ router.post('/resendActivation', (req, res, next) => {
                 `Dear customer. \n\n`
                 + 'You are receiving this because you (or someone else) have signed up to our website.\n\n'
                 + 'Please click on the following link, or paste this into your browser to complete the process:\n\n'
-                + `http://localhost:3000/activation/${activateToken}\n\n`
+                + `https://free2lance.netlify.app/activation/${activateToken}\n\n`
                 + 'If you did not request this, please ignore this email and your account will not be activate.\n'
                 + 'F2L Support team',
             }
