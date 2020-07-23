@@ -17,8 +17,8 @@ module.exports = {
         return db.query(`select * from users where id_user = ${id}`);
     },
     sign_up: (account, company) => {
-        var columnsUsers = `(email, password, fullname, dob, dial, address, isBusinessUser, gender, account_status, activationToken, activationExpr)`;
-        var valuesUsers = `('${account.email}', '${account.password}', '${account.fullname}', '${account.dob}', '${account.dial}', '${account.address}' 
+        var columnsUsers = `(email, password, fullname, dob, dial, identity, address, isBusinessUser, gender, account_status, activationToken, activationExpr)`;
+        var valuesUsers = `('${account.email}', '${account.password}', '${account.fullname}', '${account.dob}', '${account.dial}','${account.identity}', '${account.address}' 
                             ,${account.isBusinessUser}, ${account.gender}, ${account.account_status}, '${account.activationToken}', '${account.activationExpr}')`;
 
         var sqlQueryUsers = `insert into users` + columnsUsers + ` values` + valuesUsers + `;`;

@@ -59,12 +59,17 @@ router.post('/reviewFromEmployee', (req, res, next) => {
 })
 
 router.post('/getDetailReport', (req, res, next) => {
-    let id_user1 = Number.parseInt(req.body.id_user1);
     let id_user2 = Number.parseInt(req.body.id_user2);
     let type = Number.parseInt(req.body.type);
     let applicantId = Number.parseInt(req.body.applicantId);
     let jobId = Number.parseInt(req.body.jobId);
     
+    var token = req.headers.authorization.slice(7);
+    var decodedPayload = jwt.decode(token, {
+        secret: 'S_Team',
+    });
+    let id_user1 = decodedPayload.id;
+
     reportModel.getReportByAppIdJobIdU1U2Type(id_user1, id_user2, type, applicantId, jobId)
         .then(data => {
             if(data.length > 0) { // có tồn tại rồi

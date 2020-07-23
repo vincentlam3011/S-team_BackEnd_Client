@@ -69,11 +69,11 @@ const mapCodeToMsg = {
     '-101': 'Tài khoản hoặc mật khẩu không chính xác',
     '-102': 'Mật khẩu không đúng',
     '-103': 'Email này đã tồn tài',
-    '-104': 'Avtivation token does not match!',
+    '-104': 'Token dùng để kích hoạt không trùng hớp!',
     '-105': 'Mật khẩu cũ không trùng khớp',
     '-106': 'Cannot edit personal information!',
     '-107': `Cannot edit company's information!`,
-    '-108': 'Cannot create a new password!',
+    '-108': 'Không thể khởi tạo mật khẩu mới!',
     /* DB interaction error messages */
     '-200': 'Cannot Get Data. It can be caused from your connection database!',
     '-201': 'Cannot renew token, please try logging in again!',
@@ -87,7 +87,7 @@ const mapCodeToMsg = {
     '-206': "Can't find data on MoMo Transaction",
 
     /* Nodemailer error messages */
-    '-301': 'Sending email failed',
+    '-301': 'Việc gửi mail gặp vấn đề',
 
     '-401': 'Get Data Fail',
     /* OK message */
@@ -98,12 +98,12 @@ const mapCodeToMsg = {
     '202': "Interact Data successs",
 
 
-    '104': "Activation success, you can now login to your account",
+    '104': "Việc kích hoạt tài khoản của bạn đã thành công, vui lòng đăng nhập",
     '105': "Password changed! Please relogin with your new password!",
     '106': "Personal information changed!",
     '107': "Company's information changed",
-    '108': 'New password sent via mail!',
-    '301': "Mail sent",
+    '108': 'Mật khẩu mới đã được gửi sang email của bạn!',
+    '301': "Mail đã được gửi thành công",
 
 
 
