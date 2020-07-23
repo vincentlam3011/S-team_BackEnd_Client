@@ -207,7 +207,7 @@ router.post('/getJobsByEmployerIdForWeb', function (req, res, next) {
             finalData.push(temp);
         })
 
-        finalData = _.orderBy(finalData, 'post_date, id_status', 'desc, desc');
+        finalData = _.orderBy(finalData, ['post_date', 'id_status'], ['desc', 'desc']);
         // Đảo ngược chuỗi vì id_job thêm sau cũng là mới nhất
         // if (isASC !== 1) {
         //     finalData = _.groupBy(data, 'post_date', 'desc');
