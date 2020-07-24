@@ -454,6 +454,7 @@ router.post('/signup', (req, res) => {
                     + 'Bạn nhận được email kích hoạt này vì yêu cầu "Tạo tài khoản mới" đối với ứng dụng của chúng tối.\n\n'
                     + 'Vui lòng click vào đường dẫn sau hoặc là copy và dán vào browser để hoàn thành quá trình kích hoạt tài khoản:\n\n'
                     + `https://free2lance.netlify.app/activation/${activateToken}\n\n`
+                    + 'Hay cập nhật các hồ sơ xác thực gồm có ảnh chụp: chân dung, mặt trước CMND/passport, mặt sau CMND/passport.'
                     + 'Nếu như bạn không thực hiện yêu cầu trên, thì đừng quan tâm email này và tài khoản của bạn sẽ không thay đổi trạng thái.\n'
                     + 'F2L Support team',
                 }
