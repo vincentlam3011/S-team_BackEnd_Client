@@ -120,13 +120,13 @@ router.get('/checkExpiredJob', (req, res, next) => {
             })
         }
 
-        if(numOfApplying > 0 && numOfProccessing > 0) {
+        if (numOfApplying > 0 && numOfProccessing > 0) {
           returnStt = 3;
         }
-        else if(numOfApplying > 0 && numOfProccessing === 0) {
+        else if (numOfApplying > 0 && numOfProccessing === 0) {
           returnStt = 1;
         }
-        else if(numOfApplying === 0 && numOfProccessing > 0) {
+        else if (numOfApplying === 0 && numOfProccessing > 0) {
           returnStt = 2;
         }
         else {
@@ -152,7 +152,7 @@ router.get('/getShedule', (req, res, next) => {
     .then(data => {
       // var employerShedule = data[0];
       // var employeeShedule = data[1];
-      response(res, DEFINED_CODE.GET_DATA_SUCCESS, {employerShedule: data[0], employeeShedule: data[1] });
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, { employerShedule: data[0], employeeShedule: data[1] });
     }).catch(err => {
       response(res, DEFINED_CODE.GET_DATA_FAIL)
     })
@@ -170,8 +170,8 @@ router.get('/getUserStatistic', (req, res, next) => {
       // var numOfJob = data[0][0].count;
       // var numOfTask = data[1][0].count;
       // var numOfTransaction = data[2][0].count;      
-      
-      response(res, DEFINED_CODE.GET_DATA_SUCCESS, { numOfJob: data[0][0].count, numOfTask: data[1][0].count, numOfTransaction: data[2][0].count});
+
+      response(res, DEFINED_CODE.GET_DATA_SUCCESS, { numOfJob: data[0][0].count, numOfTask: data[1][0].count, numOfTransaction: data[2][0].count });
 
     }).catch(err => {
       response(res, DEFINED_CODE.GET_DATA_FAIL)
@@ -364,4 +364,14 @@ router.post('/getTransactionsByIdUser', (req, res, next) => {
 })
 
 
+
+/* Get user info */
+router.post('/logout', (req, res, next) => {
+  var token = req.headers.authorization.slice(7);
+  var decodedPayload = jwt.decode(token, {
+    secret: 'S_Team',
+  });
+  redis.setKey(token);
+  res.json({ message: "Logged out", code: 1 });
+})
 module.exports = router;
