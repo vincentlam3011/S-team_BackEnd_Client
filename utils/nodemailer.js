@@ -2,8 +2,8 @@ var nodemailer = require('nodemailer');
 var _ = require('lodash');
 var { response, DEFINED_CODE } = require('../config/response');
 
-const EMAIL_USERNAME = 'ubertutor018175';
-const EMAIL_PASSWORD = 'Ubertutor123';
+const EMAIL_USERNAME = 'free2lance2020';
+const EMAIL_PASSWORD = 'Free2Lance@123';
 
 var config = {
     // host: 'smtp.gmail.com',

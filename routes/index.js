@@ -6,6 +6,7 @@ var crypto = require('crypto');
 const saltRounds = 15;
 var redis = require('../utils/redis');
 const https = require('https');
+const NodeRSA = require('node-rsa');
 
 var userModel = require('../models/userModel');
 var jobTopicModel = require('../models/jobTopicModel');
@@ -111,56 +112,51 @@ router.post('/getJobsList', function (req, res, next) {
   // Lấy danh sách các query cần thiết
   let queryArr = [];
   let multiTags = [];
+
+  let queryTitle = '';
+  let queryEmployer = '';
+
   let query = req.body.query;
   let isFulltext = false;
   let count = 0;
   for (let i in query) {
     if (query[i]) {
       if (i === 'title') {
-        let searchTerm = query[i];
-        searchTerm = searchTerm.replace(/[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-.\/:;<=>?@\[\]^_`{|}~]/g, ' ').replace(/\s+/g, ' ');
-        if (searchTerm.length >= 3) {
-          let words = searchTerm.split(" ");
-          count = words.length;
-          let matchValue = '';
-          isFulltext = true;
-          for (let w of words) {
-            matchValue += w + " ";
-          }
-          queryArr.push({ field: i, text: `match(title) against('${matchValue}')` });
-        } else {
-          queryArr.push({ field: i, text: `LIKE '%${query[i]}%'` });
-        }
-        // queryArr.push({ field: i, text: `LIKE '%${query[i]}%'` });
+        //queryArr.push(` match(j.${i}) against('${query[i]}') `);
+        queryTitle = query[i];
       }
       else if (i === 'expire_date') {
-        queryArr.push({ field: i, text: `= '${query[i]}'` });
+        queryArr.push(` j.${i} <= '${query[i]}' `);
       }
       else if (i === 'salary') {
-        queryArr.push({ field: i, text: `>= '${query[i].bot}'` });
+        queryArr.push(` j.${i} >= '${query[i].bot}' `);
         if (query[i].top != 0) {
-          queryArr.push({ field: i, text: `< '${query[i].top}'` });
+          queryArr.push(` j.${i} < '${query[i].top}' `);
         }
       }
       else if (i === 'vacancy') {
-        queryArr.push({ field: i, text: `>= '${query[i]}'` });
+        queryArr.push(` j.${i} >= '${query[i]}' `);
       }
       else if (i === 'employer') {
-        queryArr.push({ field: i, text: `= u.id_user and u.fullname = '${query[i]}'` });
+        // queryArr.push(` j.${i} = u.id_user and u.fullname = '${query[i]}' `);
+        //queryArr.push(` j.${i} = u.id_user and match(u.fullname) against('${query[i]}') `);
+        queryEmployer = query[i];
       }
       else if (i === 'tags') {
         multiTags = query[i];
       }
       else {
-        queryArr.push({ field: i, text: `= ${query[i]}` });
+        queryArr.push(` j.${i} = ${query[i]} `);
       }
     }
   };
-  jobModel.getJobsList(queryArr, multiTags, isFulltext, count).then(data => {
+
+  jobModel.getJobsList(queryArr, multiTags, queryEmployer, queryTitle).then(data => {
     const jobs = _.groupBy(data, "id_job");
     var finalData = [];
-    let tags_temp = [];
+
     _.forEach(jobs, (value, key) => {
+      let tags_temp = [];
       const tags = _.map(value, item => {
         const { id_tag, tag_name, tag_status } = item;
         if (id_tag === null || tag_name === null || tag_status === 0) {
@@ -173,7 +169,9 @@ router.post('/getJobsList', function (req, res, next) {
       })
       const temp = {
         id_job: value[0].id_job,
-        // employer: value[0].employer,
+        employer: value[0].employer,
+        employerRanking: value[0].employerRanking || 0,
+        titleRanking: value[0].titleRanking || 0,
         relevance: value[0].relevance,
         title: value[0].title,
         salary: value[0].salary,
@@ -198,10 +196,12 @@ router.post('/getJobsList', function (req, res, next) {
       }
       finalData.push(temp);
     })
+
     // Đảo ngược chuỗi vì id_job thêm sau cũng là mới nhất
     if (isASC !== 1) {
       finalData = finalData.reverse();
     }
+
     if (multiTags.length > 0) {
       finalData = _.orderBy(finalData, 'relevance', 'desc');
     }
@@ -402,6 +402,7 @@ router.post('/signup', (req, res) => {
     password: req.body.password,
     dial: req.body.dial,
     address: req.body.address,
+    identity: req.body.identity,
     isBusinessUser: req.body.isBusinessUser,
     gender: req.body.gender,
     account_status: 0, // default = 0
@@ -451,11 +452,12 @@ router.post('/signup', (req, res) => {
                 var mailOptions = {
                   subject: "Account activation",
                   text:
-                    `Dear customer. \n\n`
-                    + 'You are receiving this because you (or someone else) have signed up to our website.\n\n'
-                    + 'Please click on the following link, or paste this into your browser to complete the process:\n\n'
-                    + `http://localhost:3000/activation/${activateToken}\n\n`
-                    + 'If you did not request this, please ignore this email and your account will not be activate.\n'
+                    `Chào bạn, \n\n`
+                    + 'Bạn nhận được email kích hoạt này vì yêu cầu "Tạo tài khoản mới" đối với ứng dụng của chúng tối.\n\n'
+                    + 'Vui lòng click vào đường dẫn sau hoặc là copy và dán vào browser để hoàn thành quá trình kích hoạt tài khoản:\n\n'
+                    + `https://free2lance.netlify.app/activation/${activateToken}\n\n`
+                    + 'Hay cập nhật các hồ sơ xác thực gồm có ảnh chụp: chân dung, mặt trước CMND/passport, mặt sau CMND/passport.'
+                    + 'Nếu như bạn không thực hiện yêu cầu trên, thì đừng quan tâm email này và tài khoản của bạn sẽ không thay đổi trạng thái.\n'
                     + 'F2L Support team',
                 }
                 mailer(mailOptions, 'F2L S_Team', account.email, res);
@@ -510,25 +512,31 @@ router.put('/activation/:activationToken', (req, res, next) => {
   userModel.verifyActivation(activationToken)
     .then(data => {
       if (data.length > 0) {
-        if (data[0].account_status === 1) {
-          response(res, DEFINED_CODE.ACTIVATE_FAIL, 'Already activated');
+        if (data[0].account_status === 1) {          
+          response(res, DEFINED_CODE.ACTIVATE_FAIL, 'Tài khoản đã được kích hoạt');
           // res.redirect();
           return;
         } else {
           if (data[0].isExpr <= 0) {
+            let email = data[0].email;
             userModel.updateUserInfo(data[0].id_user, [{ field: 'account_status', value: 1 }])
               .then(result => {
                 response(res, DEFINED_CODE.ACTIVATE_SUCCESS);
+                let content = {
+                  type: 12,
+                  date: Date.now()
+                }
+                firebase.pushNotificationsFirebase(email, content)
               }).catch(err => {
                 response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
               })
           } else {
-            response(res, DEFINED_CODE.ACTIVATE_FAIL, "Activation code expired, please request a new one!");
+            response(res, DEFINED_CODE.ACTIVATE_FAIL, "Mã kích hoạt đã tồn tại, vui lòng yêu cầu mã mới!");
             return;
           }
         }
       } else {
-        response(res, DEFINED_CODE.ACTIVATE_FAIL, 'User not found');
+        response(res, DEFINED_CODE.ACTIVATE_FAIL, 'Tài khoản không tồn tại');
       }
     }).catch(err => {
       response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
@@ -559,11 +567,11 @@ router.post('/resendActivation', (req, res, next) => {
             var mailOptions = {
               subject: "Account activation",
               text:
-                `Dear customer. \n\n`
-                + 'You are receiving this because you (or someone else) have signed up to our website.\n\n'
-                + 'Please click on the following link, or paste this into your browser to complete the process:\n\n'
-                + `http://localhost:3000/activation/${activateToken}\n\n`
-                + 'If you did not request this, please ignore this email and your account will not be activate.\n'
+                `Chào bạn, \n\n`
+                + 'Bạn nhận được email này là vì yêu cầu "Gửi lại email kích hoạt".\n\n'
+                + 'Hãy click vào đường dẫn sau hoặc là copy và dán vào browser của bạn để hoàn thành quá trình kích hoạt tài khoản:\n\n'
+                + `https://free2lance.netlify.app/activation/${activateToken}\n\n`
+                + 'Nếu như bạn không thực hiện yêu cầu trên, thì đừng quan tâm email này và tài khoản của bạn sẽ không thay đổi trạng thái.\n'
                 + 'F2L Support team',
             }
             mailer(mailOptions, 'F2L S_Team', email, res);
@@ -572,7 +580,7 @@ router.post('/resendActivation', (req, res, next) => {
             response(res, DEFINED_CODE.SEND_MAIL_FAIL, err);
           })
       } else {
-        response(res, DEFINED_CODE.SEND_MAIL_FAIL, "User not found or already activated!");
+        response(res, DEFINED_CODE.SEND_MAIL_FAIL, "Không tìm được tài khoản người dùng hoặc là tài khoản này đã được kích hoạt!");
       }
     })
 })
@@ -587,16 +595,15 @@ router.put('/forget', (req, res, next) => {
         var newPassword = crypto.randomBytes(4).toString('hex');
         bcrypt.hash(newPassword, saltRounds, (err, hashed) => {
           if (err) {
-            response(res, DEFINED_CODE.PASSWORD_RECOVERY_FAIL, err); return;
+            response(res, DEFINED_CODE.PASSWORD_RECOVERY_FAIL, {message: 'Không khởi tạo được mật khẩu mới',err}); return;
           } else {
             var mailOptions = {
               subject: "Password recovery",
               text:
-                `Dear ${data[0].fullname}. \n\n`
-                + 'You are receiving this because you forgot the password of your account.\n'
-                + 'We are sending you a new password below, you can use it to login to our system:\n\n'
-                + `${newPassword}\n\n`
-                + 'If you did not request this, please ignore this email.\n\n'
+                `Chào bạn ${data[0].fullname}. \n\n`
+                + 'Bạn nhận được email này từ Free2Lance theo yêu cầu "Quên mật khẩu".\n'
+                + 'Chúng tôi gửi cho bạn mật khẩu mới cho tài khoản của mình, bạn có thể dùng nó để đăng nhập và thay đổi mật khẩu khác theo ý của mình.\n\n'
+                + `Mật khẩu mới:   ${newPassword}\n\n`
                 + 'F2L Support team',
             };
             console.log('newPassword:', newPassword)
@@ -605,12 +612,12 @@ router.put('/forget', (req, res, next) => {
                 mailer(mailOptions, 'F2L S_Team', email, res);
                 response(res, DEFINED_CODE.PASSWORD_RECOVERY_SUCCESS);
               }).catch(err => {
-                response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
+                response(res, DEFINED_CODE.ACCESS_DB_FAIL, {message: 'Kết nối với server có vấn đề',err});
               });
           }
         });
       } else {
-        response(res, DEFINED_CODE.PASSWORD_RECOVERY_FAIL, { note: "Account invalid" }); return;
+        response(res, DEFINED_CODE.PASSWORD_RECOVERY_FAIL, { message: "Email này không tồn tại trong hệ thống" }); return;
       }
     }).catch(err => {
       response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
@@ -634,7 +641,7 @@ router.get('/getJobById/:id', function (req, res, next) {
         if (id_tag === null || tag_name === null || tag_status === 0) {
 
         } else {
-          tags_temp.push(tag_name);
+          tags_temp.push({id_tag, tag_name});
         }
       });
     })
@@ -715,7 +722,6 @@ router.get('/getUserInfoNotPrivate/:id', function (req, res, next) {
     response(res, DEFINED_CODE.ACCESS_DB_FAIL, err);
   })
 });
-
 
 //Get Jobs Temporal Recent with params = length of data want to get
 router.get('/getJobsTemporalRecent/', function (req, res, next) {
@@ -840,6 +846,47 @@ router.post('/handleIPNMoMo', function (req, res, next) {
   console.log('id_applicant:', id_applicant)
   if (req.body.errorCode == 0) {
     transactionModel.insertIntoTransaction(result).then(data => {
+      response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data[0])
+      let content = {
+        fullname: data[1][0].fullname,
+        job: data[1][0].title,
+        type: 3,
+        date: Date.now()
+      }
+      firebase.pushNotificationsFirebase(data[1][0].email, content)
+    });
+
+  }
+  else {
+    response(res, DEFINED_CODE.ERROR_ID);
+  }
+});
+
+//Handle Notify on MOMO Mobile
+router.post('/handleIPNMoMoMobile', function (req, res, next) {
+  console.log("body IPN MoMo: ", req.body);
+  let result = req.body;
+  let str = req.body.partnerRefId.split('-');
+  let id_applicant = str[0];
+  let requestId = str[1].replace('F2L','');
+  console.log('requestId:', requestId)
+  result.id_applicant = id_applicant;
+  console.log('id_applicant:', id_applicant)
+  if (req.body.status == 0) {
+    
+    result.orderId = result.partnerRefId;
+    result.orderInfo = '';
+    result.orderType = result.transType;
+    result.transId = result.momoTransId;
+    result.requestId = requestId;
+    result.status = 0;
+    result.errorCode = result.status;
+    result.localMessage = result.message;
+    result.extraData = result.extra;
+    result.payType = 'mobile';
+
+
+    transactionModel.insertIntoTransaction(result).then(data => {
       response(res, DEFINED_CODE.INTERACT_DATA_SUCCESS, data)
     });
 
@@ -893,7 +940,7 @@ router.post('/getReviewListByEmployerId', (req, res, next) => {
   let take = Number.parseInt(req.body.take) || 8;
   let page = Number.parseInt(req.body.page) || 1;
   acceptedModel.getReviewListByEmployerId(employer)
-    .then(data => {
+    .then(data => {      
       let finalData = data.slice(take * (page - 1), take * page);
       response(res, DEFINED_CODE.GET_DATA_SUCCESS, { list: finalData, total: data.length, page: page });
     }).catch(err => {
@@ -902,8 +949,8 @@ router.post('/getReviewListByEmployerId', (req, res, next) => {
 })
 
 // get review list by employee id
-router.post('/getReviewListByEmployeeId', (req, res, next) => {
-  let employee = Number.parseInt(req.body.employer) || 1;
+router.post('/getReviewListByEmployeeId', (req, res, next) => { 
+  let employee = Number.parseInt(req.body.employee) || 1;
   let take = Number.parseInt(req.body.take) || 8;
   let page = Number.parseInt(req.body.page) || 1;
   acceptedModel.getReviewListByEmployeeId(employee)
@@ -915,5 +962,46 @@ router.post('/getReviewListByEmployeeId', (req, res, next) => {
     })
 })
 
+// get Hash RSA MoMo
+router.post('/getHashMoMoInMobile', (req, res, next) => {
+  let data = req.body;
+  if (data.amount && data.partnerRefId) {
+    response(res, DEFINED_CODE.GET_DATA_SUCCESS, momoService.createHashMoMoMobile(data));
+
+  }
+  else {
+    response(res, DEFINED_CODE.ERROR_ID, err);
+  }
+
+})
+// get Signature in Confirm MoMo
+router.post('/getSignatureMoMoInMobile', (req, res, next) => {
+  let data = req.body;
+  if (data.partnerRefId && data.requestId && data.momoTransId) {
+    console.log('requestId:',data.requestId)
+    response(res, DEFINED_CODE.GET_DATA_SUCCESS, momoService.createSignatureMobileConFirm(data));
+
+  }
+  else {
+    response(res, DEFINED_CODE.ERROR_ID);
+  }
+
+})
+
+router.post('/getDetailReview', (req, res, next) => {
+  let id_applicant = Number.parseInt(req.body.id_applicant);
+  
+  acceptedModel.detailReview(id_applicant)
+      .then(data => {
+        if(data.length > 0) { // có tồn tại rồi
+          response(res, DEFINED_CODE.GET_DATA_SUCCESS, {code: 1, review: data[0]});
+        }
+        else {
+            response(res, DEFINED_CODE.GET_DATA_SUCCESS, {code: 0, review: null});
+        }
+      }).catch(err => {
+        response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+      })
+})
 
 module.exports = router;
