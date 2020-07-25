@@ -495,7 +495,7 @@ router.post('/login', (req, res, next) => {
         let payload = { id: user.loginUser.id_user, fullname: user.loginUser.fullname, isBusinessUser: user.loginUser.isBusinessUser, email: user.loginUser.email };
         const token = jwt.sign(payload, 'S_Team', { expiresIn: '24h' });
         if (req.user.loginUser.currentToken !== null)
-          redis.setKey(token);
+          redis.setKey(req.user.loginUser.currentToken);
         userModel.editToken(req.user.loginUser.id_user, token)
           .then(result => {
             // return res.json({ user, token, cb });
