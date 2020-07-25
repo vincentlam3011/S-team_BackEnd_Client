@@ -308,6 +308,11 @@ router.get('/getTopUsers', function (req, res, next) {
     if (data.length > 0) {
       res.json({ message: 'Get Data Success', data, code: 1 })
     }
+    else
+    {
+      res.json({ message: 'Get Data Success', data, code: 1 })
+
+    }
   }).catch((err1) => {
     res.json({ message: err1, code: 0 });
   })
