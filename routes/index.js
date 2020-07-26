@@ -704,6 +704,82 @@ router.get('/getJobById/:id', function (req, res, next) {
   })
 });
 
+router.get('/getJobByIdforIOS/:id', function (req, res, next) {
+  let id_job = req.params.id;
+  jobModel.getJobById(id_job).then(data => {
+
+    var finalData;
+    var tags_temp = [];
+    var imgs_temp = [];
+
+    const tags = _.groupBy(data[0], "id_tag");
+
+    _.forEach(tags, (value, key) => {
+      const tag = _.map(value, item => {
+        const { id_tag, tag_name, tag_status } = item;
+        if (id_tag === null || tag_name === null || tag_status === 0) {
+
+        } else {
+          tags_temp.push(tag_name);
+        }
+      });
+    })
+
+    data[1].forEach(element => {
+      if (element.img) {
+        let buffer = new Buffer(element.img);
+        let bufferBase64 = buffer.toString('base64');
+        element.img = bufferBase64;
+        imgs_temp.push(element.img);
+      }
+    })
+
+    let jobInfo = data[0][0];
+
+
+    finalData = {
+      id_job: jobInfo.id_job,
+      employer: jobInfo.employer,
+      title: jobInfo.title,
+      salary: jobInfo.salary,
+      job_topic: jobInfo.job_topic,
+      area_province: jobInfo.area_province,
+      area_district: jobInfo.area_district,
+      address: jobInfo.address,
+      lat: jobInfo.lat,
+      lng: jobInfo.lng,
+      description: jobInfo.description,
+      post_date: jobInfo.post_date,
+      expire_date: jobInfo.expire_date,
+      dealable: jobInfo.dealable,
+      job_type: jobInfo.job_type,
+      isOnline: jobInfo.isOnline,
+      isCompany: jobInfo.isCompany,
+      vacancy: jobInfo.vacancy,
+      requirement: jobInfo.requirement,
+      id_status: jobInfo.id_status,
+      benefit: jobInfo.benefit,
+      province_name: jobInfo.province_name,
+      district_name: jobInfo.district_name,
+      topic_name: jobInfo.topic_name,
+      name_employer: jobInfo.name_employer,
+      email: jobInfo.email,
+      dial: jobInfo.dial,
+      name_status: jobInfo.name_status,
+      start_date: jobInfo.start_date,
+      end_date: jobInfo.end_date,
+      salary_type: jobInfo.salary_type,
+      deadline: jobInfo.deadline,
+      tags: tags_temp,
+      imgs: imgs_temp,
+      dealers: data[2],
+    }
+    response(res, DEFINED_CODE.GET_DATA_SUCCESS, finalData);
+  }).catch(err => {
+    response(res, DEFINED_CODE.GET_DATA_FAIL, err);
+  })
+});
+
 //getUserInfoNotPrivate By Id
 router.get('/getUserInfoNotPrivate/:id', function (req, res, next) {
   let employer = req.params.id;

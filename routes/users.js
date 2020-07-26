@@ -374,4 +374,5 @@ router.post('/logout', (req, res, next) => {
   redis.setKey(token);
   res.json({ message: "Logged out", code: 1 });
 })
+
 module.exports = router;
