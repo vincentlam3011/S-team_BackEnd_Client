@@ -103,8 +103,6 @@ router.get('/checkExpiredJob', (req, res, next) => {
               console.log('hello from applying 2');
             })
             .catch(err => {
-              console.log("Lỗi:");
-              console.log(err);
               response(res, DEFINED_CODE.GET_DATA_FAIL, err)
             })
         }
@@ -132,7 +130,6 @@ router.get('/checkExpiredJob', (req, res, next) => {
         else {
           returnStt = 0;
         }
-        console.log('hello final');
         response(res, DEFINED_CODE.GET_DATA_SUCCESS, { code: returnStt });
       }
     }).catch(err => {
