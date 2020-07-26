@@ -107,7 +107,13 @@ module.exports = {
         }
         console.log(updateQuery);
         var sqlQuery = updateQuery + ` where id_user = ${id}`;
-        return db.query(sqlQuery);
+        if (updates.length === 0) {
+            return db.query('select 1;');
+        }
+        else {
+            return db.query(sqlQuery);
+        }
+        
     },
     updateCompanyInfo: (id, updates) => {
         var updateQuery = `update companies set `;
