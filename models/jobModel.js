@@ -369,7 +369,7 @@ module.exports = {
         let todayStr = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
         return db.query(`
         update jobs set id_status=3 where id_job=${id_job};
-        update applicants set start = '${todayStr}' where id_job = ${id_job};
+        update applicants set end = '${todayStr}' where id_job = ${id_job};
         `)
     },
     updateJobStatus: (id_job, id_status) => {
