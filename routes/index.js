@@ -117,6 +117,8 @@ router.post('/getJobsList', function (req, res, next) {
   let queryEmployer = '';
 
   let query = req.body.query;
+  let isFulltext = false;
+  let count = 0;
   for (let i in query) {
     if (query[i]) {
       if (i === 'title') {
